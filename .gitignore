@@ -1,0 +1,8 @@
+.idea/
+.svn/
+target/
+*.iml
+*/target/
+*/*.iml
+*/src/main/resources/*.xml
+*/src/main/resources/*.conf

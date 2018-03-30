@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.i4</groupId>
+    <artifactId>iql</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>iql-engine</module>
+        <module>iql-springboot-http</module>
+        <module>iql-common</module>
+    </modules>
+
+    <repositories>
+        <repository>
+            <id>scala-tools.org1</id>
+            <name>Scala-Tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </repository>
+        <repository>
+            <id>scala-tools.org2</id>
+            <name>Scala-Tools Maven2 Repository</name>
+            <url>http://maven.restlet.org/</url>
+        </repository>
+        <repository>
+            <id>scala-tools.org3</id>
+            <name>Scala-Tools Maven2 Repository</name>
+            <url>https://repository.cloudera.com/content/repositories/releases/</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <scala.version>2.11</scala.version>
+        <log4j.version>1.2.17</log4j.version>
+        <mysql.version>5.1.32</mysql.version>
+        <lamma.version>2.2.2</lamma.version>
+        <fastjson.version>1.2.16</fastjson.version>
+        <i4scope>compile</i4scope>
+        <iqlscope>compile</iqlscope>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+        <!--解压-->
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.10.1</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/javax.mail/mail -->
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.7</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>9.3.6.v20151106</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>2.4.2</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>org.json</artifactId>
+            <version>2.0</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.lamma</groupId>
+            <artifactId>lamma_${scala.version}</artifactId>
+            <version>2.2.2</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.avro/avro -->
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>1.8.2</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>bijection-avro_2.10</artifactId>
+            <version>0.9.2</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor -->
+      <!--  <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.11</artifactId>
+            <version>2.5.9</version>
+        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-remote -->
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-remote_2.11</artifactId>
+            <version>2.5.9</version>
+            <scope>${iqlscope}</scope>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/net.liftweb/lift-json -->
+        <dependency>
+            <groupId>net.liftweb</groupId>
+            <artifactId>lift-json_2.11</artifactId>
+            <version>3.2.0</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/com.101tec/zkclient -->
+        <dependency>
+            <groupId>com.101tec</groupId>
+            <artifactId>zkclient</artifactId>
+            <version>0.7</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-httpclient/commons-httpclient -->
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.5</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+    </dependencies>
+
+
+</project>
