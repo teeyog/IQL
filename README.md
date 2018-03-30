@@ -1,5 +1,12 @@
 ## IQL
 
+参考 [spark sql在喜马拉雅的使用之xql](https://github.com/cjuexuan/mynote/issues/21)的load、select、save语法实现了一套基于spark的即席查询服务
+- 优雅的交互方式，支持多种datasource/sink
+- spark常驻服务，基于zookeeper的引擎自动发现
+- 负载均衡，多个引擎随机执行
+- 多session模式实现并行查询
+
+
 ### Hive
 - 加载数据
 ```
@@ -8,16 +15,16 @@ select * from hive_table
 
 - 保存数据
 ```
-save tb1 as hive.test_delete2
+save tb1 as hive.table
 ```
 
 ### Hbase
  
 ##### 加载数据
 
-- hbase.zookeeper.quorum：zookeeper地址,默认是 dsj01:2181
-- spark.table.schema：Spark临时表对应的schema  eg: "ID:String,appname:String,count:Int"
-- hbase.table.schema：Hbase表对应schema        eg: ":rowkey,0:APPNAME,0:COUNT"
+- hbase.zookeeper.quorum：zookeeper地址
+- spark.table.schema：Spark临时表对应的schema  eg: "ID:String,appname:String,age:Int"
+- hbase.table.schema：Hbase表对应schema        eg: ":rowkey,info:appname,info:age"
 - hbase.table.name：Hbase表名
 - spark.rowkey.view.name：rowkey对应的dataframe创建的tempview名（设置了该值后，只获取rowkey对应的数据）
 
@@ -31,7 +38,7 @@ as db1;
 
 ##### 保存数据
 
-- hbase.zookeeper.quorum：zookeeper地址,默认是 dsj01:2181
+- hbase.zookeeper.quorum：zookeeper地址
 - hbase.table.rowkey.field：spark临时表的哪个字段作为hbase的rowkey，默认第一个字段
 - bulkload.enable：是否启动bulkload，默认不启动，暂时bulkload有bug（排序问题），当要插入的hbase表只有一列rowkey时，必需启动。     
 - hbase.table.name：Hbase表名  
