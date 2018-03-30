@@ -35,7 +35,7 @@ load hbase.t_mbl_user_version_info
 where `spark.table.schema`="userid:String,osversion:String,toolversion:String"
 	   and `hbase.table.schema`=":rowkey,info:osversion,info:toolversion" 
 	   and `hbase.zookeeper.quorum`="localhost:2181"
-as db1;
+as tb;
 ```
 
 ##### 保存数据
@@ -63,7 +63,7 @@ where driver="com.mysql.jdbc.Driver" // 默认
       and url="jdbc:mysql://localhost/db?characterEncoding=utf8" 
       and user="root" // 默认
       and password="***" //默认
-as tr; 
+as tb; 
 ```
 
 - 保存数据
@@ -74,12 +74,12 @@ save append tb as jdbc.aatest_delete;
 ### 文件操作 (其中formate可为：json、orc、csv、parquet、text)
  - 加载数据
  ```
-load formate.`path` as tb1;
+load formate.`path` as tb;
 ```
 
  - 保存数据
  ```
-save tb1 as formate.`path` partitionBy uid coalesce 2;
+save tb as formate.`path` partitionBy uid coalesce 2;
 ```
 
 
