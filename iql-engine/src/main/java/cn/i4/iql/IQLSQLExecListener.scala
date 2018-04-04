@@ -42,8 +42,8 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
       case "set" =>
         new SetAdaptor(this).parse(ctx)
 
-//      case "show" =>
-//        new ShowAdaptor(this,resultMap).parse(ctx)
+      case "show" =>
+        new ShowAdaptor(this,resultMap).parse(ctx)
 //      case "train" =>
 //        new TrainAdaptor(this).parse(ctx)
 //      case "register" =>

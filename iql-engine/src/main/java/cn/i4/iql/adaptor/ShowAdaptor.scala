@@ -3,32 +3,23 @@ package cn.i4.iql.adaptor
 import java.util.concurrent.ConcurrentHashMap
 
 import cn.i4.iql.IQLSQLExecListener
+import cn.i4.iql.antlr.IQLLexer
 import cn.i4.iql.antlr.IQLParser._
-import org.apache.spark.sql._
-import org.apache.spark.sql.bridge.SparkBridge
+import org.antlr.v4.runtime.misc.Interval
 
-//show t where limit
-class ShowAdaptor(scriptSQLExecListener: IQLSQLExecListener, resultMap:ConcurrentHashMap[String, String]) extends DslAdaptor {
+//show create table ods.ods_user_mbl
+class ShowAdaptor(scriptSQLExecListener: IQLSQLExecListener, resultMap: ConcurrentHashMap[String, String]) extends DslAdaptor {
   override def parse(ctx: SqlContext): Unit = {
-    var oldDF: DataFrame = null
-    var numRow:Int = 20
-    var truncate:Boolean = true
-    var option = Map[String, String]()
+    val input = ctx.start.getTokenSource.asInstanceOf[IQLLexer]._input
+    val start = ctx.start.getStartIndex
+    val stop = ctx.stop.getStopIndex
+    val interval = new Interval(start, stop)
+    val sql = input.getText(interval)
 
-    (0 to ctx.getChildCount() - 1).foreach { tokenIndex =>
-      ctx.getChild(tokenIndex) match {
-        case s: TableNameContext =>
-          oldDF = scriptSQLExecListener.sparkSession.table(s.getText)
-        case s: ExpressionContext =>
-          option += (cleanStr(s.identifier().getText) -> cleanStr(s.STRING().getText))
-        case s: BooleanExpressionContext =>
-          option += (cleanStr(s.expression().identifier().getText) -> cleanStr(s.expression().STRING().getText))
-        case _ =>
-      }
-    }
-    numRow = option.getOrElse("limit",numRow).toString.toInt
-    truncate = option.getOrElse("truncate",truncate).toString.toBoolean
-    resultMap.put("showResult",resultMap.getOrDefault("showResult","") + SparkBridge.showString(oldDF,numRow,truncate) + "\n\n")
-
+    val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
+    val df_result = scriptSQLExecListener.sparkSession.sql(sql)
+    resultMap.put("schema", df_result.schema.fields.map(_.name).mkString(","))
+    df_result.write.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").json(hdfsPath)
+    resultMap.put("hdfsPath", hdfsPath)
   }
 }

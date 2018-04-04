@@ -22,6 +22,8 @@ sql
     | ('connect'|'CONNECT') format 'where'? expression? booleanExpression* ('as' db)?
     | ('train'|'TRAIN') tableName 'as' format '.' path 'where'? expression? booleanExpression*
     | ('register'|'REGISTER') format '.' path 'as' functionName
+    | ('show'|'SHOW') ~(';')*
+    | ('describe'|'DESCRIBE') ~(';')*
     |  SIMPLE_COMMENT
     ;
 
