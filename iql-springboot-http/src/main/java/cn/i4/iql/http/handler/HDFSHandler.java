@@ -192,7 +192,7 @@ public class HDFSHandler {
                     JSONObject obj = JSON.parseObject(line);
                     for(short i = 0;i < headers.length; i ++){
                         HSSFCell cell = row.createCell(i);
-                        HSSFRichTextString richString = new HSSFRichTextString(obj.get(headers[i]).toString());
+                        HSSFRichTextString richString = new HSSFRichTextString(obj.getOrDefault(headers[i],"").toString());
                         richString.applyFont(font3);
                         cell.setCellValue(richString);
                     }

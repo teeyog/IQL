@@ -1,0 +1,13 @@
+#body_1 {
+    background-color: aqua;
+    width: auto;
+}
+
+#body_top {
+    border: 1px solid silver;
+    height: 50px;
+    width: 1000px;
+    background-color: chocolate;
+    display: block;
+}
+

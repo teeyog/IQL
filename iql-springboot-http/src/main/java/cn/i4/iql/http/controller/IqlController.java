@@ -367,9 +367,9 @@ public class IqlController {
         return allEngine;
     }
 
-    @RequestMapping("/index")
+    @RequestMapping("/iql")
     public String test(){
-        return "query";
+        return "iql";
     }
 
 }
