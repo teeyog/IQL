@@ -1,11 +1,9 @@
 package cn.i4.iql.http.bean.secondary;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
+@Table(name = "TBLS")
 public class TBLS {
 
     @Id

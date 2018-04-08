@@ -133,7 +133,7 @@ public class HDFSHandler {
                         if(!str.equals("")){
                             json = JSON.parseObject(str);
                             for (int j = 0; j < colNamesArr.length; j++) {
-                                os.write(json.get(colNamesArr[j]).toString().getBytes("GBK"));
+                                os.write(json.getOrDefault(colNamesArr[j],"").toString().getBytes("GBK"));
                                 os.write(",".getBytes("GBK"));
                             }
                             os.write("\r\n".getBytes("GBK"));

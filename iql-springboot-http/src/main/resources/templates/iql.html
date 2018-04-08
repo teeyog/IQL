@@ -1,54 +1,371 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <title>IQL</title>
-    <link href="/static/iql.css" rel="stylesheet" type="text/css"/>
+    <!-- 新 Bootstrap 核心 CSS 文件 -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="codeMirror/lib/codemirror.css" />
+    <link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css" />
+    <script src="codeMirror/lib/codemirror.js"></script>
+    <script src="codeMirror/lib/active-line.js"></script>
+    <script src="codeMirror/mode/sql/iql.js"></script>
+    <script src="codeMirror/addon/display/placeholder.js"></script>
+    <script src="bootstrap-table/dist/bootstrap-table.min.js"></script>
+    <script src="bootstrap-table/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script src="iql/dateUtil.js"></script>
+    <script src="iql/dataUtil.js"></script>
+    <link href="iql/iql.css" rel="stylesheet" />
+    <link href="iql/animate.css" rel="stylesheet" />
     <style type="text/css">
-        #body_1 {
-            width: auto;
-        }
-        #body_top {
-            border: 1px solid silver;
-            height: 60px;
-            width: 100%;
-            background-color: chocolate;
-        }
-        #body_left {
-            width: 20%;
-            height: 1000px;
-            border-right: 1px solid lightslategrey;
-            float: left;
-        }
-        #body_right {
-            width: 79%;
-            height: 1000px;
-            float: left;
-        }
-        .body_lr_top {
-            height: 60px;
-            width: 100%;
-            border-bottom: 1px solid lightslategrey;
-        }
     </style>
-
 </head>
 <body>
+
 <div id="body_1">
     <div id="body_top">
-
+        <div style="margin-left: 8%;padding-top:10px;font-size: 30px;height:60px;width:30px;text-align: center;color: white">IQL</div>
     </div>
     <div id="body_left">
         <div class="body_lr_top"></div>
     </div>
     <div id="body_right">
         <div class="body_lr_top">
-
+            <div class="form-group">
+                <a class="btn" style="margin-left: 10px;margin-top: 10px;font-size:20px" data-toggle="modal" data-target="#myModal" title="add query"><i class="fa fa-plus"  aria-hidden="true"></i></a>
+            </div>
         </div>
-        <div>
-            <textarea  rows="30" style="width:100%;padding-top:5px;padding-left:5px;font-size:14px;"></textarea>
+        <div id="body_lr_bot">
+            <div style="height: 50px;width: 100%;background-color: #f0f0f0">
+                <form role="form" class="form-inline" id="execForm" style="padding-top: 5px;margin-left: 30px">
+                    <div class="form-group" style="margin-right: 15px">
+                        <a class="btn" onclick="execSQL()" title="execute"><i class="fa fa-play"></i></a>
+                    </div>
+                    <div class="form-group">
+                        <a class="btn" data-toggle="modal" data-target="#myModal" title="save query as..."><i class="fa fa-save"></i></a>
+                    </div>
+                </form>
+                <div class="loading" style="background-color: #d8d8dc; display: none">
+                    <h4 class="text-info" style="float: left;margin-left: 30px">execution...</h4>
+                </div>
+            </div>
+            <div id="iql_input">
+                <textarea id="iql" rows="15" placeholder="Example: SELECT * FROM tablename, or press CTRL + space" style="width: 100%"></textarea>
+            </div>
+            <div id="errorMessage" style="min-height:10px; height:auto!important;width: 100%;background-color: #f7f7f7;padding-bottom: 20px;padding-left: 30px;padding-right: 30px;color:red;overflow:scroll;display: none">
+            </div>
+
+            <div class="loading" style="background-color: #f0f0f0; display: none">
+                <div class="sk-spinner sk-spinner-wave" >
+                    <div class="sk-rect1"></div>
+                    <div class="sk-rect2"></div>
+                    <div class="sk-rect3"></div>
+                    <div class="sk-rect4"></div>
+                    <div class="sk-rect5"></div>
+                </div>
+            </div>
+            <div class="ibox-content" >
+                <div class="tabs-container" style="margin-top: 20px">
+                    <ul class="nav nav-tabs" style="margin-left: 20px">
+                        <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true">Query History</a>
+                        </li>
+                        <li class=""><a data-toggle="tab" href="#tab-2" aria-expanded="false">Saved Queries</a>
+                        </li>
+                        <li class=""><a id="results-tab" data-toggle="tab" href="#tab-3" aria-expanded="false">Results</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" style="margin-left: 20px">
+                        <div id="tab-1" class="tab-pane active">
+                            <div class="panel-body">
+                                <table id="history-list-table" data-classes="table table-hover table-condensed table-no-bordered table-no-head" data-mobile-responsive="true">
+                                </table>
+                            </div>
+                        </div>
+                        <div id="tab-2" class="tab-pane">
+                            <div class="panel-body">
+                                <table id="saved-list-table" data-classes="table table-hover table-condensed table-no-bordered" data-mobile-responsive="true">
+                                </table>
+                            </div>
+                        </div>
+                        <div id="tab-3" class="tab-pane">
+                            <div class="panel-body">
+                                <form role="form" class="form-inline" id="downloadForm" style="display: none;">
+                                    <div class="form-group">
+                                        <div class="dropdown">
+                                            <button class="btn dropdown-toggle" data-toggle="dropdown" id="rankType-dropdown" aria-expanded="false">
+                                                <i class="fa fa-download"></i>
+                                                <span class="caret"></span>
+                                            </button>
+                                            <ul class="dropdown-menu" role="menu" aria-labelledby="rankType-dropdown">
+                                                <li><a onclick="downloadFile('json')">json</a></li>
+                                                <li><a onclick="downloadFile('csv')">csv</a></li>
+                                                <li><a onclick="downloadFile('excel')">excel</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+                                <table id="results-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+<div id="myModal" class="modal fade" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3 class="m-t-none m-b">Save query as...</h3>
+                        <form role="form" id="saveQueryForm">
+                            <div class="form-group">
+                                <label>Name：</label>
+                                <input type="text" class="form-control" id="queryId" name="queryId" value="" style="display: none"/>
+                                <input type="text" class="form-control" id="queryName" name="queryName" value="" oninput="enableSave()"/>
+                            </div>
+                            <div class="form-group">
+                                <label>Description：</label>
+                                <input type="text" class="form-control" id="queryDescription" name="queryDescription" value=""/>
+                            </div>
+                            <div class="pull-right m-t-n-xs">
+                                <button class="btn btn-sm btn-default" data-dismiss="modal"><strong>Cancel</strong>
+                                </button>
+                                <button class="btn btn-sm btn-success" type="button" onclick="saveIql()" id="saveQuery" disabled="disabled"><strong>Save</strong>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    $(function () {
+        //代码编辑框
+        var myTextarea = document.getElementById('iql');
+        window.editor  = CodeMirror.fromTextArea(myTextarea, {
+            mode: 'text/x-mariadb',
+            lineNumbers: true,
+            indentWithTabs: true,
+            smartIndent: true,
+            matchBrackets : true,
+            autofocus: true,
+            styleActiveLine: true,
+            lineWrapping: true
+        });
+        loadHistoryTable();
+        loadSavedTable();
+
+        $('#history-list-table').on('click-row.bs.table', function (e, row, element)
+        {
+            window.editor.setValue(row.iql);
+        });
+        $('#saved-list-table').on('click-row.bs.table', function (e, row, element)
+        {
+            window.editor.setValue(row.iql);
+            $("#queryId").val(row.id);
+            $("#queryName").val(row.name);
+            $("#queryDescription").val(row.description);
+        });
+    });
+
+
+    function execSQL() {
+        $("#errorMessage").hide();
+        document.getElementById('errorMessage').innerHTML = "";
+        $("#execForm, .loading").toggle();
+        $("#downloadForm").hide();
+        $.post("/hive/query", {iql: window.editor.getValue()}, function(data) {
+            $("#execForm, .loading").toggle();
+            if(data.isSuccess) {
+                $("#results-tab").tab("show");
+                hdfsPath = data.hdfsPath;
+                schema = data.schema;
+                loadResultsTable(data.schema, JSON.parse(data.data))
+            }else {
+                $("#errorMessage").show();
+                document.getElementById('errorMessage').innerHTML = data.errorMessage
+            }
+        })
+    }
+
+
+    function loadResultsTable(schema, data) {
+        var columns = [];
+        var headTitles = schema.split(",");
+        $.each(headTitles, function(i, name) {
+            columns.push({
+                title: name,
+                field: name,
+                width: 200,
+                align: 'center'
+            })
+        });
+        $("#results-list-table").bootstrapTable({
+            method: 'get',
+            cache: false,
+            striped: true, //是否显示行间隔色
+            pageList: [10, 20, 50, 100],
+            pageSize: 20,
+            pagination: true,
+            sidePagination: 'client',
+            dataType: 'json',
+            columns: columns
+        });
+        $("#results-list-table")
+            .bootstrapTable("load", data);
+
+
+        $("#downloadForm").show()
+    }
+
+    function loadHistoryTable() {
+        $("#history-list-table").bootstrapTable({
+            method: 'get',
+            cache: false,
+            striped: true, //是否显示行间隔色
+            pageList: [10, 20, 50, 100],
+            pageSize: 20,
+            showRefresh:true,
+            pagination: true,
+            sidePagination: 'server',
+            url: '/hive/history',
+            dataType: 'json',
+            queryParams: function(params) {
+                return params;
+            },
+            columns: [
+                {
+                    field: 'startTime',
+                    title: '开始时间',
+                    width: 80,
+                    formatter: function(value, row, index) {
+                        return '<span title="'+timestampToTime(value)+'">'+timeago(value)+'</span>'
+                    }
+                },
+                {
+                    field: 'isSuccess',
+                    title: '执行结果',
+                    width: 80,
+                    formatter: function(value, row, index) {
+                        if(value)
+                            return '<span class="text-success" title="successful"><i class="glyphicon glyphicon-ok"></i></span>'
+                        else
+                            return '<span class="text-warning" title="failed"><i class="glyphicon glyphicon-exclamation-sign"></i></span>'
+                    }
+                },
+                {
+                    field:'takeTime',
+                    title:'耗时',
+                    width:80,
+                    formatter: function(value, row, index) {
+                        return '<span>'+value + ' s' +'</span>'
+                    }
+                }
+                ,
+                {
+                    field: 'descrption',
+                    title: '描述',
+                    width: 100
+                },
+                {
+                    field: 'iql',
+                    title: '执行操作',
+                    width: 600
+                }
+            ]
+        });
+    }
+
+    function loadSavedTable() {
+        $("#saved-list-table").bootstrapTable({
+            method: 'get',
+            cache: false,
+            striped: true, //是否显示行间隔色
+            pageList: [10, 20, 50, 100],
+            pageSize: 20,
+            showRefresh:true,
+            pagination: true,
+            sidePagination: 'server',
+            dataType: 'json',
+            url: '/hive/iqls',
+            onLoadSuccess: function(data) {
+                console.log(data)
+            },
+            columns: [
+                {
+                    field: 'name',
+                    title: 'Name'
+                },
+                {
+                    field: 'iql',
+                    title: 'iql',
+                    visible: false
+                },
+                {
+                    field: 'id',
+                    title: 'id',
+                    visible: false
+                },
+                {
+                    field: 'description',
+                    title: 'Description'
+                },
+                {
+                    field: 'updateTime',
+                    title: 'Last Modified',
+                    formatter: function(value, row, index) {
+                        return '<span title="'+timestampToTime(value)+'">'+timestampToTime(value)+'</span>'
+                    }
+                }
+            ]
+        });
+    }
+
+
+    function downloadFile(fileType) {
+        var formParams = {
+            hdfsPath: hdfsPath,
+            schema: schema,
+            fileType: fileType
+        }
+        var url = addParamsToUrl('/hive/fileDownload', formParams);
+        window.location.href=url
+    }
+
+    function enableSave() {
+        if($("#queryName").val().trim()=='') {
+            $("#saveQuery").attr("disabled", true)
+        } else {
+            $("#saveQuery").attr("disabled", false)
+        }
+    }
+
+    function saveIql() {
+        $.post('/hive/saveiql', {
+            id: $("#queryId").val(),
+            iql: window.editor.getValue(),
+            name: $("#queryName").val(),
+            description: $("#queryDescription").val()
+        }, function() {
+            $("#myModal").modal('hide');
+            $("#saveQueryForm")[0].reset();
+            $("#saveQuery").attr("disabled", true);
+            $("#saved-list-table").bootstrapTable("refresh")
+        })
+    }
+
+</script>
 </body>
 </html>

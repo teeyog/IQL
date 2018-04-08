@@ -1,0 +1,37 @@
+#body_1 {
+    width: auto;
+}
+#body_top {
+    border: 1px solid silver;
+    height: 60px;
+    width: 100%;
+    background-color: chocolate;
+}
+#body_left {
+    width: 20%;
+    float: left;
+}
+#body_right {
+    width: 79%;
+    min-height:1250px; height:auto!important;
+    float: left;
+    border-left: 1px solid lightslategrey;
+}
+.body_lr_top {
+    height: 60px;
+    width: 100%;
+    border-bottom: 1px solid lightslategrey;
+}
+#iql_input {
+    font-size:14px;
+    border-bottom: 1px solid #e0e0e0;
+    border-top: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+}
+
+.panel-body {
+    border-left: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    overflow:scroll;
+}
