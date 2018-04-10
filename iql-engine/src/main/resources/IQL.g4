@@ -14,7 +14,7 @@ statement
 
 sql
     : ('load'|'LOAD') format '.'? path 'where'? expression? booleanExpression*  'as' tableName
-    | ('save'|'SAVE') (overwrite | append | errorIfExists |ignore)* tableName 'as' format '.' path 'where'? expression? booleanExpression* ('partitionBy' col)? 'coalesce'? numPartition
+    | ('save'|'SAVE') (overwrite | append | errorIfExists |ignore)* tableName 'as' format '.' path 'where'? expression? booleanExpression* ('partitionBy' col)? ('coalesce'? numPartition)?
     | ('select'|'SELECT') ~(';')* 'as'? tableName
     | ('insert'|'INSERT') ~(';')*
     | ('create'|'CREATE') ~(';')*
