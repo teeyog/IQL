@@ -6,3 +6,7 @@ function addParamsToUrl(url, params) {
 		}).join("&") 
 	].join("?")
 }
+
+function autocomplete() {
+
+}

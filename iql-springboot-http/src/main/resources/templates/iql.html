@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <title>IQL</title>
@@ -11,16 +12,27 @@
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="codeMirror/lib/codemirror.css" />
     <link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css" />
+    <!-- 自定义 -->
+    <link href="iql/iql.css" rel="stylesheet" />
+    <!-- 动画 -->
+    <link href="iql/animate.css" rel="stylesheet" />
+
+    <!-- 提示 -->
+    <link rel="stylesheet" href="codemirror/addon/hint/show-hint.css"/>
+    <script src="codemirror/addon/hint/show-hint.js"></script>
+    <script src="codemirror/addon/hint/sql-hint.js"></script>
+    <!-- 高亮 -->
+    <script src="codemirror/addon/selection/active-line.js"></script>
+    <!-- 在线代码编辑 -->
     <script src="codeMirror/lib/codemirror.js"></script>
-    <script src="codeMirror/lib/active-line.js"></script>
-    <script src="codeMirror/mode/sql/iql.js"></script>
+    <script src="codeMirror/mode/sql/sql.js"></script>
     <script src="codeMirror/addon/display/placeholder.js"></script>
+
     <script src="bootstrap-table/dist/bootstrap-table.min.js"></script>
     <script src="bootstrap-table/dist/locale/bootstrap-table-zh-CN.min.js"></script>
     <script src="iql/dateUtil.js"></script>
     <script src="iql/dataUtil.js"></script>
-    <link href="iql/iql.css" rel="stylesheet" />
-    <link href="iql/animate.css" rel="stylesheet" />
+
     <style type="text/css">
     </style>
 </head>
@@ -155,21 +167,32 @@
         //代码编辑框
         var myTextarea = document.getElementById('iql');
         window.editor  = CodeMirror.fromTextArea(myTextarea, {
-            mode: 'text/x-mariadb',
+            mode: 'text/x-hive',
             lineNumbers: true,
             indentWithTabs: true,
             smartIndent: true,
             matchBrackets : true,
             autofocus: true,
             styleActiveLine: true,
-            lineWrapping: true
+            lineWrapping: true,
+            extraKeys: {"Ctrl-Space": "autocomplete"}
         });
+
+
+        window.editor.on("keyup", function (cm, event) {
+            //所有的字母和'$','{','.'在键按下之后都将触发自动完成
+                CodeMirror.commands.autocomplete(cm, null, {completeSingle: false});
+        });
+
         loadHistoryTable();
         loadSavedTable();
 
         $('#history-list-table').on('click-row.bs.table', function (e, row, element)
         {
             window.editor.setValue(row.iql);
+            $("#queryId").val("");
+            $("#queryName").val("");
+            $("#queryDescription").val("");
         });
         $('#saved-list-table').on('click-row.bs.table', function (e, row, element)
         {
@@ -186,7 +209,7 @@
         document.getElementById('errorMessage').innerHTML = "";
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
-        $.post("/hive/query", {iql: window.editor.getValue()}, function(data) {
+        $.post("/hive/query", {iql: window.editor.getValue(),descrption:$("#queryDescription").val()}, function(data) {
             $("#execForm, .loading").toggle();
             if(data.isSuccess) {
                 $("#results-tab").tab("show");
@@ -275,7 +298,7 @@
                 }
                 ,
                 {
-                    field: 'descrption',
+                    field: 'description',
                     title: '描述',
                     width: 100
                 },

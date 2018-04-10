@@ -76,12 +76,16 @@ public class QueryAction {
 							@RequestParam(value="code",required=false,defaultValue="") String code,
 							@RequestParam(value="descrption",required=false,defaultValue="") String descrption) {
 		Timestamp startTime = null;
+		JSONObject resultObj = null;
 		Bean.IQLEngine iqlEngine = selectValidEngine();
 		if(iqlEngine == null){
-			return null;
+			resultObj = new JSONObject();
+			resultObj.put("isSuccess",false);
+			resultObj.put("errorMessage","当前未有可用的执行引擎...");
+			return resultObj;
 		}else {
 			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
-			JSONObject resultObj = null;
+
 			try {
 				startTime = new Timestamp(System.currentTimeMillis());
 				Timeout timeout = new Timeout(Duration.create(100, "hours"));
@@ -102,30 +106,6 @@ public class QueryAction {
 			}
 			return resultObj;
 		}
-	}
-
-
-	/**
-	 * 下载结果文件
-	 * @return
-	 */
-	@RequestMapping(value = "/downloadJson", method = RequestMethod.GET)
-	@ResponseBody
-	public void downloadResult(@RequestParam("hdfsPath") String hdfsPath, HttpServletResponse response) {
-		HDFSHandler.downloadJSON(hdfsPath,response);
-
-	}
-
-	@RequestMapping(value = "/downloadCSV", method = RequestMethod.GET)
-	@ResponseBody
-	public void downloadCSV(@RequestParam("hdfsPath") String hdfsPath,@RequestParam("schema") String schema,HttpServletResponse response) {
-		HDFSHandler.downloadCSV(hdfsPath,schema,response);
-	}
-
-	@RequestMapping(value = "/downloadExcel", method = RequestMethod.GET)
-	@ResponseBody
-	public void downloadExcel(@RequestParam("hdfsPath") String hdfsPath,@RequestParam("schema") String schema,HttpServletResponse response) throws Exception{
-		HDFSHandler.downloadExcel(hdfsPath,schema,response);
 	}
 
 	@RequestMapping(value="/fileDownload", method=RequestMethod.GET)
