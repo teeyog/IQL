@@ -57,7 +57,7 @@
             <div style="height: 50px;width: 100%;background-color: #f0f0f0">
                 <form role="form" class="form-inline" id="execForm" style="padding-top: 5px;margin-left: 30px">
                     <div class="form-group" style="margin-right: 15px">
-                        <a class="btn" onclick="execSQL()" title="execute"><i class="fa fa-play"></i></a>
+                        <a class="btn" onclick="execIQL()" title="execute"><i class="fa fa-play"></i></a>
                     </div>
                     <div class="form-group">
                         <a class="btn" data-toggle="modal" data-target="#myModal" title="save query as..."><i class="fa fa-save"></i></a>
@@ -180,11 +180,20 @@
             extraKeys: {"Ctrl-Space": "autocomplete"}
         });
 
+        //删除一行保存的iql
+        window.operateEvents = {
+            'click .RoleOfdelete': function (e, value, row, index) {
+                $.post("/hive/deleteiql", {id: row.id}, function(data) {
+                    $("#saved-list-table").bootstrapTable("refresh")
+                })
+            }
+        };
 
-
+        //加载历史iql和保存的iql
         loadHistoryTable();
         loadSavedTable();
 
+        //行点击事件，将对应的iql显示在编辑框内
         $('#history-list-table').on('click-row.bs.table', function (e, row, element)
         {
             window.editor.setValue(row.iql);
@@ -201,8 +210,8 @@
         });
     });
 
-
-    function execSQL() {
+    // 执行IQL
+    function execIQL() {
         $("#errorMessage").hide();
         document.getElementById('errorMessage').innerHTML = "";
         $("#execForm, .loading").toggle();
@@ -221,7 +230,7 @@
         })
     }
 
-
+    //加载结果数据
     function loadResultsTable(schema, data) {
         var columns = [];
         var headTitles = schema.split(",");
@@ -233,6 +242,7 @@
                 align: 'center'
             })
         });
+        $("#results-list-table").bootstrapTable("destroy")
         $("#results-list-table").bootstrapTable({
             method: 'get',
             cache: false,
@@ -250,6 +260,7 @@
         $("#downloadForm").show()
     }
 
+    //加载历史数据
     function loadHistoryTable() {
         $("#history-list-table").bootstrapTable({
             method: 'get',
@@ -308,6 +319,7 @@
         });
     }
 
+    //加载保存的iql
     function loadSavedTable() {
         $("#saved-list-table").bootstrapTable({
             method: 'get',
@@ -348,12 +360,19 @@
                     formatter: function(value, row, index) {
                         return '<span title="'+timestampToTime(value)+'">'+timestampToTime(value)+'</span>'
                     }
+                }, {
+                    field: 'id',
+                    title: '操作',
+                    align: 'center',
+                    width : 100,
+                    events: operateEvents,
+                    formatter: operateFormatter
                 }
             ]
         });
     }
 
-
+    //下载结果文件
     function downloadFile(fileType) {
         var formParams = {
             hdfsPath: hdfsPath,
@@ -372,6 +391,7 @@
         }
     }
 
+    //保存iql
     function saveIql() {
         $.post('/hive/saveiql', {
             id: $("#queryId").val(),
@@ -384,6 +404,13 @@
             $("#saveQuery").attr("disabled", true);
             $("#saved-list-table").bootstrapTable("refresh")
         })
+    }
+
+    //为行添加删除操作
+    function operateFormatter(value, row, index) {
+        return [
+            '<button type="button" class="RoleOfdelete btn btn-primary  btn-sm" style="margin-right:15px;">删除</button>',
+        ].join('');
     }
 
 </script>

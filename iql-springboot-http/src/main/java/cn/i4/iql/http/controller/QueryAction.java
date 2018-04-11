@@ -241,22 +241,6 @@ public class QueryAction {
 		}
 		return res;
 	}
-	/**
-	 * 保存一个IQL
-	 * @param iql
-	 * @param code
-	 * @param name
-	 * @return
-	 */
-	/*@RequestMapping(value="/saveiql", method= RequestMethod.POST)
-	@ResponseBody
-	public String saveIql(@RequestParam("iql") String iql,
-						  @RequestParam(value="code",required=false,defaultValue="") String code,
-						  @RequestParam(value="name") String name,
-						  @RequestParam(value="description",required=false,defaultValue="") String description) {
-		saveIqlRepository.save(new SaveIql(iql,code,name,description,new Timestamp(System.currentTimeMillis()),new Timestamp(System.currentTimeMillis())));
-		return "success";
-	}*/
 
 	/**
 	 * 跟新一个IQL
@@ -278,6 +262,16 @@ public class QueryAction {
 			saveIqlRepository.updateOne(iql,code,name,description,new Timestamp(System.currentTimeMillis()),Integer.valueOf(id));
 		}
 		return "success";
+	}
+
+	/**
+	 * 删除一个IQL
+	 * @return
+	 */
+	@RequestMapping(value="/deleteiql", method= RequestMethod.POST)
+	@ResponseBody
+	public void deleteIql(@RequestParam(value="id") String id) {
+		saveIqlRepository.delete(Long.valueOf(id));
 	}
 
 	@RequestMapping(value="/iqls", method=RequestMethod.GET)
