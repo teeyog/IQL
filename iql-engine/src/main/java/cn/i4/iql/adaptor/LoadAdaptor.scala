@@ -50,6 +50,13 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         reader.option("hbase.table.name",path)
         table = reader.format("org.apache.spark.sql.execution.datasources.hbase").load()
 
+      case "kafka" | "org.apache.spark.sql.execution.datasources.kafka" =>
+        reader.option("metadata.broker.list",option.getOrElse("metadata.broker.list","dsj02:9092,dsj03:9092,dsj04:9092,dsj05:9092,dsj06:9092,dsj07:9092"))
+        reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect","dsj01:2181"))
+        reader.option("record.serializable.type",option.getOrElse("record.serializable.type","avro"))
+        reader.option("topics",path)
+        table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
+
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         if(path.startsWith("'") || path.startsWith("`") || path.startsWith("\"")) path = path.substring(1)
         if(path.endsWith("'") || path.endsWith("`") || path.endsWith("\"")) path = path.substring(0,path.length - 1)

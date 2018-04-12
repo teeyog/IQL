@@ -20,7 +20,7 @@ object IqlService {
       .config("hive.exec.dynamic.partition.mode", "nonstrict")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .config("spark.yarn.executor.memoryOverhead","2048")
-      //      .master("local[4]")
+            .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
 
