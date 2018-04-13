@@ -47,6 +47,13 @@
 
         <dependency>
             <groupId>org.apache.spark</groupId>
+            <artifactId>spark-streaming-kafka-0-8_${scala.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
             <artifactId>spark-hive_${scala.version}</artifactId>
             <version>${spark.version}</version>
             <scope>${i4scope}</scope>

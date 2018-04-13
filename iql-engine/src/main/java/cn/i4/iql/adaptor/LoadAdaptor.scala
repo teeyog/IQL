@@ -23,7 +23,7 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         case s: BooleanExpressionContext =>
           option += (cleanStr(s.expression().identifier().getText) -> cleanStr(s.expression().STRING().getText))
         case s: PathContext =>
-          path = s.getText
+          path = cleanStr(s.getText)
         case s: TableNameContext =>
           tableName = s.getText
         case _ =>
@@ -53,7 +53,6 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
       case "kafka" | "org.apache.spark.sql.execution.datasources.kafka" =>
         reader.option("metadata.broker.list",option.getOrElse("metadata.broker.list","dsj02:9092,dsj03:9092,dsj04:9092,dsj05:9092,dsj06:9092,dsj07:9092"))
         reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect","dsj01:2181"))
-        reader.option("record.serializable.type",option.getOrElse("record.serializable.type","avro"))
         reader.option("topics",path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
 
