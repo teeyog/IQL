@@ -48,6 +48,7 @@ as tb;
 - hbase.table.startKey：预分区开始key，当hbase表不存在时，会自动创建Hbase表，不带一下三个参数则只有一个分区
 - hbase.table.endKey：预分区开始key
 - hbase.table.numReg：分区个数
+- hbase.table.rowkey.prefix: 当rowkey是数字，预分区需要指明前缀的formate形式，如 00
 
 ```
 save tb1 as hbase.tableName 
@@ -82,4 +83,15 @@ load formate.`path` as tb;
 save tb as formate.`path` partitionBy uid coalesce 2;
 ```
 
+### Kafka
+ - 加载数据
+ ```$xslt
+
+load kafka.`topicName`
+where maxRatePerPartition="200"
+	and `group.id`="consumerGroupId"
+```
+
+### 参考
+[StreamingPro 支持类SQL DSL](https://www.jianshu.com/p/b580ce1ed822)
 

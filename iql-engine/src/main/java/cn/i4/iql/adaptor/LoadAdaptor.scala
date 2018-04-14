@@ -1,7 +1,5 @@
 package cn.i4.iql.adaptor
 
-import java.util.concurrent.ConcurrentHashMap
-
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
 import org.apache.spark.sql._
