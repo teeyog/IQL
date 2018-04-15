@@ -1,9 +1,8 @@
 package cn.i4.iql.adaptor
 
-import java.util.concurrent.ConcurrentHashMap
-
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
+import cn.i4.iql.utils.PropsUtils
 import org.apache.spark.sql._
 
 //save new_tr as json.`/tmp/todd
@@ -97,8 +96,8 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         writer.option("outputTableName", final_path).format("org.apache.spark.sql.execution.datasources.redis").save()
       case "jdbc" =>
         writer
-          .option("driver",option.getOrElse("driver","com.mysql.jdbc.Driver"))
-          .option("url",option.getOrElse("url","jdbc:mysql://192.168.1.233:3306/logweb-pro?user=root&password=123456&useUnicode=true&characterEncoding=UTF8&useSSL=false"))
+          .option("driver",option.getOrElse("driver",PropsUtils.props.getProperty("jdbc.driver")))
+          .option("url",option.getOrElse("url",PropsUtils.props.getProperty("jdbc.url")))
           .option("dbtable",final_path)
           .save()
       case _ =>

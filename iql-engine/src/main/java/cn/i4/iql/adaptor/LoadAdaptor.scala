@@ -2,6 +2,7 @@ package cn.i4.iql.adaptor
 
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
+import cn.i4.iql.utils.PropsUtils
 import org.apache.spark.sql._
 
 class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
@@ -32,8 +33,8 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
       case "jdbc" =>
         reader
           .option("dbtable", path)
-          .option("driver",option.getOrElse("driver","com.mysql.jdbc.Driver"))
-          .option("url",option.getOrElse("url","jdbc:mysql://192.168.1.233:3306/logweb-pro?user=root&password=123456&useUnicode=true&characterEncoding=UTF8&useSSL=false"))
+          .option("driver",option.getOrElse("driver",PropsUtils.props.getProperty("jdbc.driver")))
+          .option("url",option.getOrElse("url",PropsUtils.props.getProperty("jdbc.url")))
         table = reader.format("jdbc").load()
 
 //      case "es" | "org.elasticsearch.spark.sql" =>
@@ -49,8 +50,8 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         table = reader.format("org.apache.spark.sql.execution.datasources.hbase").load()
 
       case "kafka" | "org.apache.spark.sql.execution.datasources.kafka" =>
-        reader.option("metadata.broker.list",option.getOrElse("metadata.broker.list","dsj02:9092,dsj03:9092,dsj04:9092,dsj05:9092,dsj06:9092,dsj07:9092"))
-        reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect","dsj01:2181"))
+        reader.option("metadata.broker.list",option.getOrElse("metadata.broker.list",PropsUtils.props.getProperty("kafka.metadata.broker.list")))
+        reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect","kafka.zookeeper.connect"))
         reader.option("topics",path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
 
