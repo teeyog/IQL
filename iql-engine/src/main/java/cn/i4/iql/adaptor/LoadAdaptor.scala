@@ -54,8 +54,7 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect","kafka.zookeeper.connect"))
         reader.option("topics",path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
-        if(table.schema.fields.map(_.name).contains("msg"))
-          table = scriptSQLExecListener.sparkSession.read.json(table.select("msg").rdd.map(_.getString(0)))
+        table = scriptSQLExecListener.sparkSession.read.json(table.select("msg").rdd.map(_.getString(0)))
 
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         if(path.startsWith("'") || path.startsWith("`") || path.startsWith("\"")) path = path.substring(1)
