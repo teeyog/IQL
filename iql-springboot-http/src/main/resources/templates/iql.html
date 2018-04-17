@@ -70,7 +70,8 @@
             <div id="iql_input">
                 <textarea id="iql" rows="15" placeholder="Example: SELECT * FROM tablename, or press CTRL + space" style="width: 100%"></textarea>
             </div>
-            <div id="errorMessage" style="min-height:10px; height:auto!important;width: 100%;background-color: #f7f7f7;padding-bottom: 20px;padding-left: 30px;padding-right: 30px;color:red;overflow:scroll;display: none">
+            <div id="errorMessage" style="min-height:10px; max-height:350px;width: 100%;background-color: #f7f7f7;padding-bottom: 20px;padding-left: 30px;padding-right: 30px;overflow:scroll;display: none">
+                <pre style="color:red;"></pre>
             </div>
 
             <div class="loading" style="background-color: #f0f0f0; display: none">
@@ -213,7 +214,7 @@
     // 执行IQL
     function execIQL() {
         $("#errorMessage").hide();
-        document.getElementById('errorMessage').innerHTML = "";
+        $("#errorMessage pre").html("");
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
         $.post("/hive/query", {iql: window.editor.getValue(),descrption:$("#queryDescription").val()}, function(data) {
@@ -225,7 +226,7 @@
                 loadResultsTable(data.schema, JSON.parse(data.data))
             }else {
                 $("#errorMessage").show();
-                document.getElementById('errorMessage').innerHTML = data.errorMessage
+                $("#errorMessage pre").html(data.errorMessage)
             }
         })
     }

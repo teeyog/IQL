@@ -85,10 +85,9 @@ public class QueryAction {
 			return resultObj;
 		}else {
 			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
-
 			try {
 				startTime = new Timestamp(System.currentTimeMillis());
-				Timeout timeout = new Timeout(Duration.create(100, "hours"));
+				Timeout timeout = new Timeout(Duration.create(1, "hours"));
 				Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql), timeout);
 				String result1 = Await.result(future1, timeout.duration()).toString();
 				resultObj = JSON.parseObject(result1);

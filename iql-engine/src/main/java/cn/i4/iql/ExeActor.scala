@@ -1,5 +1,6 @@
 package cn.i4.iql
 
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.util.concurrent.ConcurrentHashMap
 
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
@@ -67,7 +68,10 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
       case e:Exception =>{
         e.printStackTrace()
         res.put("isSuccess",false)
-        res.put("errorMessage",e.getMessage)
+        val out = new ByteArrayOutputStream()
+        e.printStackTrace(new PrintStream(out))
+        res.put("errorMessage", new String(out.toByteArray))
+        out.close()
       }
     }
     sender() ! res.toJSONString
