@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8"/>
     <title>IQL</title>
@@ -63,8 +62,12 @@
                         <a class="btn" data-toggle="modal" data-target="#myModal" title="save query as..."><i class="fa fa-save"></i></a>
                     </div>
                 </form>
-                <div class="loading" style="background-color: #d8d8dc; display: none">
-                    <h4 class="text-info" style="float: left;margin-left: 30px">execution...</h4>
+                <div class="loading" style="display: none;padding-top: 5px;margin-left: 30px">
+                    <div class="form-group">
+                        <a class="btn" onclick="stopQuery()" title="stop query ..." style="color: red"><i class="fa fa-stop"></i></a>
+                        <input id="iqlId" type="hidden" name="field＿name" value=""/>
+                    </div>
+                    <!--<h4 class="text-info" style="float: left;margin-left: 30px">execution...</h4>-->
                 </div>
             </div>
             <div id="iql_input">
@@ -218,18 +221,34 @@
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
         $.post("/hive/query", {iql: window.editor.getValue(),descrption:$("#queryDescription").val()}, function(data) {
-            $("#execForm, .loading").toggle();
             if(data.isSuccess) {
-                $("#results-tab").tab("show");
-                hdfsPath = data.hdfsPath;
-                schema = data.schema;
-                loadResultsTable(data.schema, JSON.parse(data.data))
+                $("#iqlId").val(data.engineIdAndGroupId);
+                $.post("/hive/getresult", {engineIdAndGroupId: data.engineIdAndGroupId}, function(data) {
+                    $("#execForm, .loading").toggle();
+                    if(data.isSuccess) {
+                        $("#results-tab").tab("show");
+                        hdfsPath = data.hdfsPath;
+                        schema = data.schema;
+                        loadResultsTable(data.schema, JSON.parse(data.data))
+                    }else {
+                        $("#errorMessage").show();
+                        $("#errorMessage pre").html(data.errorMessage)
+                    }
+                });
             }else {
+                $("#execForm, .loading").toggle();
                 $("#errorMessage").show();
                 $("#errorMessage pre").html(data.errorMessage)
             }
         })
     }
+
+    // 执行IQL
+    function stopQuery() {
+        $.post("/hive/stopquery", {engineIdAndGroupId: $("#iqlId").val()}, function(data) {})
+    }
+
+
 
     //加载结果数据
     function loadResultsTable(schema, data) {

@@ -24,7 +24,7 @@ public class AkkaConfig {
 
     @Bean
     public ActorSystem actorSystem() {
-        ActorSystem actorSystem = ActorSystem.create("IQLSystem",getConfig());
+        ActorSystem actorSystem = ActorSystem.create("IQLServiceSystem",getConfig());
         springExtension.initialize(applicationContext);
         return actorSystem;
     }

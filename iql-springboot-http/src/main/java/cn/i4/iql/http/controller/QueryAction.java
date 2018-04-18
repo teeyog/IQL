@@ -75,7 +75,6 @@ public class QueryAction {
 	public JSONObject execution(@RequestParam("iql") String iql,
 							@RequestParam(value="code",required=false,defaultValue="") String code,
 							@RequestParam(value="descrption",required=false,defaultValue="") String descrption) {
-		Timestamp startTime = null;
 		JSONObject resultObj = null;
 		Bean.IQLEngine iqlEngine = selectValidEngine();
 		if(iqlEngine == null){
@@ -86,26 +85,88 @@ public class QueryAction {
 		}else {
 			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
 			try {
-				startTime = new Timestamp(System.currentTimeMillis());
-				Timeout timeout = new Timeout(Duration.create(1, "hours"));
-				Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql), timeout);
+				Timeout timeout = new Timeout(Duration.create(2, "s"));
+				Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql,iqlEngine.engineId()), timeout);
 				String result1 = Await.result(future1, timeout.duration()).toString();
 				resultObj = JSON.parseObject(result1);
-				resultObj.put("startTime",startTime);
+				resultObj.put("isSuccess",true);
 			} catch (Exception e) {
 				resultObj.put("errorMessage",e.getMessage());
-			}
-			iqlExcutionRepository.save(new IqlExcution(iql,code,startTime,Long.valueOf(resultObj.getOrDefault("takeTime","0").toString()), resultObj.getBoolean("isSuccess"),
-					resultObj.getOrDefault("hdfsPath","").toString(),descrption,resultObj.getOrDefault("errorMessage","").toString(),
-					resultObj.getOrDefault("schema","").toString()));
-
-			if(resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0){
-				resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString()));
-				resultObj.put("schema",resultObj.getOrDefault("schema","").toString());
+				resultObj.put("isSuccess",false);
 			}
 			return resultObj;
 		}
 	}
+
+	/**
+	 * 获取结果
+	 */
+	@PostMapping(value="/getresult")
+	public JSONObject getResult(String engineIdAndGroupId) {
+		JSONObject resultObj = null;
+		Bean.IQLEngine iqlEngine = selectValidEngineByEngineId(Integer.valueOf(engineIdAndGroupId.split(":")[0]));
+		if(iqlEngine == null){
+			resultObj = new JSONObject();
+			resultObj.put("isSuccess",false);
+			resultObj.put("errorMessage","当前未有可用的执行引擎...");
+			return resultObj;
+		}else {
+			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
+			try {
+				Timeout timeout = new Timeout(Duration.create(2, "s"));
+				Future<Object> future1 = Patterns.ask(selection, new Bean.GetResult(engineIdAndGroupId), timeout);
+				String result1 = Await.result(future1, timeout.duration()).toString();
+				resultObj = JSON.parseObject(result1);
+			} catch (Exception e) {
+				resultObj.put("errorMessage",e.getMessage());
+			}
+			if(!resultObj.getString("status").equals("RUNNING")){
+				iqlExcutionRepository.save(new IqlExcution(resultObj.getString("iql"),resultObj.getString("code"),resultObj.getTimestamp("startTime"),
+						Long.valueOf(resultObj.getOrDefault("takeTime","0").toString()), resultObj.getBoolean("isSuccess"),
+						resultObj.getOrDefault("hdfsPath","").toString(),"",resultObj.getOrDefault("errorMessage","").toString(),
+						resultObj.getOrDefault("schema","").toString()));
+
+				if(resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0){
+					resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString()));
+					resultObj.put("schema",resultObj.getOrDefault("schema","").toString());
+				}
+				return resultObj;
+			}else {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				return getResult(engineIdAndGroupId);
+			}
+		}
+	}
+
+	/**
+	 * 执行一个IQL
+	 * @return
+	 */
+	@PostMapping(value="/stopquery")
+	public void cancelJob(String engineIdAndGroupId) {
+		JSONObject resultObj = null;
+		Bean.IQLEngine iqlEngine = selectValidEngineByEngineId(Integer.valueOf(engineIdAndGroupId.split(":")[0]));
+		if(iqlEngine == null){
+			resultObj = new JSONObject();
+			resultObj.put("isSuccess",false);
+			resultObj.put("errorMessage","当前未有可用的执行引擎...");
+//			return resultObj;
+		}else {
+			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
+			try {
+				selection.tell(new Bean.CancelJob(Integer.valueOf(engineIdAndGroupId.split(":")[1])),ActorRef.noSender());
+			} catch (Exception e) {
+				resultObj.put("errorMessage",e.getMessage());
+				resultObj.put("isSuccess",false);
+			}
+//			return resultObj;
+		}
+	}
+
 
 	@RequestMapping(value="/fileDownload", method=RequestMethod.GET)
 	public void fileDownload(HttpServletResponse response, String hdfsPath, String schema, String sql, String fileType) throws Exception {
@@ -330,6 +391,28 @@ public class QueryAction {
 					return iqlEngine;
 				}else {
 					allEngine = deleteOneFromAllEngine(allEngine,iqlEngine);
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 根据engineId获取可用的actor
+	 * @param engineId
+	 * @return
+	 */
+	private Bean.IQLEngine selectValidEngineByEngineId(int engineId) {
+		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
+		for (Bean.IQLEngine engine : engines) {
+			if (engine.engineId() == engineId) {
+				for(int index = 3;index >= 1;index --){
+					ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engine.engineInfo() + "/user/actor" + index);
+					System.out.println("尝试握手Actor:" + engine.engineInfo() + " name:actor" + index);
+					if(shakeHands(selection)){
+						engine.name("actor" + index);
+						return engine;
+					}
 				}
 			}
 		}

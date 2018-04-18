@@ -1,12 +1,14 @@
 package cn.i4.iql
 
+import java.util.concurrent.ConcurrentHashMap
+
 import akka.actor.ActorSystem
-import cn.i4.iql.repl.Interpreter.ExecuteSuccess
-import cn.i4.iql.repl.SparkInterpreter
 import cn.i4.iql.utils.AkkaUtils
 import org.apache.spark.sql.SparkSession
 
 object IqlService {
+
+  val jobMap = new ConcurrentHashMap[String, String]()
 
   def main(args: Array[String]): Unit = {
 

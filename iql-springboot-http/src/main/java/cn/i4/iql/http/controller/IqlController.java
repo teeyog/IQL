@@ -90,8 +90,8 @@ public class IqlController {
             JSONObject resultObj = null;
             try {
                 startTime = new Timestamp(System.currentTimeMillis());
-                Timeout timeout = new Timeout(Duration.create(100, "hours"));
-                Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql), timeout);
+                Timeout timeout = new Timeout(Duration.create(1, "hours"));
+                Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql,iqlEngine.engineId()), timeout);
                 String result1 = Await.result(future1, timeout.duration()).toString();
                 resultObj = JSON.parseObject(result1);
                 resultObj.put("startTime",startTime);
