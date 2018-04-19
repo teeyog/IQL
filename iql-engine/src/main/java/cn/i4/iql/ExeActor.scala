@@ -44,6 +44,7 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
 
     case Iql(code,iql,engineId) =>
       resultMap.clear()
+      resJson.clear()
       resJson.put("startTime", new Timestamp(System.currentTimeMillis))
       resJson.put("iql",iql)
       resJson.put("code",code)
@@ -58,7 +59,7 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
       sender() ! resJson.toJSONString
       //解析iql并执行
       parse(iql.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", ""),
-        new IQLSQLExecListener(sparkSession, null, resultMap),groupId)
+        new IQLSQLExecListener(sparkSession, null, resultMap))
 
     case GetResult(engineIdAndGroupId) =>
       if(jobMap.keySet().contains(engineIdAndGroupId)) {
@@ -76,7 +77,7 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
     case _ => None
   }
 
-  def parse(input: String, listener: IQLListener, groupId:Int) = {
+  def parse(input: String, listener: IQLListener) = {
     resJson.put("status","FINISH")
     try {
       val loadLexer = new IQLLexer(new ANTLRInputStream(input))

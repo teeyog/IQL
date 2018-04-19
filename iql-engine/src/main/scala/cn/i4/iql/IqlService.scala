@@ -15,13 +15,18 @@ object IqlService {
     val spark = SparkSession
       .builder
       .appName("IQL")
+      //动态资源调整
       .config("spark.dynamicAllocation.enabled", "true")
       .config("spark.dynamicAllocation.executorIdleTimeout", "30s")
-      .config("spark.dynamicAllocation.maxExecutors", "100")
+      .config("spark.dynamicAllocation.maxExecutors", "60")
+      //动态分区
       .config("hive.exec.dynamic.partition", "true")
       .config("hive.exec.dynamic.partition.mode", "nonstrict")
+      //序列化
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .config("spark.yarn.executor.memoryOverhead","2048")
+      //调度模式
+//      .config("spark.scheduler.mode", "FAIR")
+      .config("spark.yarn.executor.memoryOverhead","1024")
 //            .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
