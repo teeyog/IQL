@@ -31,6 +31,7 @@ object IqlService {
       .enableHiveSupport()
       .getOrCreate()
 
+
     spark.sparkContext.setLogLevel("WARN")
 
     val actorSystem = ActorSystem("iqlSystem", AkkaUtils.getConfig)
