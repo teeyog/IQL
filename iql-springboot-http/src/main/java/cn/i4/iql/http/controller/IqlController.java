@@ -1,56 +1,56 @@
-//package cn.i4.iql.http.controller;
-//
-//import akka.actor.ActorRef;
-//import akka.actor.ActorSelection;
-//import akka.actor.ActorSystem;
-//import cn.i4.iql.domain.Bean;
-//import cn.i4.iql.http.bean.primary.IqlExcution;
-//import cn.i4.iql.http.bean.primary.SaveIql;
-//import cn.i4.iql.http.bean.secondary.COLUMNS;
-//import cn.i4.iql.http.bean.secondary.DBS;
-//import cn.i4.iql.http.bean.secondary.TBLS;
-//import cn.i4.iql.http.handler.HDFSHandler;
-//import cn.i4.iql.http.service.primary.IqlExcutionRepository;
-//import cn.i4.iql.http.service.primary.SaveIqlRepository;
-//import cn.i4.iql.http.service.secondary.ColumnsRepository;
-//import cn.i4.iql.http.service.secondary.DbsRepository;
-//import cn.i4.iql.http.service.secondary.TablsRepository;
-//import cn.i4.iql.http.util.ExportUtil;
-//import cn.i4.iql.http.util.HdfsUtils;
-//import cn.i4.iql.utils.ZkUtils;
-//import com.alibaba.fastjson.JSON;
-//import com.alibaba.fastjson.JSONArray;
-//import com.alibaba.fastjson.JSONObject;
-//import com.typesafe.config.Config;
-//import org.apache.poi.hssf.usermodel.*;
-//import org.apache.poi.hssf.util.HSSFColor;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.HttpHeaders;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.web.bind.annotation.*;
-//import org.I0Itec.zkclient.ZkClient;
-//import org.springframework.web.multipart.MultipartFile;
-//import org.springframework.web.multipart.MultipartHttpServletRequest;
-//import scala.concurrent.Await;
-//import scala.concurrent.Future;
-//import akka.pattern.Patterns;
-//import akka.util.Timeout;
-//import scala.concurrent.duration.Duration;
-//
-//import javax.servlet.http.HttpServletRequest;
-//import javax.servlet.http.HttpServletResponse;
-//import java.io.*;
-//import java.lang.reflect.Field;
-//import java.lang.reflect.InvocationTargetException;
-//import java.lang.reflect.Method;
-//import java.sql.Timestamp;
-//import java.text.SimpleDateFormat;
-//import java.util.*;
-//
-//@Controller
-//public class IqlController {
+package cn.i4.iql.http.controller;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
+import cn.i4.iql.domain.Bean;
+import cn.i4.iql.http.bean.primary.IqlExcution;
+import cn.i4.iql.http.bean.primary.SaveIql;
+import cn.i4.iql.http.bean.secondary.COLUMNS;
+import cn.i4.iql.http.bean.secondary.DBS;
+import cn.i4.iql.http.bean.secondary.TBLS;
+import cn.i4.iql.http.handler.HDFSHandler;
+import cn.i4.iql.http.service.primary.IqlExcutionRepository;
+import cn.i4.iql.http.service.primary.SaveIqlRepository;
+import cn.i4.iql.http.service.secondary.ColumnsRepository;
+import cn.i4.iql.http.service.secondary.DbsRepository;
+import cn.i4.iql.http.service.secondary.TablsRepository;
+import cn.i4.iql.http.util.ExportUtil;
+import cn.i4.iql.http.util.HdfsUtils;
+import cn.i4.iql.utils.ZkUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.typesafe.config.Config;
+import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.I0Itec.zkclient.ZkClient;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import scala.concurrent.duration.Duration;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+@Controller
+public class IqlController {
 //
 //    @Autowired
 //    private ActorSystem actorSystem;
@@ -366,10 +366,10 @@
 //        }
 //        return allEngine;
 //    }
-//
-//    @RequestMapping("/iql")
-//    public String test(){
-//        return "iql";
-//    }
-//
-//}
+
+    @RequestMapping("/iql")
+    public String test(){
+        return "iql";
+    }
+
+}

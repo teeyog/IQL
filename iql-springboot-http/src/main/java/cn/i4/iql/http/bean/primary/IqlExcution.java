@@ -136,6 +136,7 @@ public class IqlExcution {
         object.put("isSuccess",isSuccess);
         object.put("resultPath",resultPath);
         object.put("description",description);
+        object.put("tableSchema",tableSchema);
         return object;
     }
 }

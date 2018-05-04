@@ -99,13 +99,13 @@
                     <div class="tab-content" style="margin-left: 20px">
                         <div id="tab-1" class="tab-pane active">
                             <div class="panel-body">
-                                <table id="history-list-table" data-classes="table table-hover table-condensed table-no-bordered table-no-head" data-mobile-responsive="true">
+                                <table id="history-list-table" data-classes="table table-hover table-condensed  table-no-head" data-mobile-responsive="true">
                                 </table>
                             </div>
                         </div>
                         <div id="tab-2" class="tab-pane">
                             <div class="panel-body">
-                                <table id="saved-list-table" data-classes="table table-hover table-condensed table-no-bordered" data-mobile-responsive="true">
+                                <table id="saved-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
                                 </table>
                             </div>
                         </div>
@@ -193,6 +193,31 @@
             }
         };
 
+        window.operateEvents_loadresult = {
+            //加载历史查询结果
+            'click .RoleOfloadHistory': function (e, value, row, index) {
+                $("#execForm, .loading").toggle();
+                $.post("/hive/loadresult", {schema: row.tableSchema,hdfsPath: row.resultPath}, function(data) {
+                    $("#execForm, .loading").toggle();
+                    if(data.isSuccess) {
+                        hdfsPath = row.resultPath;
+                        schema = row.tableSchema;
+                        $("#results-tab").tab("show");
+                        loadResultsTable(data.schema, JSON.parse(data.data))
+                    }else {
+                        $("#errorMessage").show();
+                        $("#errorMessage pre").html(data.errorMessage)
+                    }
+                })
+            },
+            //删除历史查询
+            'click .RoleOfdeleteHistory': function (e, value, row, index) {
+                $.post("/hive/deletehistoryiql", {id: row.id}, function(data) {
+                    $("#history-list-table").bootstrapTable("refresh")
+                })
+            }
+        };
+
         //加载历史iql和保存的iql
         loadHistoryTable();
         loadSavedTable();
@@ -243,12 +268,10 @@
         })
     }
 
-    // 执行IQL
+    // 停止query
     function stopQuery() {
         $.post("/hive/stopquery", {engineIdAndGroupId: $("#iqlId").val()}, function(data) {})
     }
-
-
 
     //加载结果数据
     function loadResultsTable(schema, data) {
@@ -311,7 +334,7 @@
                     width: 80,
                     formatter: function(value, row, index) {
                         if(value)
-                            return '<span class="text-success" title="successful"><i class="glyphicon glyphicon-ok"></i></span>'
+                            return '<span class="text-success" title="successful"><i class="glyphicon glyphicon-ok"></i></span>';
                         else
                             return '<span class="text-warning" title="failed"><i class="glyphicon glyphicon-exclamation-sign"></i></span>'
                     }
@@ -323,8 +346,7 @@
                     formatter: function(value, row, index) {
                         return '<span>'+value + ' s' +'</span>'
                     }
-                }
-                ,
+                },
                 {
                     field: 'description',
                     title: '描述',
@@ -334,6 +356,24 @@
                     field: 'iql',
                     title: '执行操作',
                     width: 600
+                },
+                {
+                    field: 'resultPath',
+                    title: 'resultPath',
+                    visible: false
+                },
+                {
+                    field: 'tableSchema',
+                    title: 'tableSchema',
+                    visible: false
+                },
+                {
+                    field: 'id',
+                    title: '操作',
+                    align: 'center',
+                    width : 100,
+                    events: operateEvents_loadresult,
+                    formatter: operateFormatter_loadresult
                 }
             ]
         });
@@ -426,10 +466,18 @@
         })
     }
 
+    //为行添加加载结果操作
+    function operateFormatter_loadresult(value, row, index) {
+        return [
+            '<button type="button" class="RoleOfloadHistory btn btn-ms btn-default" style="margin-right:15px;">result</button>',
+            '<button type="button" class="RoleOfdeleteHistory btn btn-ms btn-default" style="margin-right:15px;">delete</button>'
+        ].join('');
+    }
+
     //为行添加删除操作
     function operateFormatter(value, row, index) {
         return [
-            '<button type="button" class="RoleOfdelete btn btn-primary  btn-sm" style="margin-right:15px;">删除</button>',
+            '<button type="button" class="RoleOfdelete btn btn-ms btn-default" style="margin-right:15px;">delete</button>'
         ].join('');
     }
 

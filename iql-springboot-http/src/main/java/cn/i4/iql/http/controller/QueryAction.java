@@ -143,6 +143,24 @@ public class QueryAction {
 	}
 
 	/**
+	 * 根据历史查询加载结果
+	 */
+	@PostMapping(value="/loadresult")
+	public JSONObject loadResult(String hdfsPath,String schema) {
+		JSONObject resultObj = new JSONObject();
+		try {
+			resultObj.put("data", HdfsUtils.readFileToString(hdfsPath));
+			resultObj.put("schema",schema);
+			resultObj.put("isSuccess",true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultObj.put("isSuccess",false);
+			resultObj.put("errorMessage",e.getMessage());
+		}
+		return resultObj;
+	}
+
+	/**
 	 * 删除一个job
 	 * @return
 	 */
@@ -335,6 +353,16 @@ public class QueryAction {
 		saveIqlRepository.delete(Long.valueOf(id));
 	}
 
+	/**
+	 * 删除一个历史查询IQL
+	 * @return
+	 */
+	@RequestMapping(value="/deletehistoryiql", method= RequestMethod.POST)
+	@ResponseBody
+	public void deleteHistoryIql(@RequestParam(value="id") String id) {
+		iqlExcutionRepository.delete(Long.valueOf(id));
+	}
+
 	@RequestMapping(value="/iqls", method=RequestMethod.GET)
 	public JSONObject getIqlList(BaseBean vo) throws IOException {
 		JSONObject res = new JSONObject();
@@ -440,6 +468,4 @@ public class QueryAction {
 	public String test(){
 		return "iql";
 	}
-
-
 }
