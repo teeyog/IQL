@@ -49,6 +49,7 @@ as tb;
 - hbase.table.endKey：预分区开始key
 - hbase.table.numReg：分区个数
 - hbase.table.rowkey.prefix: 当rowkey是数字，预分区需要指明前缀的formate形式，如 00
+- hbase.check_table: 写入hbase表时，是否需要检查表是否存在，默认 false
 
 ```
 save tb1 as hbase.tableName 

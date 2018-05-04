@@ -1,11 +1,10 @@
 package cn.i4.iql
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import java.net.InetAddress
 import java.sql.Timestamp
 import java.util.concurrent.ConcurrentHashMap
 
-import akka.actor.{Actor, ActorLogging, Address, Props}
+import akka.actor.{Actor, ActorLogging, Props}
 import cn.i4.iql.antlr.{IQLLexer, IQLListener, IQLParser}
 import cn.i4.iql.domain.Bean._
 import cn.i4.iql.utils.BatchSQLRunnerEngine
@@ -108,6 +107,5 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
 object ExeActor{
 
   def props(spark: SparkSession): Props = Props(new ExeActor(spark))
-//  def apply(spark: SparkSession): ExeActor = new ExeActor(spark)
 
 }

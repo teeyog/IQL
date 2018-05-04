@@ -143,18 +143,19 @@ public class QueryAction {
 	}
 
 	/**
-	 * 执行一个IQL
+	 * 删除一个job
 	 * @return
 	 */
 	@PostMapping(value="/stopquery")
-	public void cancelJob(String engineIdAndGroupId) {
+	public JSONObject cancelJob(String engineIdAndGroupId) {
 		JSONObject resultObj = null;
+		resultObj.put("isSuccess",true);
 		Bean.IQLEngine iqlEngine = selectValidEngineByEngineId(Integer.valueOf(engineIdAndGroupId.split(":")[0]));
 		if(iqlEngine == null){
 			resultObj = new JSONObject();
 			resultObj.put("isSuccess",false);
-			resultObj.put("errorMessage","当前未有可用的执行引擎...");
-//			return resultObj;
+			resultObj.put("errorMessage","stop query fail");
+			return resultObj;
 		}else {
 			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
 			try {
@@ -163,7 +164,7 @@ public class QueryAction {
 				resultObj.put("errorMessage",e.getMessage());
 				resultObj.put("isSuccess",false);
 			}
-//			return resultObj;
+			return resultObj;
 		}
 	}
 

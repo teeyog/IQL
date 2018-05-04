@@ -54,12 +54,13 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect","kafka.zookeeper.connect"))
         reader.option("topics",path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
-        table = scriptSQLExecListener.sparkSession.read.json(table.select("msg").rdd.map(_.getString(0)))
+        if(option.getOrElse("data.type","json").toLowerCase.equals("json"))
+          table = scriptSQLExecListener.sparkSession.read.json(table.select("msg").rdd.map(_.getString(0)))
 
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         if(path.startsWith("'") || path.startsWith("`") || path.startsWith("\"")) path = path.substring(1)
         if(path.endsWith("'") || path.endsWith("`") || path.endsWith("\"")) path = path.substring(0,path.length - 1)
-        table = reader.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").format(format).load(path)
+        table = reader.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).load(path)
 
       case _ =>
         table = reader.format(format).load(withPathPrefix(scriptSQLExecListener.pathPrefix, cleanStr(path)))
