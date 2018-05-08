@@ -196,6 +196,7 @@
         window.operateEvents_loadresult = {
             //加载历史查询结果
             'click .RoleOfloadHistory': function (e, value, row, index) {
+                $("#errorMessage").hide();
                 $("#execForm, .loading").toggle();
                 $.post("/hive/loadresult", {schema: row.tableSchema,hdfsPath: row.resultPath}, function(data) {
                     $("#execForm, .loading").toggle();

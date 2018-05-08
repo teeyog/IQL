@@ -88,6 +88,7 @@
     </dependencies>
 
     <build>
+        <finalName>iql</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
