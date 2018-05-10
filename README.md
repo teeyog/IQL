@@ -5,6 +5,7 @@
 - spark常驻服务，基于zookeeper的引擎自动发现
 - 负载均衡，多个引擎随机执行
 - 多session模式实现并行查询
+- 采用spark的FAIR调度
 - 基于spark的动态资源分配，在无任务的情况下不会占用executor资源
 
 ---
