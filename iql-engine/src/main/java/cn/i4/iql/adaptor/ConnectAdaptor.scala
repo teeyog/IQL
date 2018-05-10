@@ -16,7 +16,6 @@ class ConnectAdaptor(scriptSQLExecListener: IQLSQLExecListener, dbMap: Concurren
       ctx.getChild(tokenIndex) match {
         case s: FormatContext =>
           option += ("format" -> s.getText)
-
         case s: ExpressionContext =>
           option += (cleanStr(s.identifier().getText) -> cleanStr(s.STRING().getText))
         case s: BooleanExpressionContext =>

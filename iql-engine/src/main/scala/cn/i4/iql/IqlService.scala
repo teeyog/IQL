@@ -9,6 +9,7 @@ import org.apache.spark.sql.SparkSession
 object IqlService {
 
   val jobMap = new ConcurrentHashMap[String, String]()
+  var schedulerMode:Boolean = true
 
   def main(args: Array[String]): Unit = {
 
@@ -25,7 +26,8 @@ object IqlService {
       //序列化
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       //调度模式
-//      .config("spark.scheduler.mode", "FAIR")
+      .config("spark.scheduler.mode", "FAIR")
+      .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
       .config("spark.yarn.executor.memoryOverhead","1024")
 //            .master("local[4]")
       .enableHiveSupport()

@@ -42,6 +42,8 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
     case ShakeHands() => sender() ! ShakeHands()
 
     case Iql(code,iql,engineId) =>
+      schedulerMode = !schedulerMode
+      sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if(schedulerMode) "pool_fair_1" else "pool_fair_2")
       resultMap.clear()
       resJson.clear()
       resJson.put("startTime", new Timestamp(System.currentTimeMillis))
