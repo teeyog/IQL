@@ -9,15 +9,9 @@ import cn.i4.iql.domain.Bean;
 import cn.i4.iql.http.bean.BaseBean;
 import cn.i4.iql.http.bean.primary.IqlExcution;
 import cn.i4.iql.http.bean.primary.SaveIql;
-import cn.i4.iql.http.bean.secondary.COLUMNS;
-import cn.i4.iql.http.bean.secondary.DBS;
-import cn.i4.iql.http.bean.secondary.TBLS;
 import cn.i4.iql.http.handler.HDFSHandler;
 import cn.i4.iql.http.service.primary.IqlExcutionRepository;
 import cn.i4.iql.http.service.primary.SaveIqlRepository;
-import cn.i4.iql.http.service.secondary.ColumnsRepository;
-import cn.i4.iql.http.service.secondary.DbsRepository;
-import cn.i4.iql.http.service.secondary.TablsRepository;
 import cn.i4.iql.http.util.DataUtil;
 import cn.i4.iql.http.util.HdfsUtils;
 import cn.i4.iql.utils.ZkUtils;
@@ -26,13 +20,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.typesafe.config.Config;
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
@@ -53,12 +42,6 @@ public class QueryAction {
 	private ZkClient zkClient;
 	@Autowired
 	private IqlExcutionRepository iqlExcutionRepository;
-	@Autowired
-	private DbsRepository dbsRepository;
-	@Autowired
-	private TablsRepository tblsRepository;
-	@Autowired
-	private ColumnsRepository columnsRepository;
 	@Autowired
 	private SaveIqlRepository saveIqlRepository;
 	@Autowired
@@ -166,11 +149,10 @@ public class QueryAction {
 	 */
 	@PostMapping(value="/stopquery")
 	public JSONObject cancelJob(String engineIdAndGroupId) {
-		JSONObject resultObj = null;
+		JSONObject resultObj = new JSONObject();
 		resultObj.put("isSuccess",true);
 		Bean.IQLEngine iqlEngine = selectValidEngineByEngineId(Integer.valueOf(engineIdAndGroupId.split(":")[0]));
 		if(iqlEngine == null){
-			resultObj = new JSONObject();
 			resultObj.put("isSuccess",false);
 			resultObj.put("errorMessage","stop query fail");
 			return resultObj;
@@ -246,59 +228,82 @@ public class QueryAction {
 		return "未找到可用的actor连接";
 	}
 
-	/**
-	 * 获取所有的数据库
-	 * @return
-	 */
-	@RequestMapping(value="/databases", method= RequestMethod.GET)
-	@ResponseBody
-	public String databases() {
-		List<DBS> dbs = dbsRepository.findAll();
-		JSONArray jsonArray = new JSONArray();
-		for(DBS db : dbs){
-			JSONObject obj = new JSONObject();
-			obj.put("dbname",db.getName());
-			obj.put("dbid",db.getDbId());
-			jsonArray.add(obj);
-		}
-		return jsonArray.toJSONString();
-	}
+//	/**
+//	 * 获取所有的数据库
+//	 * @return
+//	 */
+//	@RequestMapping(value="/databases", method= RequestMethod.GET)
+//	@ResponseBody
+//	public String databases() {
+//		List<DBS> dbs = dbsRepository.findAll();
+//		JSONArray jsonArray = new JSONArray();
+//		for(DBS db : dbs){
+//			JSONObject obj = new JSONObject();
+//			obj.put("dbname",db.getName());
+//			obj.put("dbid",db.getDbId());
+//			jsonArray.add(obj);
+//		}
+//		return jsonArray.toJSONString();
+//	}
 
-	/**
-	 * 通过dbId获取对应的表
-	 * @param dbId
-	 * @return
-	 */
-	@RequestMapping(value="/tables", method= RequestMethod.GET)
-	@ResponseBody
-	public String tables(@RequestParam("dbid") Long dbId) {
-		List<TBLS> tbs = tblsRepository.findTBLSByDbId(dbId);
-		JSONArray jsonArray = new JSONArray();
-		for(TBLS tb : tbs){
-			JSONObject obj = new JSONObject();
-			obj.put("tbname",tb.getTblName());
-			obj.put("tbid",tb.getTblId());
-			jsonArray.add(obj);
-		}
-		return jsonArray.toJSONString();
-	}
+//	/**
+//	 * 通过dbId获取对应的表
+//	 * @param dbId
+//	 * @return
+//	 */
+//	@RequestMapping(value="/tables", method= RequestMethod.GET)
+//	@ResponseBody
+//	public String tables(@RequestParam("dbid") Long dbId) {
+//		List<TBLS> tbs = tblsRepository.findTBLSByDbId(dbId);
+//		JSONArray jsonArray = new JSONArray();
+//		for(TBLS tb : tbs){
+//			JSONObject obj = new JSONObject();
+//			obj.put("tbname",tb.getTblName());
+//			obj.put("tbid",tb.getTblId());
+//			jsonArray.add(obj);
+//		}
+//		return jsonArray.toJSONString();
+//	}
 
-	/**
-	 * 通过tbid获取对应的列
-	 * @param tbId
-	 * @return
-	 */
-	@RequestMapping(value="/columns", method= RequestMethod.GET)
-	@ResponseBody
-	public String cloumns(@RequestParam("tbid") Long tbId) {
-		List<COLUMNS> columns = columnsRepository.findCOLUMNSByCdId(tbId);
-		JSONArray jsonArray = new JSONArray();
-		for(COLUMNS cl : columns){
-			jsonArray.add(cl.getColumnName() + "(" + cl.getTypeName() + ")");
-		}
-		return jsonArray.toJSONString();
-	}
+//	/**
+//	 * 通过tbid获取对应的列
+//	 * @param tbId
+//	 * @return
+//	 */
+//	@RequestMapping(value="/columns", method= RequestMethod.GET)
+//	@ResponseBody
+//	public String cloumns(@RequestParam("tbid") Long tbId) {
+//		List<COLUMNS> columns = columnsRepository.findCOLUMNSByCdId(tbId);
+//		JSONArray jsonArray = new JSONArray();
+//		for(COLUMNS cl : columns){
+//			jsonArray.add(cl.getColumnName() + "(" + cl.getTypeName() + ")");
+//		}
+//		return jsonArray.toJSONString();
+//	}
 
+    /**
+     * 或者hive元数据
+	 */
+	@RequestMapping(value="/hiveMetadata", method= RequestMethod.GET)
+	@ResponseBody
+	public JSONArray hiveMetadata() {
+        JSONArray resultArray = null;
+        Bean.IQLEngine iqlEngine = selectValidEngine();
+        if(iqlEngine == null){
+            return null;
+        }else {
+            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
+            try {
+                Timeout timeout = new Timeout(Duration.create(2, "s"));
+                Future<Object> future1 = Patterns.ask(selection, new Bean.HiveCatalog(), timeout);
+                String result1 = Await.result(future1, timeout.duration()).toString();
+				resultArray = JSON.parseArray(result1);
+            } catch (Exception e) {
+            	return null;
+            }
+            return resultArray;
+        }
+	}
 
 	/**
 	 * 获取历史所有查询

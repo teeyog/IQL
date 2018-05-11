@@ -1,6 +1,7 @@
 package org.apache.spark.sql.bridge
 
-import org.apache.spark.sql.{Dataset, Row}
+import org.apache.spark.sql.hive.HiveExternalCatalog
+import org.apache.spark.sql.{Dataset, Row, SparkSession}
 
 object SparkBridge {
 
@@ -10,6 +11,10 @@ object SparkBridge {
     } else {
       dataset.showString(numRows, truncate = 0)
     }
+  }
+
+  def getHiveCatalg(sparkSession:SparkSession): HiveExternalCatalog = {
+    sparkSession.sharedState.externalCatalog.asInstanceOf[HiveExternalCatalog]
   }
 
 }

@@ -1,0 +1,12 @@
+{
+  "name": "ztree",
+  "description": "zTree is based jquery, is very powerful",
+  "version": "3.5.0",
+  "dependencies": {
+    "jquery": "*"
+  },
+  "main": [
+    "js/jquery.ztree.core-3.5.js",
+    "css/zTreeStyle/zTreeStyle.css"
+  ]
+}

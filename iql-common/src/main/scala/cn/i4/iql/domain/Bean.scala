@@ -21,4 +21,6 @@ object Bean {
   case class GetResult(engineIdAndGroupId:String)
 
   case class CancelJob(groupId:Int)
+
+  case class HiveCatalog()
 }
