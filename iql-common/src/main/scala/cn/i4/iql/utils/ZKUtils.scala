@@ -13,31 +13,36 @@ object ZkUtils {
 
   val log: Logger = Logger.getLogger(ZkUtils.getClass)
 
+  var zkClient:ZkClient = null
+
   val enginePath = "/iql/engine"
+  val validEnginePath = "/iql/valid_engine"
 
   val ZKURL = "dsj01:2181"
 
   def getZkClient(zkServers: String):ZkClient = {
-    val zkClient = new ZkClient(zkServers, 60000, 60000, new ZkSerializer {
-      override def serialize(data: Object): Array[Byte] = {
-        try {
-          return data.toString().getBytes("UTF-8")
-        } catch {
-          case e: ZkMarshallingError => return null
+    if(zkClient == null) {
+      zkClient = new ZkClient(zkServers, 60000, 60000, new ZkSerializer {
+        override def serialize(data: Object): Array[Byte] = {
+          try {
+            return data.toString().getBytes("UTF-8")
+          } catch {
+            case e: ZkMarshallingError => return null
+          }
         }
-      }
-      override def deserialize(bytes: Array[Byte]): Object = {
-        try {
-          return new String(bytes, "UTF-8")
-        } catch {
-          case e: ZkMarshallingError => return null
+        override def deserialize(bytes: Array[Byte]): Object = {
+          try {
+            return new String(bytes, "UTF-8")
+          } catch {
+            case e: ZkMarshallingError => return null
+          }
         }
+      })
+      sys.addShutdownHook {
+        // Ensure that, on executor JVM shutdown, the Kafka producer sends
+        // any buffered messages to Kafka before shutting down.
+        zkClient.close()
       }
-    })
-    sys.addShutdownHook {
-      // Ensure that, on executor JVM shutdown, the Kafka producer sends
-      // any buffered messages to Kafka before shutting down.
-      zkClient.close()
     }
     zkClient
   }
@@ -51,6 +56,21 @@ object ZkUtils {
   def getAllEngineInCluster(zkClient: ZkClient): Seq[IQLEngine] = {
     val engineIds = ZkUtils.getChildrenParentMayNotExist(zkClient, ZkUtils.enginePath).sorted
     engineIds.map(_.toInt).map(getEngineInfo(zkClient, _)).filter(_.isDefined).map(_.get)
+  }
+
+  def registerActorInEngine(zkClient: ZkClient,path:String,data:String, timeout: Int, jmxPort: Int) {
+    try {
+      makeSurePersistentPathExists(zkClient,validEnginePath)
+      createEphemeralPathExpectConflictHandleZKBug(zkClient, path, data, data,
+        (data: String, expectedData: Any) => expectedData.toString.equals(data),
+        timeout)
+    } catch {
+      case e: ZkNodeExistsException =>
+        throw new RuntimeException("A actor is already registered on the path " + path
+          + ". This probably " + "indicates that you either have configured a brokerid that is already in use, or "
+          + "else you have shutdown this broker and restarted it faster than the zookeeper "
+          + "timeout so it appears to be re-registering.")
+    }
   }
 
   def registerEngineInZk(zkClient: ZkClient, id: Int, host: String, port: Int, timeout: Int, jmxPort: Int) {
@@ -286,6 +306,19 @@ object ZkUtils {
     import scala.collection.JavaConversions._
     // triggers implicit conversion from java list to scala Seq
     client.getChildren(path)
+  }
+
+  def getValidChildren(client: ZkClient, path: String): Seq[String] = {
+    getChildren(client,path)
+      .map(r => (r.split("_")(0),r))
+      .groupBy(_._1)
+      .filter(_._2.size>1)
+      .flatMap(r => r._2)
+      .map(_._2).toSeq
+  }
+
+  def getChildrenFilter(client: ZkClient, path: String, engineInfo:String): Seq[String] = {
+    getChildren(client,path).filter(_.startsWith(engineInfo))
   }
 
   def getChildrenParentMayNotExist(client: ZkClient, path: String): Seq[String] = {

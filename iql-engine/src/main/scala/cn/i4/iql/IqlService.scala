@@ -8,6 +8,7 @@ import org.apache.spark.sql.SparkSession
 
 object IqlService {
 
+  var engineInfo:String = null
   val jobMap = new ConcurrentHashMap[String, String]()
   var schedulerMode:Boolean = true
 
@@ -36,9 +37,13 @@ object IqlService {
 
     spark.sparkContext.setLogLevel("WARN")
 
-    val actorSystem = ActorSystem("iqlSystem", AkkaUtils.getConfig)
-    actorSystem.actorOf(ExeActor.props(spark), name = "actor1")
-    actorSystem.actorOf(ExeActor.props(spark), name = "actor2")
-    actorSystem.actorOf(ExeActor.props(spark), name = "actor3")
+    val actorConf = AkkaUtils.getConfig
+    engineInfo = actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port")
+
+    val numActor:Int = 3
+    val actorSystem = ActorSystem("iqlSystem", actorConf)
+    for(id <- 1 to numActor){
+      actorSystem.actorOf(ExeActor.props(spark), name = "actor"+id)
+    }
   }
 }

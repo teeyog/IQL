@@ -10,11 +10,11 @@ object Bean {
 
   case class ShakeHands()
 
-  case class Iql(code:String,iql:String,engineId:Int)
+  case class Iql(code:String,iql:String)
 
   case class StopIQL()
 
-  case class GetResult(engineIdAndGroupId:String)
+  case class GetResult(engineInfoAndGroupId:String)
 
   case class CancelJob(groupId:Int)
 

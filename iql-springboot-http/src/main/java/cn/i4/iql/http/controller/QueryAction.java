@@ -22,6 +22,8 @@ import com.typesafe.config.Config;
 import org.I0Itec.zkclient.ZkClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import scala.Function1;
+import scala.collection.Seq;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
@@ -59,17 +61,19 @@ public class QueryAction {
 							@RequestParam(value="code",required=false,defaultValue="") String code,
 							@RequestParam(value="descrption",required=false,defaultValue="") String descrption) {
 		JSONObject resultObj = null;
-		Bean.IQLEngine iqlEngine = selectValidEngine();
-		if(iqlEngine == null){
+		Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath());
+		if(validEngines.size() == 0){
 			resultObj = new JSONObject();
 			resultObj.put("isSuccess",false);
 			resultObj.put("errorMessage","当前未有可用的执行引擎...");
 			return resultObj;
 		}else {
-			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
+			System.out.println("Query:" + validEngines.head());
+			String[] engineInfoAndActorname = validEngines.head().split("_");
+			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
 			try {
 				Timeout timeout = new Timeout(Duration.create(2, "s"));
-				Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql,iqlEngine.engineId()), timeout);
+				Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql), timeout);
 				String result1 = Await.result(future1, timeout.duration()).toString();
 				resultObj = JSON.parseObject(result1);
 				resultObj.put("isSuccess",true);
@@ -85,19 +89,20 @@ public class QueryAction {
 	 * 获取结果
 	 */
 	@PostMapping(value="/getresult")
-	public JSONObject getResult(String engineIdAndGroupId) {
-		JSONObject resultObj = null;
-		Bean.IQLEngine iqlEngine = selectValidEngineByEngineId(Integer.valueOf(engineIdAndGroupId.split(":")[0]));
-		if(iqlEngine == null){
-			resultObj = new JSONObject();
+	public JSONObject getResult(String engineInfoAndGroupId) {
+		JSONObject resultObj  = new JSONObject();
+		String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfoAndGroupId.split("_")[0]);
+		if(validEngineByEngineInfo == null){
 			resultObj.put("isSuccess",false);
 			resultObj.put("errorMessage","当前未有可用的执行引擎...");
 			return resultObj;
 		}else {
-			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
+//			System.out.println("GetResult:" + validEngineByEngineInfo);
+			String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
+			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
 			try {
 				Timeout timeout = new Timeout(Duration.create(2, "s"));
-				Future<Object> future1 = Patterns.ask(selection, new Bean.GetResult(engineIdAndGroupId), timeout);
+				Future<Object> future1 = Patterns.ask(selection, new Bean.GetResult(engineInfoAndGroupId), timeout);
 				String result1 = Await.result(future1, timeout.duration()).toString();
 				resultObj = JSON.parseObject(result1);
 			} catch (Exception e) {
@@ -120,7 +125,7 @@ public class QueryAction {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				return getResult(engineIdAndGroupId);
+				return getResult(engineInfoAndGroupId);
 			}
 		}
 	}
@@ -148,18 +153,20 @@ public class QueryAction {
 	 * @return
 	 */
 	@PostMapping(value="/stopquery")
-	public JSONObject cancelJob(String engineIdAndGroupId) {
+	public JSONObject cancelJob(String engineInfoAndGroupId) {
 		JSONObject resultObj = new JSONObject();
 		resultObj.put("isSuccess",true);
-		Bean.IQLEngine iqlEngine = selectValidEngineByEngineId(Integer.valueOf(engineIdAndGroupId.split(":")[0]));
-		if(iqlEngine == null){
+		String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfoAndGroupId.split("_")[0]);
+		if(validEngineByEngineInfo == null){
 			resultObj.put("isSuccess",false);
-			resultObj.put("errorMessage","stop query fail");
+			resultObj.put("errorMessage","stop query fail,no valid engine...");
 			return resultObj;
 		}else {
-			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
+			System.out.println("StopQuery:" + validEngineByEngineInfo);
+			String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
+			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
 			try {
-				selection.tell(new Bean.CancelJob(Integer.valueOf(engineIdAndGroupId.split(":")[1])),ActorRef.noSender());
+				selection.tell(new Bean.CancelJob(Integer.valueOf(engineInfoAndGroupId.split("_")[1])),ActorRef.noSender());
 			} catch (Exception e) {
 				resultObj.put("errorMessage",e.getMessage());
 				resultObj.put("isSuccess",false);
@@ -236,11 +243,12 @@ public class QueryAction {
 	@ResponseBody
 	public JSONArray hiveMetadata() {
         JSONArray resultArray = null;
-        Bean.IQLEngine iqlEngine = selectValidEngine();
-        if(iqlEngine == null){
+		Seq<String> validEngines = ZkUtils.getChildren(zkClient, ZkUtils.validEnginePath());
+        if(validEngines.size() == 0){
             return null;
         }else {
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/" + iqlEngine.name());
+			String[] engineInfoAndActorname = validEngines.head().split("_");
+			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
             try {
                 Timeout timeout = new Timeout(Duration.create(2, "s"));
                 Future<Object> future1 = Patterns.ask(selection, new Bean.HiveCatalog(), timeout);
@@ -399,6 +407,16 @@ public class QueryAction {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * 获取指定节点上可用的actor
+	 * @param engineInfo
+	 * @return
+	 */
+	private String getValidEngineByEngineInfo(String engineInfo) {
+		Seq<String> validEngines = ZkUtils.getChildrenFilter(zkClient, ZkUtils.validEnginePath(),engineInfo);
+		return validEngines.size() == 0 ? null : validEngines.head();
 	}
 
 	/**

@@ -213,6 +213,7 @@
         //代码编辑框
         var myTextarea = document.getElementById('iql');
         window.editor  = CodeMirror.fromTextArea(myTextarea, {
+
             mode: 'text/x-hive',
             lineNumbers: true,
             indentWithTabs: true,
@@ -290,8 +291,8 @@
         $("#downloadForm").hide();
         $.post("/hive/query", {iql: window.editor.getValue(),descrption:$("#queryDescription").val()}, function(data) {
             if(data.isSuccess) {
-                $("#iqlId").val(data.engineIdAndGroupId);
-                $.post("/hive/getresult", {engineIdAndGroupId: data.engineIdAndGroupId}, function(data) {
+                $("#iqlId").val(data.engineInfoAndGroupId);
+                $.post("/hive/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function(data) {
                     $("#execForm, .loading").toggle();
                     if(data.isSuccess) {
                         $("#results-tab").tab("show");
@@ -313,7 +314,7 @@
 
     // 停止query
     function stopQuery() {
-        $.post("/hive/stopquery", {engineIdAndGroupId: $("#iqlId").val()}, function(data) {})
+        $.post("/hive/stopquery", {engineInfoAndGroupId: $("#iqlId").val()}, function(data) {})
     }
 
     //加载结果数据
