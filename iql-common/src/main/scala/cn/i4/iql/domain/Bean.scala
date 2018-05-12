@@ -14,10 +14,6 @@ object Bean {
 
   case class StopIQL()
 
-  case class Databases()
-
-  case class Tables(database:String)
-
   case class GetResult(engineIdAndGroupId:String)
 
   case class CancelJob(groupId:Int)

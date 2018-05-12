@@ -228,58 +228,6 @@ public class QueryAction {
 		return "未找到可用的actor连接";
 	}
 
-//	/**
-//	 * 获取所有的数据库
-//	 * @return
-//	 */
-//	@RequestMapping(value="/databases", method= RequestMethod.GET)
-//	@ResponseBody
-//	public String databases() {
-//		List<DBS> dbs = dbsRepository.findAll();
-//		JSONArray jsonArray = new JSONArray();
-//		for(DBS db : dbs){
-//			JSONObject obj = new JSONObject();
-//			obj.put("dbname",db.getName());
-//			obj.put("dbid",db.getDbId());
-//			jsonArray.add(obj);
-//		}
-//		return jsonArray.toJSONString();
-//	}
-
-//	/**
-//	 * 通过dbId获取对应的表
-//	 * @param dbId
-//	 * @return
-//	 */
-//	@RequestMapping(value="/tables", method= RequestMethod.GET)
-//	@ResponseBody
-//	public String tables(@RequestParam("dbid") Long dbId) {
-//		List<TBLS> tbs = tblsRepository.findTBLSByDbId(dbId);
-//		JSONArray jsonArray = new JSONArray();
-//		for(TBLS tb : tbs){
-//			JSONObject obj = new JSONObject();
-//			obj.put("tbname",tb.getTblName());
-//			obj.put("tbid",tb.getTblId());
-//			jsonArray.add(obj);
-//		}
-//		return jsonArray.toJSONString();
-//	}
-
-//	/**
-//	 * 通过tbid获取对应的列
-//	 * @param tbId
-//	 * @return
-//	 */
-//	@RequestMapping(value="/columns", method= RequestMethod.GET)
-//	@ResponseBody
-//	public String cloumns(@RequestParam("tbid") Long tbId) {
-//		List<COLUMNS> columns = columnsRepository.findCOLUMNSByCdId(tbId);
-//		JSONArray jsonArray = new JSONArray();
-//		for(COLUMNS cl : columns){
-//			jsonArray.add(cl.getColumnName() + "(" + cl.getTypeName() + ")");
-//		}
-//		return jsonArray.toJSONString();
-//	}
 
     /**
      * 或者hive元数据
