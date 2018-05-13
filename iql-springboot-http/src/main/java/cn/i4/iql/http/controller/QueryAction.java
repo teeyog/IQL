@@ -60,11 +60,14 @@ public class QueryAction {
 	public JSONObject execution(@RequestParam("iql") String iql,
 							@RequestParam(value="code",required=false,defaultValue="") String code,
 							@RequestParam(value="descrption",required=false,defaultValue="") String descrption) {
-		JSONObject resultObj = null;
+		JSONObject resultObj = new JSONObject();;
+		resultObj.put("isSuccess",false);
+		if(iql.trim().equals("")) {
+			resultObj.put("errorMessage","iql can't be empty...");
+			return resultObj;
+		}
 		Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath());
 		if(validEngines.size() == 0){
-			resultObj = new JSONObject();
-			resultObj.put("isSuccess",false);
 			resultObj.put("errorMessage","当前未有可用的执行引擎...");
 			return resultObj;
 		}else {
@@ -79,7 +82,6 @@ public class QueryAction {
 				resultObj.put("isSuccess",true);
 			} catch (Exception e) {
 				resultObj.put("errorMessage",e.getMessage());
-				resultObj.put("isSuccess",false);
 			}
 			return resultObj;
 		}
@@ -97,7 +99,6 @@ public class QueryAction {
 			resultObj.put("errorMessage","当前未有可用的执行引擎...");
 			return resultObj;
 		}else {
-//			System.out.println("GetResult:" + validEngineByEngineInfo);
 			String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
 			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
 			try {
@@ -113,7 +114,6 @@ public class QueryAction {
 						Long.valueOf(resultObj.getOrDefault("takeTime","0").toString()), resultObj.getBoolean("isSuccess"),
 						resultObj.getOrDefault("hdfsPath","").toString(),"",resultObj.getOrDefault("errorMessage","").toString(),
 						resultObj.getOrDefault("schema","").toString()));
-
 				if(resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0){
 					resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString()));
 					resultObj.put("schema",resultObj.getOrDefault("schema","").toString());
@@ -187,53 +187,53 @@ public class QueryAction {
 		}
 	}
 
-	/**
-	 * 获取所有的执行引擎
-	 * @return
-	 */
-	@RequestMapping(value="/getAllEngine", method= RequestMethod.GET)
-	@ResponseBody
-	public String getAllEngine() {
-		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
-		if (engines.size() == 1) return "当前未有可用的Spark执行引擎...";
-		String hostAndPort = config.getString("akka.remote.netty.tcp.hostname") + ":" + config.getString("akka.remote.netty.tcp.port");
-		JSONArray jsonArray = new JSONArray();
-		for(Bean.IQLEngine engine : engines){
-			if (!engine.engineInfo().equals(hostAndPort)) {
-				JSONObject obj = new JSONObject();
-				obj.put("engineId", engine.engineId());
-				obj.put("info", engine.engineInfo());
-				jsonArray.add(obj);
-			}
-		}
-		return jsonArray.toJSONString();
-	}
+//	/**
+//	 * 获取所有的执行引擎
+//	 * @return
+//	 */
+//	@RequestMapping(value="/getAllEngine", method= RequestMethod.GET)
+//	@ResponseBody
+//	public String getAllEngine() {
+//		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
+//		if (engines.size() == 1) return "当前未有可用的Spark执行引擎...";
+//		String hostAndPort = config.getString("akka.remote.netty.tcp.hostname") + ":" + config.getString("akka.remote.netty.tcp.port");
+//		JSONArray jsonArray = new JSONArray();
+//		for(Bean.IQLEngine engine : engines){
+//			if (!engine.engineInfo().equals(hostAndPort)) {
+//				JSONObject obj = new JSONObject();
+//				obj.put("engineId", engine.engineId());
+//				obj.put("info", engine.engineInfo());
+//				jsonArray.add(obj);
+//			}
+//		}
+//		return jsonArray.toJSONString();
+//	}
 
-	/**
-	 * 停止一个执行引擎
-	 * @param engineId
-	 * @return
-	 */
-	@RequestMapping(value="/stop", method= RequestMethod.POST)
-	@ResponseBody
-	public String stopIQLEngine(@RequestParam("engineId") int engineId) {
-		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
-		if (engines.size() == 1) return "当前没有运行的IQL执行引擎";
-		Bean.IQLEngine stopEngine = null;
-		for (Bean.IQLEngine engine : engines) {
-			if (engine.engineId() == engineId) {
-				stopEngine = engine;
-			}
-		}
-		for(int index = 1;index <= 3;index ++){
-			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + stopEngine.engineInfo() + "/user/actor" + index);
-			if(shakeHands(selection)){
-				selection.tell(new Bean.StopIQL(), ActorRef.noSender());
-				return "已发送Stop命令!";
-			}
-		}
-		return "未找到可用的actor连接";
-	}
+//	/**
+//	 * 停止一个执行引擎
+//	 * @param engineId
+//	 * @return
+//	 */
+//	@RequestMapping(value="/stop", method= RequestMethod.POST)
+//	@ResponseBody
+//	public String stopIQLEngine(@RequestParam("engineId") int engineId) {
+//		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
+//		if (engines.size() == 1) return "当前没有运行的IQL执行引擎";
+//		Bean.IQLEngine stopEngine = null;
+//		for (Bean.IQLEngine engine : engines) {
+//			if (engine.engineId() == engineId) {
+//				stopEngine = engine;
+//			}
+//		}
+//		for(int index = 1;index <= 3;index ++){
+//			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + stopEngine.engineInfo() + "/user/actor" + index);
+//			if(shakeHands(selection)){
+//				selection.tell(new Bean.StopIQL(), ActorRef.noSender());
+//				return "已发送Stop命令!";
+//			}
+//		}
+//		return "未找到可用的actor连接";
+//	}
 
 
     /**
@@ -324,6 +324,12 @@ public class QueryAction {
 		iqlExcutionRepository.delete(Long.valueOf(id));
 	}
 
+	/**
+	 * 获取所有保存的iql
+	 * @param vo
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value="/iqls", method=RequestMethod.GET)
 	public JSONObject getIqlList(BaseBean vo) throws IOException {
 		JSONObject res = new JSONObject();
@@ -340,76 +346,6 @@ public class QueryAction {
 	}
 
 	/**
-	 * 握手请求
-	 * @param selection
-	 * @return
-	 */
-	private boolean shakeHands(ActorSelection selection) {
-		Boolean shakeHands = true;
-		try {
-			Timeout timeout = new Timeout(Duration.create(2, "s"));
-			Future<Object> future = Patterns.ask(selection, new Bean.ShakeHands(), timeout);
-			Object result = Await.result(future, timeout.duration());
-			if(!(result instanceof Bean.ShakeHands)) shakeHands = false;
-		} catch (Exception e) {
-			shakeHands = false;
-		}
-		return shakeHands;
-	}
-
-	/**
-	 * 获取有效的执行引擎
-	 * @param
-	 */
-	private Bean.IQLEngine selectValidEngine() {
-		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
-		if (engines.size() == 1) return null;
-		String hostAndPort = config.getString("akka.remote.netty.tcp.hostname") + ":" + config.getString("akka.remote.netty.tcp.port");
-		List<Bean.IQLEngine> allEngine = new ArrayList<Bean.IQLEngine>();
-		for (Bean.IQLEngine engine : engines) {
-			if (!engine.engineInfo().equals(hostAndPort)) {
-				allEngine.add(engine);
-			}
-		}
-		while (!allEngine.isEmpty()){
-			Bean.IQLEngine iqlEngine = allEngine.get(new java.util.Random().nextInt(allEngine.size()));
-			for(int index = 1;index <= 3;index ++){
-				ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + iqlEngine.engineInfo() + "/user/actor" + index);
-				System.out.println("尝试握手Actor:" + iqlEngine.engineInfo() + " name:actor" + index);
-				if(shakeHands(selection)){
-					iqlEngine.name("actor" + index);
-					return iqlEngine;
-				}else {
-					allEngine = deleteOneFromAllEngine(allEngine,iqlEngine);
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * 根据engineId获取可用的actor
-	 * @param engineId
-	 * @return
-	 */
-	private Bean.IQLEngine selectValidEngineByEngineId(int engineId) {
-		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
-		for (Bean.IQLEngine engine : engines) {
-			if (engine.engineId() == engineId) {
-				for(int index = 3;index >= 1;index --){
-					ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engine.engineInfo() + "/user/actor" + index);
-					System.out.println("尝试握手Actor:" + engine.engineInfo() + " name:actor" + index);
-					if(shakeHands(selection)){
-						engine.name("actor" + index);
-						return engine;
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * 获取指定节点上可用的actor
 	 * @param engineInfo
 	 * @return
@@ -417,22 +353,6 @@ public class QueryAction {
 	private String getValidEngineByEngineInfo(String engineInfo) {
 		Seq<String> validEngines = ZkUtils.getChildrenFilter(zkClient, ZkUtils.validEnginePath(),engineInfo);
 		return validEngines.size() == 0 ? null : validEngines.head();
-	}
-
-	/**
-	 *
-	 * @param engines
-	 * @param engine
-	 * @return
-	 */
-	private List<Bean.IQLEngine> deleteOneFromAllEngine(List<Bean.IQLEngine> engines,Bean.IQLEngine engine) {
-		List<Bean.IQLEngine> allEngine = new ArrayList<Bean.IQLEngine>();
-		for (Bean.IQLEngine eng : engines) {
-			if (!eng.engineInfo().equals(engine.engineInfo()) && eng.engineId() != engine.engineId()) {
-				allEngine.add(engine);
-			}
-		}
-		return allEngine;
 	}
 
 	@RequestMapping("/iql")

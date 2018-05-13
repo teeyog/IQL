@@ -44,8 +44,6 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
 
   override def receive: Receive = {
 
-    case ShakeHands() => sender() ! ShakeHands()
-
     case HiveCatalog() =>
         val hiveArray = new JSONArray()
         var num: Int = 0

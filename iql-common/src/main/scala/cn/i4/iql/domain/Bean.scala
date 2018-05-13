@@ -8,8 +8,6 @@ object Bean {
     }
   }
 
-  case class ShakeHands()
-
   case class Iql(code:String,iql:String)
 
   case class StopIQL()
