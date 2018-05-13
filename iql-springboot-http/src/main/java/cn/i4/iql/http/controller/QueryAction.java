@@ -175,7 +175,6 @@ public class QueryAction {
 		}
 	}
 
-
 	@RequestMapping(value="/fileDownload", method=RequestMethod.GET)
 	public void fileDownload(HttpServletResponse response, String hdfsPath, String schema, String sql, String fileType) throws Exception {
 		if("json".equals(fileType)) {
@@ -186,55 +185,6 @@ public class QueryAction {
 			HDFSHandler.downloadExcel(hdfsPath,schema,response);
 		}
 	}
-
-//	/**
-//	 * 获取所有的执行引擎
-//	 * @return
-//	 */
-//	@RequestMapping(value="/getAllEngine", method= RequestMethod.GET)
-//	@ResponseBody
-//	public String getAllEngine() {
-//		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
-//		if (engines.size() == 1) return "当前未有可用的Spark执行引擎...";
-//		String hostAndPort = config.getString("akka.remote.netty.tcp.hostname") + ":" + config.getString("akka.remote.netty.tcp.port");
-//		JSONArray jsonArray = new JSONArray();
-//		for(Bean.IQLEngine engine : engines){
-//			if (!engine.engineInfo().equals(hostAndPort)) {
-//				JSONObject obj = new JSONObject();
-//				obj.put("engineId", engine.engineId());
-//				obj.put("info", engine.engineInfo());
-//				jsonArray.add(obj);
-//			}
-//		}
-//		return jsonArray.toJSONString();
-//	}
-
-//	/**
-//	 * 停止一个执行引擎
-//	 * @param engineId
-//	 * @return
-//	 */
-//	@RequestMapping(value="/stop", method= RequestMethod.POST)
-//	@ResponseBody
-//	public String stopIQLEngine(@RequestParam("engineId") int engineId) {
-//		List<Bean.IQLEngine> engines = ZkUtils.getAllEngineInClusterASJava(zkClient);
-//		if (engines.size() == 1) return "当前没有运行的IQL执行引擎";
-//		Bean.IQLEngine stopEngine = null;
-//		for (Bean.IQLEngine engine : engines) {
-//			if (engine.engineId() == engineId) {
-//				stopEngine = engine;
-//			}
-//		}
-//		for(int index = 1;index <= 3;index ++){
-//			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + stopEngine.engineInfo() + "/user/actor" + index);
-//			if(shakeHands(selection)){
-//				selection.tell(new Bean.StopIQL(), ActorRef.noSender());
-//				return "已发送Stop命令!";
-//			}
-//		}
-//		return "未找到可用的actor连接";
-//	}
-
 
     /**
      * 或者hive元数据
