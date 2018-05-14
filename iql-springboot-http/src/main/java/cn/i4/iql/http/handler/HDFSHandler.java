@@ -133,7 +133,17 @@ public class HDFSHandler {
                         if(!str.equals("")){
                             json = JSON.parseObject(str);
                             for (int j = 0; j < colNamesArr.length; j++) {
-                                os.write(json.getOrDefault(colNamesArr[j],"").toString().getBytes("GBK"));
+                                String strTemp = json.getOrDefault(colNamesArr[j], "").toString();
+                                //如果有逗号
+                                if(strTemp.contains(",")){
+                                    //如果还有双引号，先将双引号转义，避免两边加了双引号后转义错误
+                                    if(strTemp.contains("\"")){
+                                        strTemp=strTemp.replace("\"", "\"\"");
+                                    }
+                                    //在将逗号转义
+                                    strTemp="\""+strTemp+"\"";
+                                }
+                                os.write(strTemp.getBytes("GBK"));
                                 os.write(",".getBytes("GBK"));
                             }
                             os.write("\r\n".getBytes("GBK"));
