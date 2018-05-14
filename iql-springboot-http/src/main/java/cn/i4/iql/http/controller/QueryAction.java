@@ -46,8 +46,6 @@ public class QueryAction {
 	private IqlExcutionRepository iqlExcutionRepository;
 	@Autowired
 	private SaveIqlRepository saveIqlRepository;
-	@Autowired
-	private Config config;
 
 	/**
 	 * 执行一个IQL
@@ -60,7 +58,7 @@ public class QueryAction {
 	public JSONObject execution(@RequestParam("iql") String iql,
 							@RequestParam(value="code",required=false,defaultValue="") String code,
 							@RequestParam(value="descrption",required=false,defaultValue="") String descrption) {
-		JSONObject resultObj = new JSONObject();;
+		JSONObject resultObj = new JSONObject();
 		resultObj.put("isSuccess",false);
 		if(iql.trim().equals("")) {
 			resultObj.put("errorMessage","iql can't be empty...");
@@ -212,6 +210,31 @@ public class QueryAction {
 	}
 
 	/**
+	 * 或者hive元数据
+	 */
+	@RequestMapping(value="/autoCompletehiveMetadata", method= RequestMethod.GET)
+	@ResponseBody
+	public JSONObject autoCompleteHiveMetadata() {
+		JSONObject resultArray = null;
+		Seq<String> validEngines = ZkUtils.getChildren(zkClient, ZkUtils.validEnginePath());
+		if(validEngines.size() == 0){
+			return null;
+		}else {
+			String[] engineInfoAndActorname = validEngines.head().split("_");
+			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
+			try {
+				Timeout timeout = new Timeout(Duration.create(2, "s"));
+				Future<Object> future = Patterns.ask(selection, new Bean.HiveCatalogWithAutoComplete(), timeout);
+				String result = Await.result(future, timeout.duration()).toString();
+				resultArray = JSON.parseObject(result);
+			} catch (Exception e) {
+				return null;
+			}
+			return resultArray;
+		}
+	}
+
+	/**
 	 * 获取历史所有查询
 	 * @return
 	 */
@@ -234,9 +257,6 @@ public class QueryAction {
 
 	/**
 	 * 跟新一个IQL
-	 * @param iql
-	 * @param code
-	 * @param name
 	 * @return
 	 */
 	@RequestMapping(value="/saveiql", method= RequestMethod.POST)
@@ -288,10 +308,8 @@ public class QueryAction {
 		for(SaveIql e : iqls) {
 			rows.add(e.toJSON());
 		}
-		if(rows != null) {
-			res.put("total", rows.size());
-			res.put("rows", DataUtil.pageFormat(rows, vo.getOffset(), vo.getLimit()));
-		}
+		res.put("total", rows.size());
+		res.put("rows", DataUtil.pageFormat(rows, vo.getOffset(), vo.getLimit()));
 		return res;
 	}
 
@@ -303,10 +321,5 @@ public class QueryAction {
 	private String getValidEngineByEngineInfo(String engineInfo) {
 		Seq<String> validEngines = ZkUtils.getChildrenFilter(zkClient, ZkUtils.validEnginePath(),engineInfo);
 		return validEngines.size() == 0 ? null : validEngines.head();
-	}
-
-	@RequestMapping("/iql")
-	public String test(){
-		return "iql";
 	}
 }

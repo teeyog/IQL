@@ -17,4 +17,6 @@ object Bean {
   case class CancelJob(groupId:Int)
 
   case class HiveCatalog()
+
+  case class HiveCatalogWithAutoComplete()
 }

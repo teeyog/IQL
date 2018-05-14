@@ -210,21 +210,6 @@
     };
 
     $(function () {
-        //代码编辑框
-        var myTextarea = document.getElementById('iql');
-        window.editor  = CodeMirror.fromTextArea(myTextarea, {
-
-            mode: 'text/x-hive',
-            lineNumbers: true,
-            indentWithTabs: true,
-            smartIndent: true,
-            matchBrackets : true,
-            autofocus: true,
-            styleActiveLine: true,
-            lineWrapping: true,
-            extraKeys: {"Ctrl-Space": "autocomplete"}
-        });
-
         //删除一行保存的iql
         window.operateEvents = {
             'click .RoleOfdelete': function (e, value, row, index) {
@@ -281,6 +266,8 @@
         });
 
         $.fn.zTree.init($("#treeDemo"), setting);
+
+
     });
 
     // 执行IQL
@@ -524,9 +511,33 @@
             '<button type="button" class="RoleOfdelete btn btn-ms btn-default" style="margin-right:15px;">delete</button>'
         ].join('');
     }
-
-
-
 </script>
+
+
+<script>
+    // 代码编辑框
+    $(function () {
+        $.getJSON("hive/autoCompletehiveMetadata", {}, function (result) {
+            var myTextarea = document.getElementById('iql');
+            window.editor = CodeMirror.fromTextArea(myTextarea, {
+                mode: 'text/x-hive',
+                lineNumbers: true,
+                indentWithTabs: true,
+                smartIndent: true,
+                matchBrackets: true,
+                autofocus: true,
+                styleActiveLine: true,
+                lineWrapping: true,
+                extraKeys: {"Ctrl-Space": "autocomplete"},
+                hintOptions: {
+                    tables: result
+                }
+            });
+            window.editor.on("keyup", autocomplete);
+        })
+    });
+</script>
+
+
 </body>
 </html>

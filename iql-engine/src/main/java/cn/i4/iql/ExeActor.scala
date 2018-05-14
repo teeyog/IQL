@@ -77,6 +77,20 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
         })
         sender() ! hiveArray.toJSONString
 
+    case HiveCatalogWithAutoComplete() =>
+      val hiveObj = new JSONObject()
+      SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
+        val tbArray = new JSONArray()
+        SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
+          tbArray.add(tb)
+          val cloArray = new JSONArray()
+          SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
+          hiveObj.put(tb,cloArray)
+        })
+        hiveObj.put(db,tbArray)
+      })
+      sender() ! hiveObj.toJSONString
+
 
     case Iql(code, iql) =>
       actorWapper(){() => {
