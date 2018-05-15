@@ -70,6 +70,16 @@ public interface IQLListener extends ParseTreeListener {
 	 */
 	void exitIgnore(IQLParser.IgnoreContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link IQLParser#update}.
+	 * @param ctx the parse tree
+	 */
+	void enterUpdate(IQLParser.UpdateContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link IQLParser#update}.
+	 * @param ctx the parse tree
+	 */
+	void exitUpdate(IQLParser.UpdateContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link IQLParser#booleanExpression}.
 	 * @param ctx the parse tree
 	 */

@@ -60,6 +60,13 @@
             <scope>${i4scope}</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch-spark-20_2.11</artifactId>
+            <version>5.6.1</version>
+            <scope>${i4scope}</scope>
+        </dependency>
+
 
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-jexl -->
         <dependency>

@@ -25,6 +25,7 @@ object IqlService {
       //动态分区
       .config("hive.exec.dynamic.partition", "true")
       .config("hive.exec.dynamic.partition.mode", "nonstrict")
+      .config("hive.exec.max.dynamic.partitions",20000)
       //序列化
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       //调度模式

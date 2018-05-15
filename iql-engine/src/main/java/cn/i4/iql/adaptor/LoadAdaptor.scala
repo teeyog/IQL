@@ -2,7 +2,7 @@ package cn.i4.iql.adaptor
 
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
-import cn.i4.iql.utils.PropsUtils
+import cn.i4.iql.utils.{ProTools}
 import org.apache.spark.sql._
 
 class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
@@ -33,25 +33,20 @@ class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
       case "jdbc" =>
         reader
           .option("dbtable", path)
-          .option("driver",option.getOrElse("driver",PropsUtils.props.getProperty("jdbc.driver")))
-          .option("url",option.getOrElse("url",PropsUtils.props.getProperty("jdbc.url")))
+          .option("driver",option.getOrElse("driver",ProTools.get("jdbc.driver")))
+          .option("url",option.getOrElse("url",ProTools.get("jdbc.url")))
         table = reader.format("jdbc").load()
 
-//      case "es" | "org.elasticsearch.spark.sql" =>
-//        val dbAndTable = cleanStr(path).split("\\.")
-//        dbMap.get(dbAndTable(0)).foreach {
-//          f =>
-//            reader.option(f._1, f._2)
-//        }
-//        table = reader.format("org.elasticsearch.spark.sql").load(dbAndTable(1))
+      case "es" | "org.elasticsearch.spark.sql" =>
+        table = reader.format("org.elasticsearch.spark.sql").load(path)
 
       case "hbase" | "org.apache.spark.sql.execution.datasources.hbase" =>
         reader.option("hbase.table.name",path)
         table = reader.format("org.apache.spark.sql.execution.datasources.hbase").load()
 
       case "kafka" | "org.apache.spark.sql.execution.datasources.kafka" =>
-        reader.option("metadata.broker.list",option.getOrElse("metadata.broker.list",PropsUtils.props.getProperty("kafka.metadata.broker.list")))
-        reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect","kafka.zookeeper.connect"))
+        reader.option("metadata.broker.list",option.getOrElse("metadata.broker.list", ProTools.get("kafka.metadata.broker.list")))
+        reader.option("zookeeper.connect",option.getOrElse("zookeeper.connect",ProTools.get("kafka.zookeeper.connect")))
         reader.option("topics",path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
         if(option.getOrElse("data.type","json").toLowerCase.equals("json"))

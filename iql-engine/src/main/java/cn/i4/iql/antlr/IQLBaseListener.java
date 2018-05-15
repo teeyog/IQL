@@ -90,6 +90,18 @@ public class IQLBaseListener implements IQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterUpdate(IQLParser.UpdateContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitUpdate(IQLParser.UpdateContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterBooleanExpression(IQLParser.BooleanExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}

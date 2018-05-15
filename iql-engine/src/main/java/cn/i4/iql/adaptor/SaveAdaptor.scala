@@ -2,7 +2,7 @@ package cn.i4.iql.adaptor
 
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
-import cn.i4.iql.utils.PropsUtils
+import cn.i4.iql.utils.{ProTools}
 import org.apache.spark.sql._
 
 //save new_tr as json.`/tmp/todd
@@ -86,8 +86,10 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
       case "es" =>
         writer.save(final_path)
       case "hive" =>
-        writer.format(option.getOrElse("file_format", "parquet"))
-        writer.saveAsTable(final_path)
+        oldDF.coalesce(numPartition).write.format(option.getOrElse("file_format", "parquet")).mode(mode).options(option)
+        .insertInto(final_path)
+//        writer.saveAsTable(final_path)
+
       case "kafka8" | "kafka9" =>
         writer.option("topics", final_path).format("com.hortonworks.spark.sql.kafka08").save()
       case "hbase" =>
@@ -96,8 +98,8 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         writer.option("outputTableName", final_path).format("org.apache.spark.sql.execution.datasources.redis").save()
       case "jdbc" =>
         writer
-          .option("driver",option.getOrElse("driver",PropsUtils.props.getProperty("jdbc.driver")))
-          .option("url",option.getOrElse("url",PropsUtils.props.getProperty("jdbc.url")))
+          .option("driver",option.getOrElse("driver",ProTools.get("jdbc.driver")))
+          .option("url",option.getOrElse("url",ProTools.get("jdbc.url")))
           .option("dbtable",final_path)
           .save()
       case _ =>

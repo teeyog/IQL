@@ -154,4 +154,18 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
     * @param ctx the parse tree
     */
   override def exitNumPartition(ctx: NumPartitionContext): Unit = {}
+
+  /**
+    * Enter a parse tree produced by {@link IQLParser#update}.
+    *
+    * @param ctx the parse tree
+    */
+  override def enterUpdate(ctx: UpdateContext): Unit = {}
+
+  /**
+    * Exit a parse tree produced by {@link IQLParser#update}.
+    *
+    * @param ctx the parse tree
+    */
+  override def exitUpdate(ctx: UpdateContext): Unit = {}
 }
