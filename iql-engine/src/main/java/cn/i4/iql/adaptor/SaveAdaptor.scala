@@ -18,7 +18,7 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
     var partitionByCol = Array[String]()
     var numPartition:Int = 1
 
-    (0 to ctx.getChildCount() - 1).foreach { tokenIndex =>
+    (0 until ctx.getChildCount).foreach { tokenIndex =>
       ctx.getChild(tokenIndex) match {
         case s: FormatContext =>
           format = s.getText
@@ -45,6 +45,8 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
           mode = SaveMode.ErrorIfExists
         case s: IgnoreContext =>
           mode = SaveMode.Ignore
+        case s: UpdateContext =>
+          option += ("savemode" -> "update")
         case s: ColContext =>
           partitionByCol = cleanStr(s.getText).split(",")
         case s: ExpressionContext =>
@@ -56,20 +58,6 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         case _ =>
       }
     }
-
-//    val dbAndTable = final_path.split("\\.")
-//    var connect_provied = false
-//    if (dbAndTable.length == 2 && dbMap.containsKey(dbAndTable(0))) {
-//      dbMap.get(dbAndTable(0)).foreach {
-//        f =>
-//          writer.option(f._1, f._2)
-//      }
-//      connect_provied = true
-//    }
-//
-//    if (connect_provied) {
-//      final_path = dbAndTable(1)
-//    }
 
     if (option.contains("fileNum")) {
       oldDF = oldDF.repartition(option.getOrElse("fileNum", "").toString.toInt)
