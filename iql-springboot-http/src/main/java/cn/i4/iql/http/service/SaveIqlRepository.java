@@ -1,7 +1,6 @@
-package cn.i4.iql.http.service.primary;
+package cn.i4.iql.http.service;
 
-import cn.i4.iql.http.bean.primary.SaveIql;
-import org.apache.commons.net.ntp.TimeStamp;
+import cn.i4.iql.http.bean.SaveIql;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

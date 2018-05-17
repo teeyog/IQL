@@ -1,4 +1,4 @@
-package cn.i4.iql.http.bean.primary;
+package cn.i4.iql.http.bean;
 
 import com.alibaba.fastjson.JSONObject;
 
