@@ -50,12 +50,12 @@ public class QueryAction {
 	/**
 	 * 执行一个IQL
 	 * @param iql
-	 * @param code
 	 * @param descrption
 	 * @return
 	 */
 	@PostMapping(value="/query")
 	public JSONObject execution(@RequestParam("iql") String iql,
+							@RequestParam(value = "variables") String  variables,
 							@RequestParam(value="code",required=false,defaultValue="") String code,
 							@RequestParam(value="descrption",required=false,defaultValue="") String descrption) {
 		JSONObject resultObj = new JSONObject();
@@ -74,7 +74,7 @@ public class QueryAction {
 			ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
 			try {
 				Timeout timeout = new Timeout(Duration.create(2, "s"));
-				Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql), timeout);
+				Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code,iql,variables), timeout);
 				String result1 = Await.result(future1, timeout.duration()).toString();
 				resultObj = JSON.parseObject(result1);
 				resultObj.put("isSuccess",true);
@@ -111,7 +111,7 @@ public class QueryAction {
 				iqlExcutionRepository.save(new IqlExcution(resultObj.getString("iql"),resultObj.getString("code"),resultObj.getTimestamp("startTime"),
 						Long.valueOf(resultObj.getOrDefault("takeTime","0").toString()), resultObj.getBoolean("isSuccess"),
 						resultObj.getOrDefault("hdfsPath","").toString(),"",resultObj.getOrDefault("errorMessage","").toString(),
-						resultObj.getOrDefault("schema","").toString()));
+						resultObj.getOrDefault("schema","").toString(),resultObj.getString("variables")));
 				if(resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0){
 					resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString()));
 					resultObj.put("schema",resultObj.getOrDefault("schema","").toString());

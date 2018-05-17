@@ -8,7 +8,7 @@ object Bean {
     }
   }
 
-  case class Iql(code:String,iql:String)
+  case class Iql(code:String,iql:String, variables:String)
 
   case class StopIQL()
 

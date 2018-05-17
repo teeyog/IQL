@@ -30,11 +30,13 @@ public class IqlExcution {
     private String errorMessage;
     @Column(nullable = true,name = "table_schema")
     private String tableSchema;
+    @Column(nullable = true,name = "variables")
+    private String variables;
 
     public IqlExcution() {
     }
 
-    public IqlExcution(String iql, String code, Timestamp startTime, Long takeTime, Boolean isSuccess, String resultPath, String description, String errorMessage, String tableSchema) {
+    public IqlExcution(String iql, String code, Timestamp startTime, Long takeTime, Boolean isSuccess, String resultPath, String description, String errorMessage, String tableSchema, String variables) {
         this.iql = iql;
         this.code = code;
         this.startTime = startTime;
@@ -44,6 +46,15 @@ public class IqlExcution {
         this.description = description;
         this.errorMessage = errorMessage;
         this.tableSchema = tableSchema;
+        this.variables = variables;
+    }
+
+    public String getVariables() {
+        return variables;
+    }
+
+    public void setVariables(String variables) {
+        this.variables = variables;
     }
 
     public String getTableSchema() {
@@ -137,6 +148,7 @@ public class IqlExcution {
         object.put("resultPath",resultPath);
         object.put("description",description);
         object.put("tableSchema",tableSchema);
+        object.put("variables",variables);
         return object;
     }
 }

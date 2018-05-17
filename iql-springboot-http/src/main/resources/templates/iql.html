@@ -27,10 +27,12 @@
     <script src="codemirror/addon/hint/sql-hint.js"></script>
     <!-- 高亮 -->
     <script src="codemirror/addon/selection/active-line.js"></script>
-
+    <!-- ztree -->
     <link href="iql/bootstrap-ztree-style.css" rel="stylesheet" />
     <script src="ztree/js/jquery.ztree.core-3.5.js"></script>
     <script src="ztree/js/jquery.ztree.exedit-3.5.js"></script>
+    <!-- 变量 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
 
     <script src="bootstrap-table/dist/bootstrap-table.min.js"></script>
     <script src="bootstrap-table/dist/locale/bootstrap-table-zh-CN.min.js"></script>
@@ -47,8 +49,7 @@
         <div style="margin-left: 8%;padding-top:10px;font-size: 30px;height:60px;width:30px;text-align: center;color: white">IQL</div>
     </div>
     <div id="body_left">
-        <div class="body_lr_top">
-        </div>
+        <div class="body_lr_top"></div>
         <ul id="treeDemo" class="ztree"></ul>
     </div>
     <div id="body_right">
@@ -77,6 +78,16 @@
             </div>
             <div id="iql_input">
                 <textarea id="iql" rows="15" placeholder="Example: SELECT * FROM tablename, or press CTRL + space" style="width: 100%"></textarea>
+            </div>
+            <div id="variable">
+                <ul data-bind="foreach: variables" style="list-style:none">
+                    <li>
+                        <div class="input-prepend">
+                            <span class="muted" data-bind="text:name"></span>
+                            <input class="input-medium" type="text" data-bind="value:value" placeholder="Variable value"/>
+                        </div>
+                    </li>
+                </ul>
             </div>
             <div id="errorMessage" style="min-height:10px; max-height:350px;width: 100%;background-color: #f7f7f7;padding-bottom: 20px;padding-left: 30px;padding-right: 30px;overflow:scroll;display: none">
                 <pre style="color:red;"></pre>
@@ -137,7 +148,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -172,9 +182,53 @@
         </div>
     </div>
 </div>
+<div id="myp"></div>
 
 <script type="text/javascript">
 
+    var obj;
+    var varis = [];
+    ko.applyBindings(new addVariables());
+
+    $.getJSON("hive/autoCompletehiveMetadata", {}, function (result) {
+        var myTextarea = document.getElementById('iql');
+        window.editor = CodeMirror.fromTextArea(myTextarea, {
+            mode: 'text/x-hive',
+            lineNumbers: true,
+            indentWithTabs: true,
+            smartIndent: true,
+            matchBrackets: true,
+            autofocus: true,
+            styleActiveLine: true,
+            lineWrapping: true,
+            extraKeys: {"Ctrl-Space": "autocomplete"},
+            hintOptions: {
+                tables: result
+            }
+        })
+        window.editor.on("keyup", autocomplete);
+        window.editor.on("change", change);
+    })
+
+    function change(cm, event) {
+        var r = /\$\{([\s\S]*?)\}/g;
+        var kvdata={};
+        var list = $("#variable ul li");
+        list.each(function(){
+            var value = $(this).children(".input-prepend ").children("input").val();
+            var name = $(this).children(".input-prepend ").children("span").text();
+            kvdata[name] = value;
+        });
+        obj.variables.removeAll();
+        while ((result = r.exec(window.editor.getValue())) != null) {
+            obj.variables.push({ name: result[1],value:kvdata[result[1]]});
+        }
+    }
+    function addVariables() {
+        var self = this;
+        obj = this;
+        self.variables = ko.observableArray([]);
+    }
     function zTreeOnClick(event, treeId, treeNode) {
         var zTree = $.fn.zTree.getZTreeObj(treeId);
         zTree.expandNode(treeNode, true, false, true);
@@ -211,6 +265,7 @@
     };
 
     $(function () {
+
         //删除一行保存的iql
         window.operateEvents = {
             'click .RoleOfdelete': function (e, value, row, index) {
@@ -257,6 +312,10 @@
             $("#queryId").val("");
             $("#queryName").val("");
             $("#queryDescription").val("");
+            obj.variables.removeAll();
+            $.each(JSON.parse(row.variables),function(index,data){
+                obj.variables.push({ name: data.name,value:data.value } );
+            });
         });
         $('#saved-list-table').on('click-row.bs.table', function (e, row, element)
         {
@@ -267,17 +326,23 @@
         });
 
         $.fn.zTree.init($("#treeDemo"), setting);
-
-
     });
 
     // 执行IQL
     function execIQL() {
+        varis = [];
+        var list = $("#variable ul li");
+        list.each(function(){
+            var value = $(this).children(".input-prepend ").children("input").val();
+            var name = $(this).children(".input-prepend ").children("span").text();
+            varis.push({name:name,value:value})
+        });
+
         $("#errorMessage").hide();
         $("#errorMessage pre").html("");
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
-        $.post("/hive/query", {iql: window.editor.getValue(),descrption:$("#queryDescription").val()}, function(data) {
+        $.post("/hive/query", {iql: window.editor.getValue(),variables: JSON.stringify(varis),descrption:$("#queryDescription").val()}, function(data) {
             if(data.isSuccess) {
                 $("#iqlId").val(data.engineInfoAndGroupId);
                 $.post("/hive/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function(data) {
@@ -400,6 +465,11 @@
                     visible: false
                 },
                 {
+                    field: 'variables',
+                    title: 'variables',
+                    visible: false
+                },
+                {
                     field: 'id',
                     title: '操作',
                     align: 'center',
@@ -514,29 +584,7 @@
     }
 </script>
 
-<script>
-    // 代码编辑框
-    $(function () {
-        $.getJSON("hive/autoCompletehiveMetadata", {}, function (result) {
-            var myTextarea = document.getElementById('iql');
-            window.editor = CodeMirror.fromTextArea(myTextarea, {
-                mode: 'text/x-hive',
-                lineNumbers: true,
-                indentWithTabs: true,
-                smartIndent: true,
-                matchBrackets: true,
-                autofocus: true,
-                styleActiveLine: true,
-                lineWrapping: true,
-                extraKeys: {"Ctrl-Space": "autocomplete"},
-                hintOptions: {
-                    tables: result
-                }
-            });
-            window.editor.on("keyup", autocomplete);
-        })
-    });
-</script>
+
 
 </body>
 </html>

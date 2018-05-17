@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker
 import org.antlr.v4.runtime.{ANTLRInputStream, CommonTokenStream}
 import org.apache.spark.sql.SparkSession
 import cn.i4.iql.repl.SparkInterpreter
-import com.alibaba.fastjson.{JSONArray, JSONObject}
+import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import cn.i4.iql.IqlService._
 import org.apache.spark.sql.bridge.SparkBridge
 
@@ -92,27 +92,38 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
       sender() ! hiveObj.toJSONString
 
 
-    case Iql(code, iql) =>
+    case Iql(code, iql, variables) =>
       actorWapper(){() => {
+
+        var rIql = iql
+        val variblesIters = JSON.parseArray(variables).iterator()
+        while (variblesIters.hasNext){
+          val nObject = JSON.parseObject(variblesIters.next().toString)
+          rIql = rIql.replace("${" + nObject.getString("name") + "}",nObject.getString("value"))
+        }
+        rIql = rIql.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")
+        println(rIql)
+
         schedulerMode = !schedulerMode
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resultMap.clear()
         resJson.clear()
         resJson.put("startTime", new Timestamp(System.currentTimeMillis))
         resJson.put("iql", iql)
+        resJson.put("variables",variables)
         resJson.put("code", code)
         if (!code.trim.equals("")) interpreter.execute(code.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")) //过滤掉注释
         //为当前iql设置groupId
         val groupId = BatchSQLRunnerEngine.getGroupId
         resJson.put("engineInfoAndGroupId", engineInfo + "_" + groupId)
         sparkSession.sparkContext.clearJobGroup()
-        sparkSession.sparkContext.setJobDescription("iql:" + iql)
-        sparkSession.sparkContext.setJobGroup("iqlid:" + groupId, "iql:" + iql)
+        sparkSession.sparkContext.setJobDescription("iql:" + rIql)
+        sparkSession.sparkContext.setJobGroup("iqlid:" + groupId, "iql:" + rIql)
         //将该iql任务的唯一标识返回
         sender() ! resJson.toJSONString
         //解析iql并执行
-        parse(iql.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", ""),
-          new IQLSQLExecListener(sparkSession, null, resultMap))
+        parse(rIql, new IQLSQLExecListener(sparkSession, null, resultMap))
+
         }
       }
 
