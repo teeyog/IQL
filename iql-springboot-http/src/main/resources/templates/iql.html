@@ -182,7 +182,6 @@
         </div>
     </div>
 </div>
-<div id="myp"></div>
 
 <script type="text/javascript">
 
@@ -233,36 +232,9 @@
         var zTree = $.fn.zTree.getZTreeObj(treeId);
         zTree.expandNode(treeNode, true, false, true);
     }
-
     function zTreeOnNodeCreated(event, treeId, treeNode) {
         $('#'+treeNode.tId+'_ico').css("display", "none");
     }
-
-    var setting = {
-        view: {
-            nameIsHTML: true
-        },
-        check: {
-            enable: true
-        },
-        data: {
-            simpleData: {
-                enable: true
-            }
-        },
-        edit: {
-            enable: false
-        },
-        callback: {
-            onClick: zTreeOnClick,
-            onNodeCreated: zTreeOnNodeCreated
-        },
-        async: {
-            enable: true,
-            url: 'hive/hiveMetadata',
-            type: 'get'
-        }
-    };
 
     $(function () {
 
@@ -584,6 +556,33 @@
     }
 </script>
 
+<script>
+    var setting = {
+        view: {
+            nameIsHTML: true
+        },
+        check: {
+            enable: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        edit: {
+            enable: false
+        },
+        callback: {
+            onClick: zTreeOnClick,
+            onNodeCreated: zTreeOnNodeCreated
+        },
+        async: {
+            enable: true,
+            url: 'hive/hiveMetadata',
+            type: 'get'
+        }
+    };
+</script>
 
 
 </body>
