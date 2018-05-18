@@ -32,7 +32,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
-@RequestMapping("/hive")
+@RequestMapping("/")
 public class QueryAction {
 
 	@Autowired

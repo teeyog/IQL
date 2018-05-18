@@ -189,7 +189,7 @@
     var varis = [];
     ko.applyBindings(new addVariables());
 
-    $.getJSON("hive/autoCompletehiveMetadata", {}, function (result) {
+    $.getJSON("/autoCompletehiveMetadata", {}, function (result) {
         var myTextarea = document.getElementById('iql');
         window.editor = CodeMirror.fromTextArea(myTextarea, {
             mode: 'text/x-hive',
@@ -241,7 +241,7 @@
         //删除一行保存的iql
         window.operateEvents = {
             'click .RoleOfdelete': function (e, value, row, index) {
-                $.post("/hive/deleteiql", {id: row.id}, function(data) {
+                $.post("/deleteiql", {id: row.id}, function(data) {
                     $("#saved-list-table").bootstrapTable("refresh")
                 })
             }
@@ -252,7 +252,7 @@
             'click .RoleOfloadHistory': function (e, value, row, index) {
                 $("#errorMessage").hide();
                 $("#execForm, .loading").toggle();
-                $.post("/hive/loadresult", {schema: row.tableSchema,hdfsPath: row.resultPath}, function(data) {
+                $.post("/loadresult", {schema: row.tableSchema,hdfsPath: row.resultPath}, function(data) {
                     $("#execForm, .loading").toggle();
                     if(data.isSuccess) {
                         hdfsPath = row.resultPath;
@@ -267,7 +267,7 @@
             },
             //删除历史查询
             'click .RoleOfdeleteHistory': function (e, value, row, index) {
-                $.post("/hive/deletehistoryiql", {id: row.id}, function(data) {
+                $.post("/deletehistoryiql", {id: row.id}, function(data) {
                     $("#history-list-table").bootstrapTable("refresh")
                 })
             }
@@ -314,10 +314,10 @@
         $("#errorMessage pre").html("");
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
-        $.post("/hive/query", {iql: window.editor.getValue(),variables: JSON.stringify(varis),descrption:$("#queryDescription").val()}, function(data) {
+        $.post("/query", {iql: window.editor.getValue(),variables: JSON.stringify(varis),descrption:$("#queryDescription").val()}, function(data) {
             if(data.isSuccess) {
                 $("#iqlId").val(data.engineInfoAndGroupId);
-                $.post("/hive/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function(data) {
+                $.post("/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function(data) {
                     $("#execForm, .loading").toggle();
                     if(data.isSuccess) {
                         $("#results-tab").tab("show");
@@ -339,7 +339,7 @@
 
     // 停止query
     function stopQuery() {
-        $.post("/hive/stopquery", {engineInfoAndGroupId: $("#iqlId").val()}, function(data) {})
+        $.post("/stopquery", {engineInfoAndGroupId: $("#iqlId").val()}, function(data) {})
     }
 
     //加载结果数据
@@ -383,7 +383,7 @@
             showRefresh:true,
             pagination: true,
             sidePagination: 'server',
-            url: '/hive/history',
+            url: '/history',
             dataType: 'json',
             queryParams: function(params) {
                 return params;
@@ -465,7 +465,7 @@
             pagination: true,
             sidePagination: 'server',
             dataType: 'json',
-            url: '/hive/iqls',
+            url: '/iqls',
             onLoadSuccess: function(data) {
                 console.log(data)
             },
@@ -513,7 +513,7 @@
             schema: schema,
             fileType: fileType
         }
-        var url = addParamsToUrl('/hive/fileDownload', formParams);
+        var url = addParamsToUrl('/fileDownload', formParams);
         window.location.href=url
     }
 
@@ -527,7 +527,7 @@
 
     //保存iql
     function saveIql() {
-        $.post('/hive/saveiql', {
+        $.post('/saveiql', {
             id: $("#queryId").val(),
             iql: window.editor.getValue(),
             name: $("#queryName").val(),
@@ -578,7 +578,7 @@
         },
         async: {
             enable: true,
-            url: 'hive/hiveMetadata',
+            url: 'hiveMetadata',
             type: 'get'
         }
     };

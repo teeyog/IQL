@@ -92,7 +92,7 @@ public class HdfsUtils {
                 }
                 FSDataInputStream fdis = fileSystem.open(item.getPath());
                 StringWriter writer = new StringWriter();
-                org.apache.commons.io.IOUtils.copy( fdis, writer, "UTF-8" );
+                org.apache.commons.io.IOUtils.copy( fdis, writer, "UTF-8");
                 String raw = writer.toString();
                 if(!raw.equals("")){
                     for ( String str : raw.split( "\n" )) {

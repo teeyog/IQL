@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class IqlController {
 
-    @RequestMapping("/iql")
+    @RequestMapping("/")
     public String test(){
         return "iql";
     }
