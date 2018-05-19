@@ -2,11 +2,7 @@ package cn.i4.iql.domain
 
 object Bean {
 
-  case class IQLEngine(engineId:Int,engineInfo:String,var name:String = "") {
-    def name(name:String):Unit = {
-      this.name = name
-    }
-  }
+  case class IQLEngine(engineId:Int,engineInfo:String)
 
   case class Iql(code:String,iql:String, variables:String)
 
