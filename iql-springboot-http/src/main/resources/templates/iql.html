@@ -183,8 +183,13 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<div class="ibox-content" style="margin-top: 50px">
+    <div id="log-container" style="height: 800px; width: 100%;overflow-y: scroll; padding: 10px;font-size: 14px;">
+        <div><pre></pre></div>
+    </div>
+</div>
 
+<script type="text/javascript">
     var obj;
     var varis = [];
     ko.applyBindings(new addVariables());
@@ -207,7 +212,7 @@
         })
         window.editor.on("keyup", autocomplete);
         window.editor.on("change", change);
-    })
+    });
 
     function change(cm, event) {
         var r = /\$\{([\s\S]*?)\}/g;
@@ -219,8 +224,12 @@
             kvdata[name] = value;
         });
         obj.variables.removeAll();
+        var vSet={};
         while ((result = r.exec(window.editor.getValue())) != null) {
-            obj.variables.push({ name: result[1],value:kvdata[result[1]]});
+            if(!vSet[result[1]]){
+                obj.variables.push({ name: result[1],value:kvdata[result[1]]});
+                vSet[result[1]] = 'a';
+            }
         }
     }
     function addVariables() {
@@ -228,15 +237,17 @@
         obj = this;
         self.variables = ko.observableArray([]);
     }
-    function zTreeOnClick(event, treeId, treeNode) {
-        var zTree = $.fn.zTree.getZTreeObj(treeId);
-        zTree.expandNode(treeNode, true, false, true);
-    }
-    function zTreeOnNodeCreated(event, treeId, treeNode) {
-        $('#'+treeNode.tId+'_ico').css("display", "none");
-    }
 
     $(function () {
+
+        $("#log-container div pre").empty();
+        // 指定websocket路径
+        var websocket = new WebSocket('ws://localhost:8888/log');
+        websocket.onmessage = function (event) {
+            var log = "<span>" + event.data + "</span>";
+            $("#log-container div pre").append(log);
+            $("#log-container").scrollTop($("#log-container div").height() - $("#log-container").height());
+        };
 
         //删除一行保存的iql
         window.operateEvents = {
@@ -381,12 +392,23 @@
             pageList: [10, 20, 50, 100],
             pageSize: 20,
             showRefresh:true,
+            search: true,
+            strictSearch: true,
             pagination: true,
             sidePagination: 'server',
             url: '/history',
             dataType: 'json',
             queryParams: function(params) {
-                return params;
+                // var params = {
+                //     search:$(".form-control").val()
+                // };
+                var param = {
+                    offset:params.offset,
+                    limit:params.limit,
+                    order:params.order,
+                    search:$(".form-control").val()
+                };
+                return param;
             },
             columns: [
                 {
@@ -424,7 +446,7 @@
                 {
                     field: 'iql',
                     title: '执行操作',
-                    width: 600
+                    width: 600,
                 },
                 {
                     field: 'resultPath',
@@ -557,6 +579,15 @@
 </script>
 
 <script>
+
+    function zTreeOnClick(event, treeId, treeNode) {
+        var zTree = $.fn.zTree.getZTreeObj(treeId);
+        zTree.expandNode(treeNode, true, false, true);
+    }
+    function zTreeOnNodeCreated(event, treeId, treeNode) {
+        $('#'+treeNode.tId+'_ico').css("display", "none");
+    }
+
     var setting = {
         view: {
             nameIsHTML: true

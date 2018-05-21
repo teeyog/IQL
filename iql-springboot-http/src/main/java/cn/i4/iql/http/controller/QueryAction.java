@@ -238,17 +238,15 @@ public class QueryAction {
 	@RequestMapping(value="/history", method= RequestMethod.GET)
 	@ResponseBody
 	public JSONObject getHistoryExcution(BaseBean vo) {
-		List<IqlExcution> iqlExcutions = iqlExcutionRepository.findAll();
+		List<IqlExcution> iqlExcutions = iqlExcutionRepository.findByIqlLike(vo.getSearch());
 		JSONArray rows = new JSONArray();
 		JSONObject res = new JSONObject();
 		for(IqlExcution e : iqlExcutions) {
 			rows.add(e.toJSON());
 		}
-		if(rows != null) {
-			DataUtil.sort(rows, "startTime", "desc");
-			res.put("total", rows.size());
-			res.put("rows", DataUtil.pageFormat(rows, vo.getOffset(), vo.getLimit()));
-		}
+		DataUtil.sort(rows, "startTime", "desc");
+		res.put("total", rows.size());
+		res.put("rows", DataUtil.pageFormat(rows, vo.getOffset(), vo.getLimit()));
 		return res;
 	}
 

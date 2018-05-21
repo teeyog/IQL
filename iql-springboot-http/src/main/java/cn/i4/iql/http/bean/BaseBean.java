@@ -14,7 +14,7 @@ public class BaseBean {
 	
 	private String order;
 	
-	private String search;
+	private String search="";
 	
 	public Integer getOffset() {
 		return offset;
@@ -71,5 +71,17 @@ public class BaseBean {
 	public void setSearch(String search) {
 		this.search = search;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "BaseBean{" +
+				"offset=" + offset +
+				", limit=" + limit +
+				", startDate='" + startDate + '\'' +
+				", endDate='" + endDate + '\'' +
+				", sort='" + sort + '\'' +
+				", order='" + order + '\'' +
+				", search='" + search + '\'' +
+				'}';
+	}
 }

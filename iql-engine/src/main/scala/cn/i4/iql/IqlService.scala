@@ -32,11 +32,9 @@ object IqlService {
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
       .config("spark.yarn.executor.memoryOverhead","1024")
-//            .master("local[4]")
+            .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
-
-    spark.sparkContext.setLogLevel("WARN")
 
     val actorConf = AkkaUtils.getConfig
     engineInfo = actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port")

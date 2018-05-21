@@ -17,7 +17,7 @@ import cn.i4.iql.IqlService._
 import org.apache.spark.sql.bridge.SparkBridge
 
 
-class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
+class ExeActor(spark: SparkSession) extends Actor with Logging {
 
   var sparkSession: SparkSession = _
   var interpreter: SparkInterpreter = _
@@ -26,7 +26,7 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
   val zkValidActorPath = ZkUtils.validEnginePath + "/" + engineInfo + "_" + context.self.path.name
 
   override def preStart(): Unit = {
-    log.info("Actor Start ...")
+    warn("Actor Start ...")
     sparkSession = spark.newSession()
     interpreter = new SparkInterpreter(sparkSession)
     interpreter.start()
@@ -37,7 +37,7 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
   }
 
   override def postStop(): Unit = {
-    log.info("Actor Stop ...")
+    warn("Actor Stop ...")
     interpreter.close()
     sparkSession.stop()
   }
@@ -94,7 +94,6 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
 
     case Iql(code, iql, variables) =>
       actorWapper(){() => {
-
         var rIql = iql
         val variblesIters = JSON.parseArray(variables).iterator()
         while (variblesIters.hasNext){
@@ -102,8 +101,7 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
           rIql = rIql.replace("${" + nObject.getString("name") + "}",nObject.getString("value"))
         }
         rIql = rIql.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")
-        println(rIql)
-
+        warn(rIql)
         schedulerMode = !schedulerMode
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resultMap.clear()
@@ -123,7 +121,6 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
         sender() ! resJson.toJSONString
         //解析iql并执行
         parse(rIql, new IQLSQLExecListener(sparkSession, null, resultMap))
-
         }
       }
 
@@ -164,6 +161,7 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
         val out = new ByteArrayOutputStream()
         e.printStackTrace(new PrintStream(out))
         resJson.put("errorMessage", new String(out.toByteArray))
+        error(new String(out.toByteArray))
         out.close()
       }
     }
@@ -172,7 +170,17 @@ class ExeActor(spark: SparkSession) extends Actor with ActorLogging {
 
   def actorWapper()(f: () => Unit) {
     ZkUtils.deletePath(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath)
-    f()
+      try {
+        f()
+      } catch {
+        case e:Exception => {
+          resJson.put("isSuccess", false)
+          val out = new ByteArrayOutputStream()
+          e.printStackTrace(new PrintStream(out))
+          resJson.put("errorMessage", new String(out.toByteArray))
+          sender() ! resJson.toJSONString
+        }
+      }
     ZkUtils.registerActorInEngine(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath, "", 6000, -1)
   }
 }
