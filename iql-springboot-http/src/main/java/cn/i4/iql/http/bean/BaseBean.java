@@ -14,7 +14,7 @@ public class BaseBean {
 	
 	private String order;
 	
-	private String search="";
+	private String search;
 	
 	public Integer getOffset() {
 		return offset;

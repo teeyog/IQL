@@ -1,0 +1,14 @@
+.form-group {
+    margin-top: 20px;
+}
+.form-group div {
+    float: left;
+    height: 50px;
+    min-width: 50px;
+    width: auto;
+    padding:5px 10px;
+}
+
+.ibox-content {
+    padding: 50px;
+}

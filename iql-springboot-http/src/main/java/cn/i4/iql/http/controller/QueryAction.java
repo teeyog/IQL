@@ -14,6 +14,7 @@ import cn.i4.iql.http.service.IqlExcutionRepository;
 import cn.i4.iql.http.service.SaveIqlRepository;
 import cn.i4.iql.http.util.DataUtil;
 import cn.i4.iql.http.util.HdfsUtils;
+import cn.i4.iql.utils.ShellUtils;
 import cn.i4.iql.utils.ZkUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -29,7 +30,9 @@ import scala.concurrent.duration.Duration;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -317,4 +320,44 @@ public class QueryAction {
 		Seq<String> validEngines = ZkUtils.getChildrenFilter(zkClient, ZkUtils.validEnginePath(),engineInfo);
 		return validEngines.size() == 0 ? null : validEngines.head();
 	}
+
+
+    @RequestMapping(value="/appnames", method=RequestMethod.GET)
+    public JSONArray getAppName() throws IOException {
+        JSONArray array = new JSONArray();
+        HashMap<String, String> yarnJobs = ShellUtils.getYarnJobs();
+        for (Map.Entry<String,String> entry : yarnJobs.entrySet()) {
+             array.add(entry.getValue() + "[" + entry.getKey() + "]");
+        }
+//		array.add("Monitor[application_1526662189137_0054]");
+//		array.add("appnappnameappnameappnameame[appid]");
+        return array;
+    }
+
+    @RequestMapping(value="/executors", method=RequestMethod.GET)
+    public JSONObject getExecutorIdsByAppName(String appname) throws IOException {
+		JSONObject rObj = new JSONObject();
+		JSONArray array = new JSONArray();
+		String appid = appname.split("\\[")[1].split("\\]")[0];
+		rObj.put("isSuccess",true);
+		try {
+			HashMap<String,String> executorInfo = ShellUtils.getJobInfo().get(appid);
+			for (Map.Entry<String,String> entry : executorInfo.entrySet()) {
+                JSONObject executorObj = new JSONObject();
+                executorObj.put("executor",entry.getKey());
+                executorObj.put("host",entry.getValue());
+                array.add(executorObj);
+            }
+		} catch (IOException e) {
+			e.printStackTrace();
+			rObj.put("isSuccess",false);
+		}
+//		JSONObject obj = new JSONObject();
+//		obj.put("executor","container_1526662189137_0054_01_000005");
+//		obj.put("host","dsj03");
+//		array.add(obj);
+		rObj.put("executors",array);
+        return rObj;
+    }
+
 }

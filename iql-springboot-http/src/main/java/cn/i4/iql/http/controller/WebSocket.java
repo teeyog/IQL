@@ -5,13 +5,15 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.OnClose;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.websocket.*;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -19,88 +21,77 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @ServerEndpoint("/log")
 @Component
 public class WebSocket {
-    private Session session;
-    public static CopyOnWriteArraySet<WebSocket> wbSockets = new CopyOnWriteArraySet<WebSocket>(); //此处定义静态变量，以在其他方法中获取到所有连接
+    private Process process;
+    private InputStream inputStream;
 
     /**
-     * 建立连接。
-     * 建立连接时入参为session
+     * 新的WebSocket请求开启
      */
     @OnOpen
-    public void onOpen(Session session){
-        this.session = session;
-        wbSockets.add(this); //将此对象存入集合中以在之后广播用，如果要实现一对一订阅，则类型对应为Map。由于这里广播就可以了随意用Set
-        System.out.println("New session insert,sessionId is "+ session.getId());
-        new ConsumerKafka(session).start();
-    }
-    /**
-     * 关闭连接
-     */
-    @OnClose
-    public void onClose(){
-        wbSockets.remove(this);//将socket对象从集合中移除，以便广播时不发送次连接。如果不移除会报错(需要测试)
-        System.out.println("A session insert,sessionId is "+ session.getId());
-    }
-    /**
-     * 接收前端传过来的数据。
-     * 虽然在实现推送逻辑中并不需要接收前端数据，但是作为一个webSocket的教程或叫备忘，还是将接收数据的逻辑加上了。
-     */
-    @OnMessage
-    public void onMessage(String message ,Session session){
-        System.out.println(message + "from " + session.getId());
+    public void onOpen(Session session) {
+
+
+        String[] params = session.getRequestURI().toString().split("\\?")[1].split("&amp;");
+        HashMap<String, String> map = new HashMap<>();
+        for(String p : params){
+            map.put(p.split("=")[0],p.split("=")[1]);
+        }
+        String appname = map.get("appname").split("\\[")[1].split("\\]")[0];
+        String command = "ssh " + map.get("host") + " 'tail -f -n 100 /data/yarn/container-logs/" + appname + "/" + map.get("executor") + "/" + map.get("logtype") + "'";
+        System.out.println(command);
+        try {
+            // 执行tail -f命令
+            process = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
+            inputStream = process.getInputStream();
+            // 一定要启动新的线程，防止InputStream阻塞处理WebSocket的线程
+            LogTailThread thread = new LogTailThread(inputStream, session);
+            thread.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void sendMessage(String message) throws IOException {
-        this.session.getBasicRemote().sendText(message);
+    /**
+     * WebSocket请求关闭
+     */
+    @OnClose
+    public void onClose() {
+        try {
+            if(inputStream != null)
+                inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(process != null)
+            process.destroy();
+    }
+
+    @OnError
+    public void onError(Throwable thr) {
+        thr.printStackTrace();
     }
 }
 
-class ConsumerKafka extends Thread {
+class LogTailThread extends Thread {
 
-    private KafkaConsumer<String,String> consumer;
-    private String topic = "job-log";
+    private BufferedReader reader;
     private Session session;
 
-    public ConsumerKafka(Session session){
+    public LogTailThread(InputStream in, Session session) {
+        this.reader = new BufferedReader(new InputStreamReader(in));
         this.session = session;
     }
 
     @Override
-    public void run(){
-        //加载kafka消费者参数
-        Properties props = new Properties();
-        props.put("bootstrap.servers", "192.168.1.35:9092");
-        props.put("group.id", "iql_log_consumer");
-        props.put("enable.auto.commit", "true");
-        props.put("auto.commit.interval.ms", "1000");
-        props.put("session.timeout.ms", "15000");
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        //创建消费者对象
-        consumer = new KafkaConsumer<String,String>(props);
-        consumer.subscribe(Arrays.asList(topic));
-
-        //死循环，持续消费kafka
-        while (true){
-            try {
-                //消费数据，并设置超时时间
-                ConsumerRecords<String, String> records = consumer.poll(100);
-                //Consumer message
-                for (ConsumerRecord<String, String> record : records) {
-                    session.getBasicRemote().sendText(record.value());
-                }
-            }catch (IOException e){
-                System.out.println(e.getMessage());
-                continue;
-            }
-        }
-    }
-
-    public void close() {
+    public void run() {
+        String line;
         try {
-            consumer.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+            while((line = reader.readLine()) != null) {
+                // 将实时日志通过WebSocket发送给客户端，给每一行添加一个HTML换行
+                session.getBasicRemote().sendText(line + "<br/>");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

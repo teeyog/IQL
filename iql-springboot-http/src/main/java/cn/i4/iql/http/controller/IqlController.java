@@ -11,4 +11,9 @@ public class IqlController {
         return "iql";
     }
 
+    @RequestMapping("/joblog")
+    public String joblog(){
+        return "joblog";
+    }
+
 }
