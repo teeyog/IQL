@@ -29,8 +29,6 @@ public class WebSocket {
      */
     @OnOpen
     public void onOpen(Session session) {
-
-
         String[] params = session.getRequestURI().toString().split("\\?")[1].split("&amp;");
         HashMap<String, String> map = new HashMap<>();
         for(String p : params){
