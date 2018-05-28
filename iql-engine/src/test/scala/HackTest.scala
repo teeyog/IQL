@@ -5,11 +5,13 @@ object HackTest {
     def main(args: Array[String]): Unit = {
         val spark = SparkSession
             .builder
-            .appName("HackTest")
-            .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+            .appName("SparkSQL Test")
             .master("local[4]")
-            .enableHiveSupport()
             .getOrCreate()
+        spark.sql("select * from table").show(false)
+
+
+
 //
 //import spark.implicits._
 //        val df = spark.createDataset(Seq((1,"ufo1", "play", 15), (2,"yy", "", 34), (2,"yy3", "3", 343))).toDF("id","name", "like", "age")
@@ -53,30 +55,30 @@ object HackTest {
 //          * ********************************* 写 HBase******************************
 //          * ***********************************************************************/
 //
-        import spark.implicits._
-
-        val df1 = spark.createDataset(Seq((1,"1","1",null),(2,"2332","1","1"))).toDF("userid","like","osversion","toolversion")
+//        import spark.implicits._
 //
-//        // rowkey.filed: rowkey对应的字段，默认使用dataframe第一个字段
-//        // outputTableName: hbase表名
-//        // hbase.zookeeper.quorum: zk地址，和'zk'等价
-//        // startKey,endKey,numReg:当表不存在时会创建表，三个字段要嘛都指定，要嘛都不指定，默认是一个region
-//        // bulkload.enable 默认使用bulkload, 当存在只有rowkey的情况下，只能使用bulkload
-//
-//        /**
-//          * 方式一
-//          */
-      df1.show(false)
-      df1.printSchema()
-        df1.write.format("org.apache.spark.sql.execution.datasources.hbase")
-            .options(Map(
-                "rowkey.filed" -> "name",
-                "outputTableName" -> "test_delete3",
-                "hbase.zookeeper.quorum" -> "dsj01:2181",
-                "startKey" -> "00000000000000000000000000000000",
-                "endKey" -> "ffffffffffffffffffffffffffffffff",
-                "numReg" -> "12"
-            )).save()
+//        val df1 = spark.createDataset(Seq((1,"1","1",null),(2,"2332","1","1"))).toDF("userid","like","osversion","toolversion")
+////
+////        // rowkey.filed: rowkey对应的字段，默认使用dataframe第一个字段
+////        // outputTableName: hbase表名
+////        // hbase.zookeeper.quorum: zk地址，和'zk'等价
+////        // startKey,endKey,numReg:当表不存在时会创建表，三个字段要嘛都指定，要嘛都不指定，默认是一个region
+////        // bulkload.enable 默认使用bulkload, 当存在只有rowkey的情况下，只能使用bulkload
+////
+////        /**
+////          * 方式一
+////          */
+//      df1.show(false)
+//      df1.printSchema()
+//        df1.write.format("org.apache.spark.sql.execution.datasources.hbase")
+//            .options(Map(
+//                "rowkey.filed" -> "name",
+//                "outputTableName" -> "test_delete3",
+//                "hbase.zookeeper.quorum" -> "dsj01:2181",
+//                "startKey" -> "00000000000000000000000000000000",
+//                "endKey" -> "ffffffffffffffffffffffffffffffff",
+//                "numReg" -> "12"
+//            )).save()
 //
 //
 //        /**

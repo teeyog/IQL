@@ -22,7 +22,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
   var sparkSession: SparkSession = _
   var interpreter: SparkInterpreter = _
   var resultMap = new ConcurrentHashMap[String, String]()
-  val resJson = new JSONObject()
+  var resJson = new JSONObject()
   val zkValidActorPath = ZkUtils.validEnginePath + "/" + engineInfo + "_" + context.self.path.name
 
   override def preStart(): Unit = {
@@ -91,7 +91,6 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
       })
       sender() ! hiveObj.toJSONString
 
-
     case Iql(code, iql, variables) =>
       actorWapper(){() => {
         var rIql = iql
@@ -105,7 +104,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
         schedulerMode = !schedulerMode
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resultMap.clear()
-        resJson.clear()
+        resJson = new JSONObject()
         resJson.put("startTime", new Timestamp(System.currentTimeMillis))
         resJson.put("iql", iql)
         resJson.put("variables",variables)
@@ -134,7 +133,6 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
 
     case CancelJob(groupId) =>
       sparkSession.sparkContext.cancelJobGroup("iqlid:" + groupId)
-
     case StopIQL() => context.system.terminate()
 
     case _ => None

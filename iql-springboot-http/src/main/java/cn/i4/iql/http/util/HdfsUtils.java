@@ -326,6 +326,7 @@ public class HdfsUtils {
         }
     }
 
+
     public static void main(String[] args) {
 
         String strings = readFile("/tmp/iql/result/iql_query_result_1521699325228");

@@ -14,6 +14,7 @@ import cn.i4.iql.http.service.IqlExcutionRepository;
 import cn.i4.iql.http.service.SaveIqlRepository;
 import cn.i4.iql.http.util.DataUtil;
 import cn.i4.iql.http.util.HdfsUtils;
+import cn.i4.iql.http.util.HttpUtils;
 import cn.i4.iql.utils.ShellUtils;
 import cn.i4.iql.utils.ZkUtils;
 import com.alibaba.fastjson.JSON;
@@ -127,6 +128,25 @@ public class QueryAction {
 			}
 		}
 	}
+
+	@PostMapping(value="/query2")
+	public JSONObject execution(@RequestParam("iql") String iql) throws Exception{
+		HashMap pramMap = new HashMap<String,String>();
+		pramMap.put("iql",iql);
+		pramMap.put("variables","[]");
+		String postResult = HttpUtils.post("http://192.168.1.233:8888/query", pramMap, 600, "utf-8");
+		JSONObject jsonObject = JSON.parseObject(postResult);
+		if(jsonObject.getBoolean("isSuccess")){
+			HashMap pramMap2 = new HashMap<String,String>();
+			pramMap2.put("engineInfoAndGroupId",jsonObject.getString("engineInfoAndGroupId"));
+			String postResult2 = HttpUtils.post("http://192.168.1.233:8888/getresult", pramMap2, 60000, "utf-8");
+			return JSON.parseObject(postResult2);
+		}else {
+			return jsonObject;
+		}
+	}
+
+
 
 	/**
 	 * 根据历史查询加载结果
