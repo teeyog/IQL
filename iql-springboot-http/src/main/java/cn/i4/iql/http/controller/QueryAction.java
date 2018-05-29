@@ -17,6 +17,7 @@ import cn.i4.iql.http.util.HdfsUtils;
 import cn.i4.iql.http.util.HttpUtils;
 import cn.i4.iql.utils.ShellUtils;
 import cn.i4.iql.utils.ZkUtils;
+import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -379,5 +380,16 @@ public class QueryAction {
 		rObj.put("executors",array);
         return rObj;
     }
+
+	/**
+	 * @return
+	 */
+	@PostMapping(value="/formatSql")
+	public JSONObject formatSql( String iql) {
+		String formatedIql = SQLUtils.formatHive(iql);
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("iql",formatedIql);
+		return jsonObject;
+	}
 
 }
