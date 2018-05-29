@@ -116,7 +116,8 @@ public class HDFSHandler {
                 // 输出列头
                 for (int i = 0; i < colNamesArr.length; i++) {
                     os.write(colNamesArr[i].getBytes("GBK"));
-                    os.write(",".getBytes("GBK"));
+                    if(i < colNamesArr.length - 1)
+                        os.write(",".getBytes("GBK"));
                 }
                 os.write("\r\n".getBytes("GBK"));
                 FileStatus[] fstats = fileSystem.listStatus(new Path(hdfsPath));
@@ -144,7 +145,8 @@ public class HDFSHandler {
                                     strTemp="\""+strTemp+"\"";
                                 }
                                 os.write(strTemp.getBytes("GBK"));
-                                os.write(",".getBytes("GBK"));
+                                if(j < colNamesArr.length - 1)
+                                    os.write(",".getBytes("GBK"));
                             }
                             os.write("\r\n".getBytes("GBK"));
                         }
