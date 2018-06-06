@@ -10,12 +10,14 @@ object IQLTest {
 
   def main(args: Array[String]): Unit = {
 
-//    val spark = SparkSession
-//      .builder
-//        .appName("iql")
-//        .master("local[4]")
-//      .enableHiveSupport()
-//      .getOrCreate()
+    val spark = SparkSession
+      .builder
+        .appName("iql")
+        .master("local[4]")
+      .enableHiveSupport()
+      .getOrCreate()
+
+    spark.sql("select * from tb").show()
 //
 //    val actorSystem = ActorSystem("iqlSystem")
 //    val actor1 = actorSystem.actorOf(ExeActor.props(spark), name = "engine")

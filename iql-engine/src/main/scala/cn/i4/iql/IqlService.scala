@@ -39,8 +39,6 @@ object IqlService {
     val actorConf = AkkaUtils.getConfig
     engineInfo = actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port")
     val actorSystem = ActorSystem("iqlSystem", actorConf)
-    for(id <- 1 to numActor){
-      actorSystem.actorOf(ExeActor.props(spark), name = "actor"+id)
-    }
+    Array(0,numActor + 1).foreach(id => actorSystem.actorOf(ExeActor.props(spark), name = "actor"+ id))
   }
 }

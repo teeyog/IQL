@@ -26,7 +26,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
   val zkValidActorPath = ZkUtils.validEnginePath + "/" + engineInfo + "_" + context.self.path.name
 
   override def preStart(): Unit = {
-    info("Actor Start ...")
+    warn("Actor Start ...")
     sparkSession = spark.newSession()
     interpreter = new SparkInterpreter(sparkSession)
     interpreter.start()
@@ -37,7 +37,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
   }
 
   override def postStop(): Unit = {
-    info("Actor Stop ...")
+    warn("Actor Stop ...")
     interpreter.close()
     sparkSession.stop()
   }
@@ -99,8 +99,9 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
           val nObject = JSON.parseObject(variblesIters.next().toString)
           rIql = rIql.replace("${" + nObject.getString("name") + "}",nObject.getString("value"))
         }
-        rIql = rIql.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")
-        info(rIql)
+        warn(rIql)
+//        rIql = rIql.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")
+//        info(rIql)
         schedulerMode = !schedulerMode
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resultMap.clear()

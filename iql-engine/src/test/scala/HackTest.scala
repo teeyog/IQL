@@ -8,9 +8,12 @@ object HackTest {
             .appName("SparkSQL Test")
             .master("local[4]")
             .getOrCreate()
-        spark.sql("select * from table").show(false)
+//        val array = spark.sql("select * from table").rdd.randomSplit(Array())
 
-
+        val rdd = spark.range(5).rdd
+        rdd.map(r => rdd)
+          .foreach(println)
+//        rdd.map(r => r).foreach(println)
 
 //
 //import spark.implicits._
