@@ -213,6 +213,7 @@
     });
 
     function change(cm, event) {
+        // $("#iql").attr("rows", window.editor.lastLine());
         var r = /\$\{([\s\S]*?)\}/g;
         var kvdata={};
         var list = $("#variable ul li");
@@ -230,6 +231,7 @@
             }
         }
     }
+
     function addVariables() {
         var self = this;
         obj = this;
@@ -302,6 +304,13 @@
 
     // 执行IQL
     function execIQL() {
+
+        var iqlText;
+        if(window.editor.getSelection() == ""){
+            iqlText = window.editor.getValue()
+        }else {
+            iqlText = window.editor.getSelection()
+        }
         varis = [];
         var list = $("#variable ul li");
         list.each(function(){
@@ -314,7 +323,7 @@
         $("#errorMessage pre").html("");
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
-        $.post("/query", {iql: window.editor.getValue(),variables: JSON.stringify(varis),descrption:$("#queryDescription").val()}, function(data) {
+        $.post("/query", {iql: iqlText,variables: JSON.stringify(varis),descrption:$("#queryDescription").val()}, function(data) {
             if(data.isSuccess) {
                 $("#iqlId").val(data.engineInfoAndGroupId);
                 $.post("/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function(data) {
