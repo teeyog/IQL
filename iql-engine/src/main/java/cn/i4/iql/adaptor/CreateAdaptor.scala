@@ -5,9 +5,6 @@ import cn.i4.iql.antlr.IQLLexer
 import cn.i4.iql.antlr.IQLParser.SqlContext
 import org.antlr.v4.runtime.misc.Interval
 
-/**
-  * Created by allwefantasy on 27/8/2017.
-  */
 class CreateAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
   override def parse(ctx: SqlContext): Unit = {
     val input = ctx.start.getTokenSource().asInstanceOf[IQLLexer]._input

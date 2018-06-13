@@ -4,7 +4,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.sql.Timestamp
 import java.util.concurrent.ConcurrentHashMap
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, Props}
 import cn.i4.iql.antlr.{IQLLexer, IQLListener, IQLParser}
 import cn.i4.iql.domain.Bean._
 import cn.i4.iql.utils.{BatchSQLRunnerEngine, ZkUtils}
@@ -154,14 +154,13 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
       resJson.put("takeTime", take)
       resJson.put("isSuccess", true)
     } catch {
-      case e: Exception => {
+      case e: Exception =>
         e.printStackTrace()
         resJson.put("isSuccess", false)
         val out = new ByteArrayOutputStream()
         e.printStackTrace(new PrintStream(out))
         resJson.put("errorMessage", new String(out.toByteArray))
         out.close()
-      }
     }
     jobMap.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
   }
@@ -171,13 +170,12 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
       try {
         f()
       } catch {
-        case e:Exception => {
+        case e:Exception =>
           resJson.put("isSuccess", false)
           val out = new ByteArrayOutputStream()
           e.printStackTrace(new PrintStream(out))
           resJson.put("errorMessage", new String(out.toByteArray))
           sender() ! resJson.toJSONString
-        }
       }
     ZkUtils.registerActorInEngine(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath, "", 6000, -1)
   }

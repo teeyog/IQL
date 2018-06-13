@@ -17,7 +17,7 @@ object IQLTest {
       .enableHiveSupport()
       .getOrCreate()
 
-    spark.sql("select * from tb").show()
+    spark.sql("select * from i4.mbl where m_date='20180607' limit 10").show()
 //
 //    val actorSystem = ActorSystem("iqlSystem")
 //    val actor1 = actorSystem.actorOf(ExeActor.props(spark), name = "engine")

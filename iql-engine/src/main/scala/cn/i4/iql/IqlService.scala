@@ -32,13 +32,13 @@ object IqlService {
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
       .config("spark.yarn.executor.memoryOverhead","1024")
-//            .master("local[4]")
+//     .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
 
     val actorConf = AkkaUtils.getConfig
     engineInfo = actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port")
     val actorSystem = ActorSystem("iqlSystem", actorConf)
-    Array(0,numActor + 1).foreach(id => actorSystem.actorOf(ExeActor.props(spark), name = "actor"+ id))
+    Array(1,numActor + 1).foreach(id => actorSystem.actorOf(ExeActor.props(spark), name = "actor"+ id))
   }
 }
