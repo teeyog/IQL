@@ -52,6 +52,9 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
 
   override def exitStatement(ctx: StatementContext): Unit = {
     sparkSession.catalog.listTables().collect().foreach(r => sparkSession.catalog.dropTempView(r.name))
+  }
+
+  override def enterStatement(ctx: StatementContext): Unit = {
     //刷新元数据
     sparkSession.catalog.listDatabases().rdd.map(_.name).collect().foreach(d =>
       sparkSession.catalog.listTables(d).rdd.map(_.name).collect().foreach(t =>

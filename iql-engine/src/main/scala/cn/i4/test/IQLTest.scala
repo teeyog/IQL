@@ -10,14 +10,14 @@ object IQLTest {
 
   def main(args: Array[String]): Unit = {
 
-    val spark = SparkSession
-      .builder
-        .appName("iql")
-        .master("local[4]")
-      .enableHiveSupport()
-      .getOrCreate()
-
-    spark.sql("select * from i4.mbl where m_date='20180607' limit 10").show()
+//    val spark = SparkSession
+//      .builder
+//        .appName("iql")
+//        .master("local[4]")
+//      .enableHiveSupport()
+//      .getOrCreate()
+//
+//    spark.sql("select * from i4.mbl where m_date='20180607' limit 10").show()
 //
 //    val actorSystem = ActorSystem("iqlSystem")
 //    val actor1 = actorSystem.actorOf(ExeActor.props(spark), name = "engine")
@@ -36,9 +36,7 @@ object IQLTest {
 // |save tb1 as json.`/tmp/iql/todd1.json`
 //""".stripMargin
 //    actor1 ! input3
-
-
-
+    (1 to 3).foreach(println)
 
 
   }
