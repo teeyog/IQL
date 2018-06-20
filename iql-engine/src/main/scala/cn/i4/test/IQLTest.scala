@@ -10,14 +10,14 @@ object IQLTest {
 
   def main(args: Array[String]): Unit = {
 
-//    val spark = SparkSession
-//      .builder
-//        .appName("iql")
-//        .master("local[4]")
-//      .enableHiveSupport()
-//      .getOrCreate()
+    val spark = SparkSession
+      .builder
+        .appName("iql")
+        .master("local[4]")
+      .enableHiveSupport()
+      .getOrCreate()
 //
-//    spark.sql("select * from i4.mbl where m_date='20180607' limit 10").show()
+//    spark.sql("select * from i4.mbl where m_date='20180607' limit 10").rdd.map(r => (r.get(0),r.get(1))).reduceByKey(_+_)
 //
 //    val actorSystem = ActorSystem("iqlSystem")
 //    val actor1 = actorSystem.actorOf(ExeActor.props(spark), name = "engine")
@@ -36,9 +36,32 @@ object IQLTest {
 // |save tb1 as json.`/tmp/iql/todd1.json`
 //""".stripMargin
 //    actor1 ! input3
-    (1 to 3).foreach(println)
+//声明一个类
 
+//    //声明一个样本类
+//    case class MyCaseClass(number: Int, text: String, others: List[Int]){
+//      println(number)
+//    }
+//    //不需要new关键字，创建一个对象
+//    val dto = MyCaseClass(3, "text", List.empty) //打印结果3
+//
+//    //利用样本类默认实现的copy方法
+//    dto.copy(number = 5) //打印结果5
+//
+//    val dto2 = MyCaseClass(3, "text", List.empty)
+//    println(dto == dto2) // 返回true，两个不同的引用对象
+//    class MyClass(number: Int, text: String, others: List[Int]) {}
+//    val c1 = new MyClass(1, "txt", List.empty)
+//    val c2 = new MyClass(1, "txt", List.empty)
+//    println(c1 == c2 )// 返回false,两个不同的引用对象
+//
+//
+//     List[Nothing]
+
+
+ println((0 to 10).sum)
 
   }
 
 }
+
