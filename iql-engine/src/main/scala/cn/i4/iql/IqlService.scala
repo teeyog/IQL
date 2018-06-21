@@ -3,7 +3,7 @@ package cn.i4.iql
 import java.util.concurrent.ConcurrentHashMap
 
 import akka.actor.ActorSystem
-import cn.i4.iql.utils.AkkaUtils
+import cn.i4.iql.utils.{AkkaUtils, PropsUtils}
 import org.apache.spark.sql.SparkSession
 
 object IqlService {
@@ -12,6 +12,7 @@ object IqlService {
   val jobMap = new ConcurrentHashMap[String, String]()
   var schedulerMode:Boolean = true
   val numActor:Int = 3
+  private val confMap: Map[String, String] = PropsUtils.getPropertiesFromFile("iql-default.properties")
 
   def main(args: Array[String]): Unit = {
 
@@ -32,6 +33,7 @@ object IqlService {
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
       .config("spark.yarn.executor.memoryOverhead","1024")
+
 //     .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
@@ -42,3 +44,6 @@ object IqlService {
     (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(spark), name = "actor"+ id))
   }
 }
+
+
+

@@ -1,34 +1,30 @@
 package cn.i4.iql.utils
 
-import java.io.{IOException, InputStream}
+import java.io._
+import java.nio.charset.StandardCharsets
 import java.util.Properties
+import scala.collection.JavaConverters._
 
 object PropsUtils {
 
-//  val props = getProps("default.properties")
-//
-//  /**
-//    * 加载配置文件
-//    *
-//    * @param fileName
-//    * @return
-//    */
-//  private def getProps(fileName: String) = {
-//    val pros = new Properties
-//    val inputStream = Thread.currentThread().getContextClassLoader.getResourceAsStream(fileName)
-//    try{
-//      pros.load(inputStream)
-//    }
-//    catch {
-//      case e: IOException =>
-//        e.printStackTrace()
-//    } finally if (inputStream != null) try
-//      inputStream.close()
-//    catch {
-//      case e: IOException =>
-//        e.printStackTrace()
-//    }
-//    pros
-//  }
+  def getPropertiesFromFile(filename: String): Map[String, String] = {
+    val file = new File(filename)
+    require(file.exists(), s"Properties file $file does not exist")
+    require(file.isFile(), s"Properties file $file is not a normal file")
+
+    val inReader: InputStreamReader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)
+    try {
+      val properties = new Properties()
+      properties.load(inReader)
+      properties.stringPropertyNames().asScala.map(
+        k => (k, properties.getProperty(k).trim)
+      ).toMap
+    } catch {
+      case e: IOException =>
+        throw new Exception(s"Failed when loading iql properties from $filename", e)
+    } finally {
+      inReader.close()
+    }
+  }
 
 }

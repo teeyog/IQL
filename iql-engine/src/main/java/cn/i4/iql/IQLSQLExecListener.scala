@@ -7,7 +7,7 @@ import cn.i4.iql.antlr.{IQLBaseListener}
 import cn.i4.iql.antlr.IQLParser._
 import org.apache.spark.sql.SparkSession
 
-class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, resultMap:ConcurrentHashMap[String, String]) extends IQLBaseListener{
+class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, resultMap:ConcurrentHashMap[String, String]) extends IQLBaseListener  with Logging {
   def sparkSession = _sparkSession
   def pathPrefix: String = {
     if (_pathPrefix == null || _pathPrefix.isEmpty) return ""
@@ -28,9 +28,6 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
       case "save" =>
         new SaveAdaptor(this).parse(ctx)
 
-//      case "connect" =>
-//        new ConnectAdaptor(this,dbMap).parse(ctx)
-
       case "create" =>
         new CreateAdaptor(this).parse(ctx)
 
@@ -42,24 +39,26 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
 
       case "show" =>
         new ShowAdaptor(this,resultMap).parse(ctx)
-//      case "train" =>
-//        new TrainAdaptor(this).parse(ctx)
-//      case "register" =>
-//        new RegisterAdaptor(this).parse(ctx)
     }
 
   }
 
   override def exitStatement(ctx: StatementContext): Unit = {
-    sparkSession.catalog.listTables().collect().foreach(r => sparkSession.catalog.dropTempView(r.name))
+//    sparkSession.catalog.listTables().collect().foreach(r => sparkSession.catalog.dropTempView(r.name))
   }
 
   override def enterStatement(ctx: StatementContext): Unit = {
     //刷新元数据
-    sparkSession.catalog.listDatabases().rdd.map(_.name).collect().foreach(d =>
-      sparkSession.catalog.listTables(d).rdd.map(_.name).collect().foreach(t =>
-        sparkSession.catalog.refreshTable(d + "." + t))
-    )
+//    sparkSession.catalog.listDatabases().rdd.map(_.name).collect().foreach(d =>
+//      sparkSession.catalog.listTables(d).rdd.map(_.name).collect().foreach(t =>
+//        sparkSession.catalog.refreshTable(d + "." + t))
+//    )
+    reset()
+  }
+
+  def reset(): Unit = {
+    warn(s"reset sparkSession: $sparkSession")
+    sparkSession.sessionState.catalog.reset()
   }
 
 }

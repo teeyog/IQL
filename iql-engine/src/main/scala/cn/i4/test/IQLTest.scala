@@ -16,6 +16,9 @@ object IQLTest {
         .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
+
+
+    spark.sql("").rdd.unpersist()
 //
 //    spark.sql("select * from i4.mbl where m_date='20180607' limit 10").rdd.map(r => (r.get(0),r.get(1))).reduceByKey(_+_)
 //

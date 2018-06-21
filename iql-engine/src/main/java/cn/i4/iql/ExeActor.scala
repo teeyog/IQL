@@ -45,51 +45,10 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
   override def receive: Receive = {
 
     case HiveCatalog() =>
-        val hiveArray = new JSONArray()
-        var num: Int = 0
-        SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
-          num += 1
-          val dbId = num
-          val dbObj = new JSONObject()
-          dbObj.put("id", dbId)
-          dbObj.put("name",s"""<span class="button ico_close" style="background:url('iql/img/db.jpg') center center/15px 15px no-repeat"></span>$db""")
-          dbObj.put("pId", 0)
-          hiveArray.add(dbObj)
-          SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
-            num += 1
-            val tbId = num
-            val tbObj = new JSONObject()
-            tbObj.put("id", tbId)
-            tbObj.put("pId", dbId)
-            tbObj.put("name",s"""<span class="button ico_close" style="background:url('iql/img/tb.jpg') center center/15px 15px no-repeat"></span>$tb""")
-            hiveArray.add(tbObj)
-            SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
-              num += 1
-              val fieldId = num
-              val fieldObj = new JSONObject()
-              fieldObj.put("id", fieldId)
-              fieldObj.put("pId", tbId)
-              fieldObj.put("name", f.name + "(" + f.dataType.typeName + ")")
-              hiveArray.add(fieldObj)
-            }
-            )
-          })
-        })
-        sender() ! hiveArray.toJSONString
+        sender() ! getHiveCatalog
 
     case HiveCatalogWithAutoComplete() =>
-      val hiveObj = new JSONObject()
-      SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
-        val tbArray = new JSONArray()
-        SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
-          tbArray.add(tb)
-          val cloArray = new JSONArray()
-          SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
-          hiveObj.put(tb,cloArray)
-        })
-        hiveObj.put(db,tbArray)
-      })
-      sender() ! hiveObj.toJSONString
+      sender() ! getHiveCatalogWithAutoComplete
 
     case Iql(code, iql, variables) =>
       actorWapper(){() => {
@@ -100,9 +59,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
           rIql = rIql.replace("${" + nObject.getString("name") + "}",nObject.getString("value"))
         }
         warn(rIql)
-//        rIql = rIql.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")
-//        info(rIql)
-        schedulerMode = !schedulerMode
+        schedulerMode = !schedulerMode  //切换调度池
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resultMap.clear()
         resJson = new JSONObject()
@@ -139,6 +96,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
     case _ => None
   }
 
+  //antlr4解析SQL语句
   def parse(input: String, listener: IQLListener) = {
     resJson.put("status", "FINISH")
     try {
@@ -165,6 +123,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
     jobMap.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
   }
 
+  //执行前从zk中删除当前对应节点（标记不可用），执行后往zk中写入可用节点（标记可以）
   def actorWapper()(f: () => Unit) {
     ZkUtils.deletePath(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath)
       try {
@@ -179,6 +138,59 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
       }
     ZkUtils.registerActorInEngine(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath, "", 6000, -1)
   }
+
+  //获取hive元数据信息
+  def getHiveCatalog:String = {
+    val hiveArray = new JSONArray()
+    var num: Int = 0
+    SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
+      num += 1
+      val dbId = num
+      val dbObj = new JSONObject()
+      dbObj.put("id", dbId)
+      dbObj.put("name",s"""<span class="button ico_close" style="background:url('iql/img/db.jpg') center center/15px 15px no-repeat"></span>$db""")
+      dbObj.put("pId", 0)
+      hiveArray.add(dbObj)
+      SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
+        num += 1
+        val tbId = num
+        val tbObj = new JSONObject()
+        tbObj.put("id", tbId)
+        tbObj.put("pId", dbId)
+        tbObj.put("name",s"""<span class="button ico_close" style="background:url('iql/img/tb.jpg') center center/15px 15px no-repeat"></span>$tb""")
+        hiveArray.add(tbObj)
+        SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
+          num += 1
+          val fieldId = num
+          val fieldObj = new JSONObject()
+          fieldObj.put("id", fieldId)
+          fieldObj.put("pId", tbId)
+          fieldObj.put("name", f.name + "(" + f.dataType.typeName + ")")
+          hiveArray.add(fieldObj)
+        }
+        )
+      })
+    })
+    hiveArray.toJSONString
+  }
+
+
+  def getHiveCatalogWithAutoComplete:String = {
+    val hiveObj = new JSONObject()
+    SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
+      val tbArray = new JSONArray()
+      SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
+        tbArray.add(tb)
+        val cloArray = new JSONArray()
+        SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
+        hiveObj.put(tb,cloArray)
+      })
+      hiveObj.put(db,tbArray)
+    })
+    hiveObj.toJSONString
+  }
+
+
 }
 
 object ExeActor {
