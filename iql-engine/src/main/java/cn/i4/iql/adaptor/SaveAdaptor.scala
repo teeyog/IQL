@@ -2,7 +2,7 @@ package cn.i4.iql.adaptor
 
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
-import cn.i4.iql.utils.{ProTools}
+import cn.i4.iql.utils.PropsUtils
 import org.apache.spark.sql._
 
 //save new_tr as json.`/tmp/todd
@@ -37,15 +37,15 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         case s: TableNameContext =>
           tableName = s.getText
           oldDF = scriptSQLExecListener.sparkSession.table(s.getText)
-        case s: OverwriteContext =>
+        case _: OverwriteContext =>
           mode = SaveMode.Overwrite
-        case s: AppendContext =>
+        case _: AppendContext =>
           mode = SaveMode.Append
-        case s: ErrorIfExistsContext =>
+        case _: ErrorIfExistsContext =>
           mode = SaveMode.ErrorIfExists
-        case s: IgnoreContext =>
+        case _: IgnoreContext =>
           mode = SaveMode.Ignore
-        case s: UpdateContext =>
+        case _: UpdateContext =>
           option += ("savemode" -> "update")
         case s: ColContext =>
           partitionByCol = cleanStr(s.getText).split(",")
@@ -86,8 +86,8 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         writer.option("outputTableName", final_path).format("org.apache.spark.sql.execution.datasources.redis").save()
       case "jdbc" =>
         writer
-          .option("driver",option.getOrElse("driver",ProTools.get("jdbc.driver")))
-          .option("url",option.getOrElse("url",ProTools.get("jdbc.url")))
+          .option("driver",option.getOrElse("driver",PropsUtils.get("jdbc.driver")))
+          .option("url",option.getOrElse("url",PropsUtils.get("jdbc.url")))
           .option("dbtable",final_path)
           .save()
       case _ =>

@@ -1,29 +1,37 @@
 package cn.i4.iql.utils
 
-import java.io._
-import java.nio.charset.StandardCharsets
 import java.util.Properties
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.FileSystem
+import org.apache.hadoop.fs.Path
 import scala.collection.JavaConverters._
 
 object PropsUtils {
 
-  def getPropertiesFromFile(filename: String): Map[String, String] = {
-    val file = new File(filename)
-    require(file.exists(), s"Properties file $file does not exist")
-    require(file.isFile(), s"Properties file $file is not a normal file")
+  val confMap:Map[String,String] = getPropertiesFromHDFSFile("hdfs://i4ns/data/resource/iql-default.properties")
 
-    val inReader: InputStreamReader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)
+  def get(k:String):String = {
+    confMap(k)
+  }
+
+  /**
+    * load config file from hdfs
+    * @param path:path
+    * @return
+    */
+  def getPropertiesFromHDFSFile(path: String): Map[String, String] = {
+    val pt = new Path(path)
     try {
+      val fs = FileSystem.get(new Configuration())
+      val currencyInputStream = fs.open(pt)
       val properties = new Properties()
-      properties.load(inReader)
+      properties.load(currencyInputStream)
       properties.stringPropertyNames().asScala.map(
         k => (k, properties.getProperty(k).trim)
       ).toMap
     } catch {
-      case e: IOException =>
-        throw new Exception(s"Failed when loading iql properties from $filename", e)
-    } finally {
-      inReader.close()
+      case e: Exception =>
+        throw new Exception(s"Failed when loading iql properties from $path", e)
     }
   }
 

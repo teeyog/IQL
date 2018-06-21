@@ -97,7 +97,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
   }
 
   //antlr4解析SQL语句
-  def parse(input: String, listener: IQLListener) = {
+  def parse(input: String, listener: IQLListener): Unit = {
     resJson.put("status", "FINISH")
     try {
       val loadLexer = new IQLLexer(new ANTLRInputStream(input))
