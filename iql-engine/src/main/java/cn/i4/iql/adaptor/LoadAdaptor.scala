@@ -80,16 +80,12 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
   }
 }
 
-
-
-
 class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
                         option: Map[String, String],
-                        var path: String,
+                        path: String,
                         tableName: String,
                         format: String
                        ) {
-
   def withWaterMark(table: DataFrame, option: Map[String, String]) = {
     if (option.contains("eventTimeCol")) {
       table.withWatermark(option("eventTimeCol"), option("delayThreshold"))
@@ -101,9 +97,10 @@ class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
   def parse = {
     var table: DataFrame = null
     val reader = scriptSQLExecListener.sparkSession.readStream
-
     format match {
-      case "kafka" | "socket" =>
+      case "kafka" =>
+        reader.option("kafka.bootstrap.servers",option.getOrElse("kafka.bootstrap.servers", PropsUtils.get("kafka.metadata.broker.list")))
+        reader.option("subscribe",path)
         table = reader.options(option).format(format).load()
       case _ =>
     }
