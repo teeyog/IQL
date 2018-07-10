@@ -1,14 +1,16 @@
 package cn.i4.iql.adaptor
 
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
+
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
 import cn.i4.iql.utils.PropsUtils
 import org.apache.spark.sql._
+import org.apache.spark.sql.streaming.{DataStreamWriter, Trigger}
 
 //save new_tr as json.`/tmp/todd
 class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
   override def parse(ctx: SqlContext): Unit = {
-    var writer: DataFrameWriter[Row] = null
     var oldDF: DataFrame = null
     var mode = SaveMode.ErrorIfExists
     var final_path = ""
@@ -58,25 +60,41 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         case _ =>
       }
     }
-
-    if (option.contains("fileNum")) {
-      oldDF = oldDF.repartition(option.getOrElse("fileNum", "").toString.toInt)
+    if(scriptSQLExecListener.env().contains("stream")){
+      new StreamSaveAdaptor(scriptSQLExecListener,option,oldDF,final_path,tableName,format,mode,partitionByCol,numPartition).parse
+    }else {
+      new BatchSaveAdaptor(scriptSQLExecListener,option,oldDF,final_path,tableName,format,mode,partitionByCol,numPartition).parse
     }
-    writer = oldDF.write
+  }
+}
+
+
+class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
+                       var option: Map[String, String],
+                       var oldDF: DataFrame,
+                       var final_path: String,
+                       var tableName: String,
+                       var format: String,
+                       var mode: SaveMode,
+                       var partitionByCol: Array[String],
+                       val numPartition:Int
+                      ) {
+  def parse = {
+    var writer = oldDF.write
     writer = writer.format(format).mode(mode).partitionBy(partitionByCol: _*).options(option)
     format match {
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         val tmpPath = "/tmp/iql/tmp/"+System.currentTimeMillis()
         writer.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).save(tmpPath)//写
-        scriptSQLExecListener.sparkSession.read.format(format).load(tmpPath).coalesce(numPartition)//读
+        scriptSQLExecListener.sparkSession.read.option("header", "true").option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").format(format).load(tmpPath).coalesce(numPartition)//读
           .write.mode(mode).partitionBy(partitionByCol: _*).options(option).option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
           .format(format).save(final_path)//写
       case "es" =>
         writer.save(final_path)
       case "hive" =>
         oldDF.coalesce(numPartition).write.format(option.getOrElse("file_format", "parquet")).mode(mode).options(option)
-        .insertInto(final_path)
-//        writer.saveAsTable(final_path)
+          .insertInto(final_path)
+      //        writer.saveAsTable(final_path)
 
       case "kafka8" | "kafka9" =>
         writer.option("topics", final_path).format("com.hortonworks.spark.sql.kafka08").save()
@@ -93,5 +111,41 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
       case _ =>
         writer.save(final_path)
     }
+  }
+}
+
+
+class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
+                        var option: Map[String, String],
+                        var oldDF: DataFrame,
+                        var final_path: String,
+                        var tableName: String,
+                        var format: String,
+                        var mode: SaveMode,
+                        var partitionByCol: Array[String],
+                        val numPartition:Int
+                       ) {
+  def parse = {
+
+    var writer: DataStreamWriter[Row] = oldDF.writeStream
+
+    require(option.contains("checkpointLocation"), "checkpointLocation is required")
+    require(option.contains("duration"), "duration is required")
+    require(option.contains("mode"), "mode is required")
+
+    writer = writer.format(option.getOrElse("implClass", format)).outputMode(option("mode")).
+      partitionBy(partitionByCol: _*).
+      options(option - "mode" - "duration")
+
+    val dbtable = if (option.contains("dbtable")) option("dbtable") else final_path
+
+    if (dbtable != null && dbtable != "-") {
+      writer.option("path", dbtable)
+    }
+    option.get("streamName") match {
+      case Some(name) => writer.queryName(name)
+      case None =>
+    }
+    writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
   }
 }

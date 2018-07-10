@@ -41,7 +41,7 @@ public class ShellUtils {
     }
 
     public static HashMap<String, HashMap<String, String>> getJobInfo() throws IOException {
-        HashMap<String, String> yarnJobs = getYarnJobs();
+//        HashMap<String, String> yarnJobs = getYarnJobs();
         HashMap<String, HashMap<String, String>> jobInfo = new HashMap<String, HashMap<String, String>>();
         for (String host : HOSTS){
             HashSet<String> appids = runShellCommand(" ssh " + host + " 'cd /data/yarn/container-logs/;ls'");

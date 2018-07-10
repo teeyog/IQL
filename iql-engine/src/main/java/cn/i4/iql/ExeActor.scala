@@ -174,7 +174,6 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
     hiveArray.toJSONString
   }
 
-
   def getHiveCatalogWithAutoComplete:String = {
     val hiveObj = new JSONObject()
     SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
@@ -189,8 +188,6 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
     })
     hiveObj.toJSONString
   }
-
-
 }
 
 object ExeActor {
