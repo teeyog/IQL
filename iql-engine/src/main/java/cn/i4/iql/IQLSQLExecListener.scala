@@ -7,9 +7,10 @@ import cn.i4.iql.antlr.{IQLBaseListener}
 import cn.i4.iql.antlr.IQLParser._
 import org.apache.spark.sql.SparkSession
 
-class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, resultMap:ConcurrentHashMap[String, String]) extends IQLBaseListener  with Logging {
+class IQLSQLExecListener(var _sparkSession: SparkSession) extends IQLBaseListener  with Logging {
 
   private val _env = new scala.collection.mutable.HashMap[String, String]
+  private val _result = new ConcurrentHashMap[String, String]
 
   def addEnv(k: String, v: String) = {
     _env(k) = v
@@ -18,14 +19,19 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
 
   def env() = _env
 
-  def sparkSession = _sparkSession
-  def pathPrefix: String = {
-    if (_pathPrefix == null || _pathPrefix.isEmpty) return ""
-    if (!_pathPrefix.endsWith("/")) {
-      return _pathPrefix + "/"
-    }
-    return _pathPrefix
+  def addResult(k: String, v: String) = {
+    _result(k) = v
+    this
   }
+
+  def getResult(k:String) = {
+    _result.getOrDefault(k, "")
+  }
+
+  def result() = _result
+
+  def sparkSession = _sparkSession
+
 
   override def exitSql(ctx: SqlContext): Unit = {
     ctx.getChild(0).getText.toLowerCase() match {
@@ -33,7 +39,7 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
         new LoadAdaptor(this).parse(ctx)
 
       case "select" =>
-        new SelectAdaptor(this,resultMap).parse(ctx)
+        new SelectAdaptor(this).parse(ctx)
 
       case "save" =>
         new SaveAdaptor(this).parse(ctx)
@@ -48,7 +54,7 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _pathPrefix: String, r
         new SetAdaptor(this).parse(ctx)
 
       case "show" =>
-        new ShowAdaptor(this,resultMap).parse(ctx)
+        new ShowAdaptor(this).parse(ctx)
     }
   }
 

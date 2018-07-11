@@ -8,7 +8,7 @@ import cn.i4.iql.antlr.IQLParser._
 import org.antlr.v4.runtime.misc.Interval
 
 //show create table ods.ods_user_mbl
-class ShowAdaptor(scriptSQLExecListener: IQLSQLExecListener, resultMap: ConcurrentHashMap[String, String]) extends DslAdaptor {
+class ShowAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
   override def parse(ctx: SqlContext): Unit = {
     val input = ctx.start.getTokenSource.asInstanceOf[IQLLexer]._input
     val start = ctx.start.getStartIndex
@@ -18,8 +18,8 @@ class ShowAdaptor(scriptSQLExecListener: IQLSQLExecListener, resultMap: Concurre
 
     val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
     val df_result = scriptSQLExecListener.sparkSession.sql(sql)
-    resultMap.put("schema", df_result.schema.fields.map(_.name).mkString(","))
+    scriptSQLExecListener.addResult("schema", df_result.schema.fields.map(_.name).mkString(","))
     df_result.write.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").json(hdfsPath)
-    resultMap.put("hdfsPath", hdfsPath)
+    scriptSQLExecListener.addResult("hdfsPath", hdfsPath)
   }
 }

@@ -21,7 +21,6 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
 
   var sparkSession: SparkSession = _
   var interpreter: SparkInterpreter = _
-  var resultMap = new ConcurrentHashMap[String, String]()
   var resJson = new JSONObject()
   val zkValidActorPath = ZkUtils.validEnginePath + "/" + iqlSession.engineInfo + "_" + context.self.path.name
 
@@ -61,7 +60,6 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
         warn(rIql)
         schedulerMode = !schedulerMode  //切换调度池
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
-        resultMap.clear()
         resJson = new JSONObject()
         resJson.put("startTime", new Timestamp(System.currentTimeMillis))
         resJson.put("iql", iql)
@@ -77,7 +75,7 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
         //将该iql任务的唯一标识返回
         sender() ! resJson.toJSONString
         //解析iql并执行
-        parse(rIql, new IQLSQLExecListener(sparkSession, null, resultMap))
+        parse(rIql, new IQLSQLExecListener(sparkSession))
         }
       }
 
@@ -97,7 +95,7 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
   }
 
   //antlr4解析SQL语句
-  def parse(input: String, listener: IQLListener): Unit = {
+  def parse(input: String, listener: IQLSQLExecListener): Unit = {
     resJson.put("status", "FINISH")
     try {
       val loadLexer = new IQLLexer(new ANTLRInputStream(input))
@@ -107,8 +105,8 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
       ParseTreeWalker.DEFAULT.walk(listener, stat)
       val endTime = System.currentTimeMillis()
       val take = (endTime - resJson.getTimestamp("startTime").getTime) / 1000
-      resJson.put("hdfsPath", resultMap.getOrDefault("hdfsPath", ""))
-      resJson.put("schema", resultMap.getOrDefault("schema", ""))
+      resJson.put("hdfsPath", listener.getResult("hdfsPath"))
+      resJson.put("schema", listener.getResult("schema"))
       resJson.put("takeTime", take)
       resJson.put("isSuccess", true)
     } catch {
