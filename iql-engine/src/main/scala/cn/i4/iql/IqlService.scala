@@ -8,8 +8,6 @@ import org.apache.spark.sql.SparkSession
 
 object IqlService {
 
-  var engineInfo:String = _
-  val jobMap = new ConcurrentHashMap[String, String]()
   var schedulerMode:Boolean = true
   val numActor:Int = 3
 
@@ -36,9 +34,10 @@ object IqlService {
       .enableHiveSupport()
       .getOrCreate()
 
+
     val actorConf = AkkaUtils.getConfig
-    engineInfo = actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port")
+    val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
     val actorSystem = ActorSystem("iqlSystem", actorConf)
-    (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(spark), name = "actor"+ id))
+    (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(spark,iqlSession), name = "actor"+ id))
   }
 }

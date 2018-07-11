@@ -17,13 +17,13 @@ import cn.i4.iql.IqlService._
 import org.apache.spark.sql.bridge.SparkBridge
 
 
-class ExeActor(spark: SparkSession) extends Actor with Logging {
+class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Logging {
 
   var sparkSession: SparkSession = _
   var interpreter: SparkInterpreter = _
   var resultMap = new ConcurrentHashMap[String, String]()
   var resJson = new JSONObject()
-  val zkValidActorPath = ZkUtils.validEnginePath + "/" + engineInfo + "_" + context.self.path.name
+  val zkValidActorPath = ZkUtils.validEnginePath + "/" + iqlSession.engineInfo + "_" + context.self.path.name
 
   override def preStart(): Unit = {
     warn("Actor Start ...")
@@ -70,7 +70,7 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
         if (!code.trim.equals("")) interpreter.execute(code.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")) //过滤掉注释
         //为当前iql设置groupId
         val groupId = BatchSQLRunnerEngine.getGroupId
-        resJson.put("engineInfoAndGroupId", engineInfo + "_" + groupId)
+        resJson.put("engineInfoAndGroupId", iqlSession.engineInfo + "_" + groupId)
         sparkSession.sparkContext.clearJobGroup()
         sparkSession.sparkContext.setJobDescription("iql:" + rIql)
         sparkSession.sparkContext.setJobGroup("iqlid:" + groupId, "iql:" + rIql)
@@ -82,9 +82,9 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
       }
 
     case GetResult(engineInfoAndGroupId) =>
-        if (jobMap.keySet().contains(engineInfoAndGroupId)) {
-          sender() ! jobMap.get(engineInfoAndGroupId)
-          jobMap.remove(engineInfoAndGroupId)
+        if (iqlSession.batchJob.keySet().contains(engineInfoAndGroupId)) {
+          sender() ! iqlSession.batchJob.get(engineInfoAndGroupId)
+          iqlSession.batchJob.remove(engineInfoAndGroupId)
         } else {
           sender() ! "{'status':'RUNNING'}"
         }
@@ -120,14 +120,14 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
         resJson.put("errorMessage", new String(out.toByteArray))
         out.close()
     }
-    jobMap.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+    iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
   }
 
   //执行前从zk中删除当前对应节点（标记不可用），执行后往zk中写入可用节点（标记可以）
   def actorWapper()(f: () => Unit) {
     ZkUtils.deletePath(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath)
       try {
-        f()
+        f
       } catch {
         case e:Exception =>
           resJson.put("isSuccess", false)
@@ -192,6 +192,6 @@ class ExeActor(spark: SparkSession) extends Actor with Logging {
 
 object ExeActor {
 
-  def props(spark: SparkSession): Props = Props(new ExeActor(spark))
+  def props(spark: SparkSession,iqlSession:IQLSession): Props = Props(new ExeActor(spark,iqlSession))
 
 }

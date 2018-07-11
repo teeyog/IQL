@@ -125,8 +125,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
                         var partitionByCol: Array[String],
                         val numPartition:Int
                        ) {
-  def parse = {
-
+  def parse:Any = {
     var writer: DataStreamWriter[Row] = oldDF.writeStream
 
     require(option.contains("checkpointLocation"), "checkpointLocation is required")
@@ -146,6 +145,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
       case Some(name) => writer.queryName(name)
       case None =>
     }
-    writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
+    val query = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
+//    query.
   }
 }
