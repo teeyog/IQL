@@ -10,7 +10,7 @@ import org.apache.spark.sql.streaming.{DataStreamWriter, Trigger}
 
 //save new_tr as json.`/tmp/todd
 class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
-  override def parse(ctx: SqlContext): Unit = {
+  override def parse(ctx: SqlContext): Any = {
     var oldDF: DataFrame = null
     var mode = SaveMode.ErrorIfExists
     var final_path = ""
@@ -34,7 +34,6 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
             case "jdbc" | "hive" | "kafka8" | "kafka9" | "hbase" | "redis" | "es" | "json" =>
               final_path = cleanStr(s.getText)
             case _ =>
-              final_path = withPathPrefix(scriptSQLExecListener.pathPrefix, cleanStr(s.getText))
           }
         case s: TableNameContext =>
           tableName = s.getText
@@ -125,7 +124,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
                         var partitionByCol: Array[String],
                         val numPartition:Int
                        ) {
-  def parse:Any = {
+  def parse:Unit = {
     var writer: DataStreamWriter[Row] = oldDF.writeStream
 
     require(option.contains("checkpointLocation"), "checkpointLocation is required")
@@ -146,6 +145,6 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
       case None =>
     }
     val query = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
-//    query.
+    scriptSQLExecListener.iqlSession.streamJob.put(scriptSQLExecListener.iqlSession.engineInfo + "_" + query.name,query)
   }
 }

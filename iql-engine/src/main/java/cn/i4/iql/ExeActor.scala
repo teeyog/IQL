@@ -75,17 +75,20 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
         //将该iql任务的唯一标识返回
         sender() ! resJson.toJSONString
         //解析iql并执行
-        parse(rIql, new IQLSQLExecListener(sparkSession))
+        parse(rIql, new IQLSQLExecListener(sparkSession,iqlSession))
         }
       }
 
-    case GetResult(engineInfoAndGroupId) =>
+    case GetBatchResult(engineInfoAndGroupId) =>
         if (iqlSession.batchJob.keySet().contains(engineInfoAndGroupId)) {
           sender() ! iqlSession.batchJob.get(engineInfoAndGroupId)
           iqlSession.batchJob.remove(engineInfoAndGroupId)
         } else {
           sender() ! "{'status':'RUNNING'}"
         }
+
+    case GetBatchResult(name) =>
+      iqlSession.streamJob.get(name).isActive
 
     case CancelJob(groupId) =>
       sparkSession.sparkContext.cancelJobGroup("iqlid:" + groupId)

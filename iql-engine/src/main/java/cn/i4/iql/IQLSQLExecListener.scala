@@ -7,7 +7,7 @@ import cn.i4.iql.antlr.{IQLBaseListener}
 import cn.i4.iql.antlr.IQLParser._
 import org.apache.spark.sql.SparkSession
 
-class IQLSQLExecListener(var _sparkSession: SparkSession) extends IQLBaseListener  with Logging {
+class IQLSQLExecListener(var _sparkSession: SparkSession,_iqlSession:IQLSession) extends IQLBaseListener  with Logging {
 
   private val _env = new scala.collection.mutable.HashMap[String, String]
   private val _result = new ConcurrentHashMap[String, String]
@@ -31,6 +31,7 @@ class IQLSQLExecListener(var _sparkSession: SparkSession) extends IQLBaseListene
   def result() = _result
 
   def sparkSession = _sparkSession
+  def iqlSession = _iqlSession
 
 
   override def exitSql(ctx: SqlContext): Unit = {
