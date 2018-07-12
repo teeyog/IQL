@@ -57,7 +57,7 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
           val nObject = JSON.parseObject(variblesIters.next().toString)
           rIql = rIql.replace("${" + nObject.getString("name") + "}",nObject.getString("value"))
         }
-        warn(rIql)
+        warn("\n" + rIql)
         schedulerMode = !schedulerMode  //切换调度池
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resJson = new JSONObject()
@@ -87,11 +87,31 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
           sender() ! "{'status':'RUNNING'}"
         }
 
-    case GetBatchResult(name) =>
-      iqlSession.streamJob.get(name).isActive
+    case GetStreamStatus(name) =>
+      iqlSession.streamJob(name).isActive
+
+    case GetActiveStream() =>
+     sender() ! iqlSession.streamJob.filter(_._2.isActive).keys.foldLeft(new JSONArray()){
+        case (array,stream) =>
+          stream.split("_") match {
+            case Array(engineInfo,name,uid) =>
+              val obj = new JSONObject()
+              obj.put("engineInfo",engineInfo)
+              obj.put("name",name)
+              obj.put("uid",uid)
+              array.add(obj)
+          }
+          array
+      }.toJSONString
+
+    case StopSreamJob(name) =>
+      iqlSession.streamJob(name).stop()
+      sender() ! !iqlSession.streamJob(name).isActive
 
     case CancelJob(groupId) =>
       sparkSession.sparkContext.cancelJobGroup("iqlid:" + groupId)
+      sender() ! true
+
     case StopIQL() => context.system.terminate()
 
     case _ => None
@@ -128,7 +148,7 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
   def actorWapper()(f: () => Unit) {
     ZkUtils.deletePath(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath)
       try {
-        f
+        f()
       } catch {
         case e:Exception =>
           resJson.put("isSuccess", false)

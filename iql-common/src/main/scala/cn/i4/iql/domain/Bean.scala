@@ -8,7 +8,15 @@ object Bean {
 
   case class StopIQL()
 
-  case class GetResult(engineInfoAndGroupId:String)
+  case class GetBatchResult(engineInfoAndGroupId:String)
+
+  case class GetStreamStatus(streamName:String)
+
+  case class GetActiveStream()
+
+  case class StopSreamJob(streamName:String)
+
+  case class StreamJob(engineInfo:String,name:String,uid:String)
 
   case class CancelJob(groupId:Int)
 

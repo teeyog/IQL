@@ -20,7 +20,7 @@ class IQLSQLExecListener(var _sparkSession: SparkSession,_iqlSession:IQLSession)
   def env() = _env
 
   def addResult(k: String, v: String) = {
-    _result(k) = v
+    _result.put(k,v)
     this
   }
 

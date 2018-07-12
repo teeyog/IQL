@@ -1,7 +1,7 @@
 package cn.i4.iql
 
 import java.util.concurrent.ConcurrentHashMap
-
+import scala.collection.JavaConverters._
 import org.apache.spark.sql.streaming.StreamingQuery
 
 class IQLSession(_engineInfo:String) {
@@ -12,7 +12,7 @@ class IQLSession(_engineInfo:String) {
   val batchJob = new ConcurrentHashMap[String, String]()
 
   // 保存stream任务engineInfo和StreamingQuery的映射（查看某个stream的状态或者stop某个stream）
-  val streamJob = new ConcurrentHashMap[String, StreamingQuery]()
+  val streamJob = new ConcurrentHashMap[String, StreamingQuery]().asScala
 
 }
 

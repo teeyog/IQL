@@ -10,7 +10,7 @@ import org.apache.spark.sql.streaming.{DataStreamWriter, Trigger}
 
 //save new_tr as json.`/tmp/todd
 class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
-  override def parse(ctx: SqlContext): Any = {
+  override def parse(ctx: SqlContext): Unit = {
     var oldDF: DataFrame = null
     var mode = SaveMode.ErrorIfExists
     var final_path = ""
@@ -145,6 +145,6 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
       case None =>
     }
     val query = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
-    scriptSQLExecListener.iqlSession.streamJob.put(scriptSQLExecListener.iqlSession.engineInfo + "_" + query.name,query)
+    scriptSQLExecListener.iqlSession.streamJob.put(scriptSQLExecListener.iqlSession.engineInfo + "_" + query.name + "_" + query.id,query)
   }
 }
