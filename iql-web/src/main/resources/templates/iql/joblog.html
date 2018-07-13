@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <!-- 新 Bootstrap 核心 CSS 文件 -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- 自定义 -->
+    <link href="/iql/joblog.css" rel="stylesheet"/>
+</head>
+<body class="gray-bg"/>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <form role="form" class="form-inline" id="mainForm">
+                        <div class="form-group">
+                            <div class="div_appname">
+                                <label class="control-label" for="appname">AppName：</label>
+                                <select class="form-control" id="appname" name="logtype">
+                                    <option>---请选择---</option>
+                                </select>
+                            </div>
+                            <div class="div_executor" style="display: none">
+                                <label class="control-label" for="executor">Executor：</label>
+                                <select class="form-control" id="executor" name="logtype">
+                                </select>
+                            </div>
+                            <div class="div_logtype" style="display: none">
+                                <label class="control-label" for="logtype">LogType：</label>
+                                <select class="form-control" id="logtype" name="logtype">
+                                    <option>stderr</option>
+                                    <option>stdout</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="ibox-content">
+                    <div id="log-container" style="height: 1040px; overflow-y: scroll;background-color: #008080; color: #fff; padding: 10px;font-size: 14px;">
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>
+
+<script type="text/javascript">
+    $(function () {
+
+        $.get("/appnames", {}, function (data) {
+            $.each(data, function (index, name) {
+                var option = "<option>" + name + "</option>";
+                $('#appname').append(option);
+            });
+        });
+
+        $('#appname').change(function () {
+            $(".div_executor").hide();
+            $(".div_logtype").hide();
+            var appName = $("#appname").find("option:selected").text();
+            $.get("/executors", {appname: appName}, function (data) {
+                if (data.isSuccess) {
+                    $("#executor").empty();
+                    $.each(data.executors, function (index, data) {
+                        var option = "<option>" + data.executor + "</option>";
+                        $('#executor').append(option);
+                        $('#executor').children("option:last-child").attr("value", data.host);
+                    });
+                    $(".div_executor").show();
+                    $(".div_logtype").show();
+                    showLog()
+                } else {
+                    alert("此任务已经执行完毕，请刷新页面加载真正执行的任务。")
+                }
+            });
+        });
+
+        $('#executor').change(function () {
+            showLog()
+        });
+
+        $('#logtype').change(function () {
+            showLog()
+        });
+
+        var websocket;
+        showLog = function () {
+            if (websocket) {
+                websocket.close();
+            }
+            var appname = $("#appname").find("option:selected").text();
+            var executor = $("#executor").find("option:selected").text();
+            var host = $("#executor").find("option:selected").val();
+            var logtype = $("#logtype").find("option:selected").text();
+            $("#log-container div").empty();
+            // 指定websocket路径
+            websocket = new WebSocket("ws://192.168.1.233:8888/log?appname=" + appname + "&amp;executor=" + executor + "&amp;host=" + host + "&amp;logtype=" + logtype);
+            websocket.onmessage = function (event) {
+                var log = "<span>" + event.data + "</span>";
+                // 接收服务端的实时日志并添加到HTML页面中
+                $("#log-container div").append(log);
+                // 滚动条滚动到最低部
+                $("#log-container").scrollTop($("#log-container div").height() - $("#log-container").height());
+            };
+        }
+
+    });
+
+</script>

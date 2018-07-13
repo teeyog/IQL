@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:replace="head::headerFragment('功能管理')">
+    <link href="/bootstrap-multiselect/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect-collapsible-groups.js"></script>
+    <script src="/util/dataUtil.js"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+       <!-- <div class="col-sm-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    查询
+                </div>
+                <div class="panel-body">
+                    <form role="form" class="form-inline" id="mainForm" onkeydown="if(event.keyCode==13){return false;}">
+                        <div class="form-group">
+                            <label class="control-label" for="search">用户名 / 用户ID：</label>
+                            <input class="form-control" id="search" name="search" value="">
+                        </div>
+                        <button class="btn btn-white" type="button" id="submit" style="margin-bottom: 0px">查询</button>
+                        <button class="btn btn-white" type="reset" style="margin-bottom: 0px">重置</button>
+                    </form>
+                </div>
+            </div>
+        </div>-->
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>系统功能管理</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="btn-group" id="toolbar" role="group">
+                        <button type="button" class="btn btn-outline btn-primary" id="addUser">
+                            <i class="glyphicon glyphicon-plus" aria-hidden="true"></i>
+                            添加功能
+                        </button>
+                    </div>
+                    <table id="menu-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-form" class="modal fade" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-10 b-r">
+                        <h3 class="m-t-none m-b" id="form-title">添加功能菜单</h3>
+
+                        <p id="form-p">请填写信息</p>
+
+                        <form role="form">
+                            <div>
+                                <input type="hidden" id="id" value="-1">
+                            </div>
+                            <div class="form-group " id="mname-input">
+                                <label class="control-label">菜单名称：</label>
+                                <input type="text" placeholder="菜单名称" class="form-control" id="mname" name="mname">
+                                <span id="mname-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group" id="url-input">
+                                <label class="control-label">URL：</label>
+                                <input type="url" placeholder="URL" class="form-control" id="url" name="url">
+                                <span id="url-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group" id="icon-input">
+                                <label class="control-label">图标：</label>
+                                <input type="text" placeholder="图标" class="form-control" id="icon" name="icon">
+                                <span id="icon-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group" id="reorder-input">
+                                <label class="control-label">排序：</label>
+                                <input type="text" placeholder="排序" class="form-control" id="reorder" name="reorder">
+                                <span id="reorder-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">所属父级菜单：</label><br>
+                                <select class="form-control" size="2" id="pid" name="pid" style="width: 100%">
+                                </select>
+                            </div>
+
+                            <div class="pull-right m-t-n-xs">
+                                <button class="btn btn-sm btn-default" data-dismiss="modal" id="close"><strong>关闭</strong>
+                                </button>
+                                <button class="btn btn-sm btn-primary" type="button" id="save"><strong>保存</strong>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/hplus/js/content.min.js?v=1.0.0"></script>
+<script>
+
+    $(function () {
+        var parMenu,
+            status=0,
+            cacheIndex=-1,
+            cachePid=-1;
+        $.getJSON("/mcdata/menu/system/parentlist", function(json){
+            parMenu=json.rows;
+        });
+        $table = $('#menu-list-table');
+        $('#pid').multiselect({
+            includeSelectAllOption: false
+        });
+        $('#pid').setMultiselect('选择父级菜单', '/mcdata/menu/system/select');
+        $("#submit").click(function() {
+            $table.bootstrapTable("refresh");
+        })
+
+        $table.bootstrapTable({
+            method: 'get',
+            cache: false,
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            pageList: [50],
+            pageSize: 50,
+            pagination: true,
+            showColumns: true,
+            showRefresh: true,
+            sidePagination: 'server',
+            url: '/mcdata/menu/system/parentlist',
+            dataType: 'json',
+            queryParams: function(params) {
+                var form = $("#mainForm");
+                var formJSON = getFormJSON(form, params);
+                return formJSON;
+            },
+            columns: [
+                {
+                    field: 'id',
+                    title: '菜单ID',
+                    width:80,
+                    visible: false,
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {
+                    field: '',
+                    title: 'OP',
+                    width:30,
+                    formatter: function(value,row,index){
+                        return '<div　id="showChildMenu" onclick="showChildMenu(\''+row.id+'\',\''+index+'\')" class="action-buttons"><a href="javascript:;"  class="red" title=""><span class="glyphicon glyphicon-menu-down  center bigger-110 blue"></span></a></div>';
+                    }
+                },
+                {
+                    field: 'name',
+                    title: '菜单名称',
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {
+                    field: 'url',
+                    title: 'URL',
+                    visible: true
+                },
+                {
+                    field: 'pid',
+                    title: '父级菜单',
+                    formatter: function(value,row,index){
+                        var str = "一级菜单(无父级)"
+                        $.each(parMenu,function(i,o){
+                            if(parseInt(value) == parseInt(o.id)){
+                                str = o.name
+                            }
+                        })
+                        return str
+                    }
+                },
+                {
+                    field: 'icon',
+                    title: '图标',
+                    visible: true
+                },
+                {
+                    field: 'reorder',
+                    title: '排序'
+                },
+                {
+                    field: 'id',
+                    title: '操作',
+                    width:120,
+                    align:'center',
+                    halign:'center',
+                    valign:'middle',
+                    events: operateEvents,
+                    formatter: function(value,row,index){
+                        return  [
+                            '<a class="edit" href="javascript:void(0)" title="修改">',
+                            '<i class="glyphicon glyphicon-edit"></i>',
+                            '</a>',
+                            '<a class="remove" href="javascript:void(0)" title="删除">',
+                            '<i class="glyphicon glyphicon-trash"></i>',
+                            '</a>'
+                        ].join('&nbsp;');
+                    }
+                }
+            ]
+        });
+
+        $("#addUser").click(function() {
+            $("#form-title").html("添加功能菜单");
+            $("#form-p").html("请填写信息");
+            $("#id").val(-1);
+            $("#mname").val("");
+            $("#url").val("")
+            $("#icon").val("")
+            $("#reorder").val("")
+            $("#pid").multiselect('select', -1)
+            $("#modal-form").modal("show");
+        })
+
+        validate = function(flag,colume,info){
+            if(flag){
+                $("#"+colume+"-input").addClass("has-error")
+                $("#"+colume+"-error").html('<i class="fa fa-times-circle">'+info)
+                return false
+            }else{
+                $("#"+colume+"-input").removeClass("has-error")
+                $("#"+colume+"-error").html("")
+                return true
+            }
+        }
+
+        $('#modal-form').on('hidden.bs.modal', function (e) {
+            $("[id *= -input]").removeClass("has-error")
+            $("[id *= -error]").html("")
+            $('#pid').setMultiselect('选择父级菜单', '/mcdata/menu/system/select');
+        })
+
+
+        $("#save").click(function() {
+            var id = $("#id").val(),
+                mname = $("#mname").val(),
+                url = $("#url").val(),
+                icon = $("#icon").val(),
+                reorder =$("#reorder").val(),
+                pid = $("#pid").getMultiselect("value");
+            var vmname = validate(mname.trim()=="","mname","必填")
+            var vreorder = validate(reorder.trim()=="","reorder","必填")
+            if(!(vmname&&vreorder)){
+                console.log("检验不通过")
+                return false
+            }
+
+            if(id==-1) {
+                $.ajax({
+                    url: '/mcdata/menu/system/add',
+                    type: 'POST',
+                    data: {'name': mname, 'url': url,'icon':icon,'reorder':reorder,'pid':pid},
+                    success: function( response ) {
+                        $("#modal-form").modal("hide");
+                        $table.bootstrapTable("refresh");
+                        layer.msg('添加成功', {icon: 1});
+                    },
+                    error: function( error ) {
+                        layer.msg('添加失败：'+error.status, {icon: 2});
+                    }
+                });
+
+            } else {
+                $.ajax({
+                    url: '/mcdata/menu/system/update',
+                    type: 'POST',
+                    data: {'name': mname, 'url': url,'icon':icon,'reorder':reorder,'pid':pid,'id':id},
+                    success: function( response ) {
+                        $("#modal-form").modal("hide");
+                        $table.bootstrapTable("refresh");
+                        layer.msg('修改成功', {icon: 1});
+                    },
+                    error: function( error ) {
+                        layer.msg('修改失败：'+error.status, {icon: 2});
+                    }
+                });
+            }
+        })
+
+        showChildMenu=function(id,index){
+            if(cacheIndex==-1){
+                cacheIndex=index
+            }
+            if(cacheIndex!=index){
+                $("#details").remove()
+                $("#menu-list-table").find('tr[data-index="'+cacheIndex+'"]').find("span").removeClass().addClass("glyphicon glyphicon-menu-down center bigger-110 blue")
+                status=0
+                cacheIndex=index
+            }
+
+            if(status==0){
+                $("#menu-list-table").find('tr[data-index="'+index+'"]').find("span").removeClass().addClass("glyphicon glyphicon-menu-up center bigger-110 blue")
+                $("#menu-list-table").find('tr[data-index="'+index+'"]').after('<tr id="details"><td colspan ="6" style=""><div  style="margin-left: 27px;"><table bgcolor="#E8E7E3" id="child-menu-table" data-row-style="rowStyle"></table></div><td><tr>')
+                $('#child-menu-table').bootstrapTable({
+                    method: 'get',
+                    cache: false,
+                    striped: true, //是否显示行间隔色
+                    pagination: false,
+                    showColumns: false,
+                    showRefresh: false,
+                    sidePagination: 'server',
+                    url: '/mcdata/menu/system/childlist',
+                    dataType: 'json',
+                    queryParams: function(params) {
+                        rows = params.limit;
+                        page = params.offset == 0 ? 1 : params.offset / params.limit + 1;
+                        return { pid:id}
+                    },
+                    columns: [
+                        {field: 'id',title: '下级菜单ID',visible: false},
+                        {field: 'name',title: '菜单名称'},
+                        {field: 'url',title: 'URL'},
+                        {field: 'pid',title: '父级菜单',
+                            formatter: function(value,row,index){
+                                var str = "一级菜单(无父级)"
+                                $.each(parMenu,function(i,o){
+                                    if(parseInt(value) == parseInt(o.id)){
+                                        str = o.name
+                                    }
+                                })
+                                return str
+                            }
+                        },
+                        {field: 'icon',title: '图标'},
+                        {field: 'reorder',title: '排序'},
+                        {field: '',title: '操作',width:80,align:'center',
+                            halign:'center',
+                            valign:'middle',
+                            events: operateEvents,
+                            formatter: function(value,row,index){
+                                return   [
+                                    '<a class="edit" href="javascript:void(0)" title="修改">',
+                                    '<i class="glyphicon glyphicon-edit"></i>',
+                                    '</a>',
+                                    '<a class="remove" href="javascript:void(0)" title="删除">',
+                                    '<i class="glyphicon glyphicon-trash"></i>',
+                                    '</a>'
+                                ].join('&nbsp;');
+                            }
+                        }
+                    ]
+                });
+                status=1
+                cachePid=id;
+            }else{
+                $("#details").remove()
+                $("#menu-list-table").find('tr[data-index="'+index+'"]').find("span").removeClass().addClass("glyphicon glyphicon-menu-down center bigger-110 blue")
+                status=0
+            }
+        }
+    })
+
+
+
+    window.operateEvents = {
+        'click .edit': function (e, value, row, index) {
+            $("#form-title").html("修改功能菜单");
+            $("#form-p").html("请修改信息");
+            $("#id").val(row.id);
+            $("#mname").val(row.name);
+            $("#url").val(row.url)
+            $("#icon").val(row.icon)
+            $("#reorder").val(row.reorder)
+            if(row.pid){
+                $("#pid").multiselect('select', row.pid)
+            }else{
+                $("#pid").multiselect('select', -1)
+            }
+            $("#modal-form").modal("show");
+        },
+        'click .remove': function (e, value, row, index) {
+            layer.confirm('您确定要删除这条数据吗，请谨慎操作！', {
+                btn: ['确定','取消']
+            }, function(){
+                $.ajax({
+                    url: '/mcdata/menu/system/delete',
+                    type: 'GET',
+                    data: {'id':row.id},
+                    success: function( response ) {
+                        layer.msg('删除成功', {icon: 1});
+                        $('#menu-list-table').bootstrapTable("refresh");
+                    },
+                    error: function( error ) {
+                        layer.msg('删除失败：'+error.status, {icon: 2});
+                    }
+                });
+
+            }, function(){
+
+            });
+
+        }
+    };
+
+</script>
+</body>
+
+</html>

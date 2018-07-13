@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:replace="head::headerFragment('功能管理')">
+    <link href="/bootstrap-multiselect/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect-collapsible-groups.js"></script>
+    <script src="/util/dataUtil.js"></script>
+</head>
+<body class="gray-bg">
+<div class="middle-box text-center loginscreen   animated fadeInDown">
+    <div>
+        <div>
+
+            <h1 class="logo-name">IQL</h1>
+
+        </div>
+        <h3>修改密码</h3>
+        <p></p>
+        <form class="m-t" role="form" onsubmit="return check()" action="/mcdata/user/system/changepw" method="post">
+            <div class="form-group" id="password-input">
+                <input type="password" id="password" name="password" class="form-control" placeholder="请输入原密码" required="">
+                <span id="password-error" class="help-block m-b-none"></span>
+            </div>
+            <div class="form-group" id="npassword-input">
+                <input type="password" id="npassword" name="npassword" class="form-control" placeholder="请输入新密码" required="">
+                <span id="npassword-error" class="help-block m-b-none"></span>
+            </div>
+            <div class="form-group" id="cpassword-input">
+                <input type="password" id="cpassword" name="cpassword" class="form-control" placeholder="请再次输入密码" required="">
+                <span id="cpassword-error" class="help-block m-b-none"></span>
+            </div>
+
+            <div>
+                <label class="form-label text-warning"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary block full-width m-b">提 交</button>
+
+        </form>
+    </div>
+</div>
+<script src="/hplus/js/jquery.min.js?v=2.1.4"></script>
+<script src="/hplus/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/hplus/js/plugins/iCheck/icheck.min.js"></script>
+<script src="/hplus/js/content.min.js?v=1.0.0"></script>
+<script>
+
+    $(function () {
+        validate = function(flag,colume,info){
+            if(flag){
+                $("#"+colume+"-input").addClass("has-error")
+                $("#"+colume+"-error").html('<i class="fa fa-times-circle">'+info)
+                return false
+            }else{
+                $("#"+colume+"-input").removeClass("has-error")
+                $("#"+colume+"-error").html("")
+                return true
+            }
+        }
+
+
+        check=function(){
+            var username = $("#username").val();
+            var password = $("#password").val();
+            var npassword = $("#npassword").val();
+            var cpassword = $("#cpassword").val();
+            var vpassword = false,
+                vnnpassword = false;
+            $.ajax({
+                url: '/mcdata/user/system/checkusernameandpw',
+                type: 'POST',
+                async: false,
+                data: {'username': username,'password':password},
+                success: function( response ) {
+                    vpassword = validate(!response,"password","原密码错误")
+                },
+                error: function( error ) {
+                    //layer.msg('添加失败：'+error.status, {icon: 2});
+                }
+            });
+            var vnpassword = validate(npassword.trim().length<6,"npassword","长度必须大于等于6位")
+            if(vpassword){
+                vnnpassword = validate(password.trim()==npassword.trim(),"npassword","新密码不能和原密码一样")
+            }
+            var vcpassword = validate(cpassword.trim()!=npassword.trim(),"cpassword","两次输入的密码不一样")
+
+            if(!(vnpassword&&vcpassword&&vpassword&&vnnpassword)){
+                console.log("检验不通过")
+                return false
+            }
+
+            $.ajax({
+                url: '/mcdata/user/system/changepw',
+                type: 'POST',
+                //async: false,
+                data: {'password':npassword},
+                success: function( response ) {
+                    if(response==1){
+                        $("#password").val('');
+                        $("#npassword").val('');
+                        $("#cpassword").val('');
+                        layer.msg('修改成功', {icon: 1});
+                    }
+                },
+                error: function( error ) {
+                    layer.msg('修改失败：'+error.status, {icon: 2});
+                }
+            });
+
+            return false
+        }
+
+    })
+</script>

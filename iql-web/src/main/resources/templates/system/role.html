@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:replace="head::headerFragment('用户管理')">
+    <link href="/bootstrap-multiselect/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/easyui/themes/icon.css">
+    <script type="text/javascript" src="/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="/easyui/locale/easyui-lang-zh_CN.js" charset="utf-8"></script>
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect-collapsible-groups.js"></script>
+    <script src="/util/dataUtil.js"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>系统角色管理</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="btn-group" id="toolbar" role="group">
+                        <button type="button" class="btn btn-outline btn-primary" id="addUser">
+                            <i class="glyphicon glyphicon-plus" aria-hidden="true"></i>
+                            添加角色
+                        </button>
+                    </div>
+                    <table id="role-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-form" class="modal fade" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-10 b-r">
+                        <h3 class="m-t-none m-b" id="form-title">添加角色</h3>
+
+                        <p id="form-p">请填写信息</p>
+
+                        <form role="form">
+                            <div>
+                                <input type="hidden" id="id" value="-1">
+                            </div>
+                            <div class="form-group " id="rolename-input">
+                                <label class="control-label">角色名：</label>
+                                <input type="text" placeholder="角色名" class="form-control" id="rolename" name="rolename">
+                                <span id="rolename-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group" id="descs-input">
+                                <label class="control-label">角色权限描述：</label>
+                                <input type="descs" placeholder="角色权限描述" class="form-control" id="descs" name="descs">
+                                <span id="descs-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">授权菜单：</label><br>
+                                <ul id="menu"></ul>
+                            </div>
+
+                            <div class="pull-right m-t-n-xs">
+                                <button class="btn btn-sm btn-default" data-dismiss="modal" id="close"><strong>关闭</strong>
+                                </button>
+                                <button class="btn btn-sm btn-primary" type="button" id="save"><strong>保存</strong>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/hplus/js/content.min.js?v=1.0.0"></script>
+<script>
+    $(function () {
+        $table = $('#role-list-table');
+        $('#role').multiselect({
+            includeSelectAllOption: false
+        });
+        $("#submit").click(function() {
+            $table.bootstrapTable("refresh");
+        })
+
+        $table.bootstrapTable({
+            method: 'get',
+            cache: false,
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            pageList: [10, 20, 50, 100],
+            pageSize: 20,
+            pagination: true,
+            showColumns: true,
+            showRefresh: true,
+            sidePagination: 'server',
+            url: '/mcdata/role/system/list',
+            dataType: 'json',
+            queryParams: function(params) {
+                var form = $("#mainForm");
+                var formJSON = getFormJSON(form, params);
+                return formJSON;
+            },
+            columns: [
+                {
+                    field: 'id',
+                    title: '角色ID',
+                    width:80,
+                    visible: false,
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {
+                    field: 'rolename',
+                    title: '角色名',
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {
+                    field: 'descs',
+                    title: '角色权限描述',
+                    visible: true,
+                    formatter: function(value,row,index){
+                        if(value==undefined||value==null){
+                            value='未定义'
+                        }
+                        return value;
+                    }
+                },
+                {
+                    field: 'id',
+                    title: '操作',
+                    width:120,
+                    align:'center',
+                    halign:'center',
+                    valign:'middle',
+                    events: operateEvents,
+                    formatter: function(value,row,index){
+                        return   [
+                            '<a class="edit" href="javascript:void(0)" title="修改">',
+                            '<i class="glyphicon glyphicon-edit"></i>',
+                            '</a>',
+                            '<a class="remove" href="javascript:void(0)" title="删除">',
+                            '<i class="glyphicon glyphicon-trash"></i>',
+                            '</a>'
+                        ].join('&nbsp;');
+                    }
+                }
+            ]
+        });
+
+        $("#addUser").click(function() {
+            $("#form-title").html("添加角色");
+            $("#form-p").html("请填写信息");
+            $("#id").val(-1);
+            $("#rolename").val("");
+            $("#descs ").val("")
+            $('#menu').tree({
+                method: 'GET',
+                url:'/mcdata/role/system/rolemenu?id=-1',
+                checkbox:true,
+                lines:true,
+                animate:true
+            });
+            $("#modal-form").modal("show");
+        })
+
+        validate = function(flag,colume,info){
+            if(flag){
+                $("#"+colume+"-input").addClass("has-error")
+                $("#"+colume+"-error").html('<i class="fa fa-times-circle">'+info)
+                return false
+            }else{
+                $("#"+colume+"-input").removeClass("has-error")
+                $("#"+colume+"-error").html("")
+                return true
+            }
+        }
+
+        getSelectMenu = function(){
+            var marr = [];
+            var menus = $('#menu').tree('getChecked');
+            $.each(menus,function(i,o){
+                marr.push(o.id)
+                var n=$('#menu').tree('find',o.id);
+                if(n!=null){
+                    var parNode = $('#menu').tree('getParent', n.target);
+                    if(parNode!=null&&$.inArray(parNode.id,marr)<0&&parNode.id!=null&&parNode.id!=""&&parNode.id!=" "){
+                        marr.push(parNode.id)
+                    }
+                }
+            })
+            return marr
+        }
+
+        $('#modal-form').on('hidden.bs.modal', function (e) {
+            $("[id *= -input]").removeClass("has-error")
+            $("[id *= -error]").html("")
+        })
+
+        $("#save").click(function() {
+            var id = $("#id").val(),
+                rolename = $("#rolename").val(),
+                descs = $("#descs").val(),
+                menus = getSelectMenu().toString();
+            var vrolename = validate(rolename.trim()=="","rolename","必填")
+            var vdescs = validate(descs.trim()=="","descs","必填")
+            if(!(vrolename&&vdescs)){
+                console.log("检验不通过")
+                return false
+            }
+
+            if(id==-1) {
+                $.ajax({
+                    url: '/mcdata/role/system/add',
+                    type: 'POST',
+                    data: {'rolename': rolename, 'descs': descs,'menus':menus},
+                    success: function( response ) {
+                        $("#modal-form").modal("hide");
+                        $table.bootstrapTable("refresh");
+                        layer.msg('添加成功', {icon: 1});
+                    },
+                    error: function( error ) {
+                        layer.msg('添加失败：'+error.status, {icon: 2});
+                    }
+                });
+
+            } else {
+                $.ajax({
+                    url: '/mcdata/role/system/update',
+                    type: 'POST',
+                    data: {'id': id, 'rolename': rolename, 'descs': descs,'menus':menus},
+                    success: function( response ) {
+                        $("#modal-form").modal("hide");
+                        $table.bootstrapTable("refresh");
+                        layer.msg('修改成功', {icon: 1});
+                    },
+                    error: function( error ) {
+                        layer.msg('修改失败：'+error.status, {icon: 2});
+                    }
+                });
+            }
+        })
+    })
+    window.operateEvents = {
+        'click .edit': function (e, value, row, index) {
+            $("#form-title").html("修改角色");
+            $("#form-p").html("请修改信息");
+            $("#id").val(row.id);
+            $("#rolename").val(row.rolename);
+            $("#descs").val(row.descs)
+            $('#menu').tree({
+                method: 'GET',
+                url:'/mcdata/role/system/rolemenu?id='+row.id,
+                checkbox:true,
+                lines:true,
+                animate:true
+            });
+            $("#modal-form").modal("show");
+        },
+        'click .remove': function (e, value, row, index) {
+            layer.confirm('您确定要删除这条数据吗，请谨慎操作！', {
+                btn: ['确定','取消']
+            }, function(){
+                $.ajax({
+                    url: '/mcdata/role/system/delete',
+                    type: 'GET',
+                    data: {'id':row.id},
+                    success: function( response ) {
+                        layer.msg('删除成功', {icon: 1});
+                        $('#role-list-table').bootstrapTable("refresh");
+                    },
+                    error: function( error ) {
+                        layer.msg('删除失败：'+error.status, {icon: 2});
+                    }
+                });
+
+            }, function(){
+
+            });
+        }
+    };
+
+</script>
+</body>
+
+</html>

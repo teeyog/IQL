@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>爱思数据平台</title>
+
+    <!--[if lt IE 9]>
+    <meta http-equiv="refresh" content="0;ie.html" />
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/images/mc.png">
+    <link href="/hplus/css/bootstrap.min14ed.css" rel="stylesheet">
+    <link href="/hplus/css/font-awesome.min93e3.css" rel="stylesheet">
+    <link href="/hplus/css/animate.min.css" rel="stylesheet">
+    <link href="/hplus/css/style.min862f.css" rel="stylesheet">
+    
+    <script src="/hplus/js/jquery.min.js"></script>
+	<script src="/hplus/js/bootstrap.min.js"></script>
+	<script src="/hplus/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+	<script src="/hplus/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+	<script src="/layer-v3.0.3/layer/layer.js"></script>
+	<script src="/hplus/js/contabs.min.js"></script>
+	<script src="/hplus/js/plugins/pace/pace.min.js"></script>
+	<script src="/hplus/js/hplus.min.js"></script>
+
+    <style>
+        @font-face {
+            font-family: 'iconfont';
+            src: url('//http://at.alicdn.com/t/font_1469410270_4028482.eot'); /* IE9*/
+            src: url('//http://at.alicdn.com/t/font_1469410270_4028482.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+            url('//http://at.alicdn.com/t/font_1469410270_4028482.woff') format('woff'), /* chrome、firefox */
+            url('//http://at.alicdn.com/t/font_1469410270_4028482.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+            url('//http://at.alicdn.com/t/font_1469410270_4028482.svg#iconfont') format('svg'); /* iOS 4.1- */			}
+        .iconfont{
+            font-family:"iconfont";
+            font-size:16px;
+            font-style:normal;
+        }
+        .icon-tel:before{
+            content: "\e601";
+        }
+    </style>
+</head>
+
+<body class="fixed-sidebar full-height-layout gray-bg" style="overflow:hidden">
+<div id="wrapper">
+    <!--左侧导航开始-->
+    <nav class="navbar-default navbar-static-side" role="navigation">
+        <div class="nav-close"><i class="fa fa-times-circle"></i>
+        </div>
+        <div class="sidebar-collapse">
+            <ul class="nav" id="side-menu">
+                <li class="nav-header">
+                    <div class="dropdown profile-element">
+                        <span><img alt="image" class="img-circle" src="hplus/img/mc.jpg" /></span>
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                               <span class="block m-t-xs">欢迎您：<strong class="font-bold" th:text="${session.user}==null? '':${session.user.real_name}"></strong></span>
+                                <span class="text-muted text-xs block"><!--<b th:text="${session.user}==null? '':${session.user.roles[0]}"></b>--><!--<b class="caret"></b>--></span>
+                                </span>
+                        </a>
+                    </div>
+                    <div class="logo-element">
+                        mc
+                    </div>
+                </li>
+                <li th:each="menu : ${menu}">
+                    <a th:class="${menu.url}!='#'? 'J_menuItem'" th:href="@{${menu.url}}">
+                        <i th:class="${menu.icon}"></i>
+                        <span class="nav-label" th:text="${menu.name}"></span>
+                        <span class="fa arrow" th:if="${menu.get('children')}!=null"></span>
+                    </a>
+                   <ul class="nav nav-second-level" th:if="${menu.get('children')}!=null">
+                        <li th:each="subMenu : ${menu.children}">
+                            <a th:onclick="'menuclick(\'' + ${subMenu.name} + '\');'" class="J_menuItem" th:href="@{'/page/'+${subMenu.url}}" th:text="${subMenu.name}"></a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!--左侧导航结束-->
+    <!--右侧部分开始-->
+    <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+            <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+                <div class="navbar-header">
+                    <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                    	<i class="fa fa-bars"></i> 
+                    </a>
+                    <form role="search" class="navbar-form-custom" method="post" action="">
+                        <div class="form-group">
+                        	<input type="text" placeholder="请输入您需要查找的内容 …" class="form-control" name="top-search" id="top-search">
+                        </div>
+                    </form>
+                </div>
+            </nav>
+        </div>
+        <div class="row content-tabs">
+            <button class="roll-nav roll-left J_tabLeft"><i class="fa fa-backward"></i>
+            </button>
+            <nav class="page-tabs J_menuTabs">
+                <div class="page-tabs-content">
+                    <a href="javascript:;" class="active J_menuTab" data-id="/page/iql/iql">IQL</a>
+                </div>
+            </nav>
+            <button class="roll-nav roll-right J_tabRight"><i class="fa fa-forward"></i>
+            </button>
+            <div class="btn-group roll-nav roll-right">
+                <button class="dropdown J_tabClose" data-toggle="dropdown">关闭操作<span class="caret"></span>
+
+                </button>
+                <ul role="menu" class="dropdown-menu dropdown-menu-right">
+                    <li class="J_tabShowActive"><a>定位当前选项卡</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li class="J_tabCloseAll"><a>关闭全部选项卡</a>
+                    </li>
+                    <li class="J_tabCloseOther"><a>关闭其他选项卡</a>
+                    </li>
+                </ul>
+            </div>
+            <a href="/mcdata/logout" class="roll-nav roll-right J_tabExit"><i class="fa fa fa-sign-out"></i> 退出</a>
+        </div>
+        <div class="row J_mainContent" id="content-main">
+            <iframe class="J_iframe" name="iframe0" width="100%" height="100%" src="/page/iql/iql" data-id="/page/iql/iql" seamless></iframe>
+        </div>
+        <div class="footer">
+            <div class="pull-right">&copy; 2017-2018 <a href="http://www.mc.cn/" target="_blank">www.mc.cn</a>
+            </div>
+        </div>
+    </div>
+    <!--右侧部分结束-->
+
+</div>
+
+<script>
+    $(function () {
+
+        $(".J_menuItem").click(function(){
+            var href = $(this).attr("href");
+            if(href.indexOf("http") != -1){
+                $("iframe[data-id='" + href + "']").attr("src",href.substring(6))
+            }
+        });
+
+        menuclick=function(menu){
+            $.ajax({
+                url: '/mcdata/menuclick',
+                type: 'POST',
+                async: true,
+                data: {menu:menu},
+                success: function( response ) {
+                },
+                error: function( error ) {
+                }
+            });
+        }
+    })
+</script>
+
+</body>
+
+</html>

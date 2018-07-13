@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:replace="head::headerFragment('用户管理')">
+    <link href="/bootstrap-multiselect/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect-collapsible-groups.js"></script>
+    <link href="/hplus/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/util/dataUtil.js"></script>
+    <style>
+        .checkbox input[type=checkbox], .checkbox-inline input[type=checkbox], .radio input[type=radio], .radio-inline input[type=radio] {
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    查询
+                </div>
+                <div class="panel-body">
+                    <form role="form" class="form-inline" id="mainForm" onkeydown="if(event.keyCode==13){return false;}">
+                        <div class="form-group">
+                            <label class="control-label" for="search">用户名 / 用户ID：</label>
+                            <input class="form-control" id="search" name="search" value="">
+                        </div>
+                        <button class="btn btn-white" type="button" id="submit" style="margin-bottom: 0px">查询</button>
+                        <button class="btn btn-white" type="reset" style="margin-bottom: 0px">重置</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>系统用户管理</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="btn-group" id="toolbar" role="group">
+                        <button type="button" class="btn btn-outline btn-primary" id="addUser">
+                            <i class="glyphicon glyphicon-plus" aria-hidden="true"></i>
+                            添加用户
+                        </button>
+                    </div>
+                    <table id="user-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-form" class="modal fade" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-10 b-r">
+                        <h3 class="m-t-none m-b" id="form-title">添加用户</h3>
+
+                        <p id="form-p">请填写信息</p>
+
+                        <form role="form">
+                            <div>
+                                <input type="hidden" id="id" value="-1">
+                                <input type="hidden" id="oldusername" value="">
+                            </div>
+                            <div class="form-group " id="uname-input">
+                                <label class="control-label">用户名：</label>
+                                <input type="text" placeholder="用户名" class="form-control" id="uname" name="uname">
+                                <span id="uname-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group" id="password-input">
+                                <label class="control-label">密码：</label>
+                                <input type="password" placeholder="密码" class="form-control" id="password" name="password">
+                                <span id="password-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group" id="realname-input">
+                                <label class="control-label">真实姓名：</label>
+                                <input type="text" placeholder="真实姓名" class="form-control" id="realname" name="realname">
+                                <span id="realname-error" class="help-block m-b-none"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">角色：</label><br>
+                                <select class="form-control" size="2" id="role" name="role" style="width: 100%" multiple>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">初始化为第一次登录（下次登录需要修改密码）：</label>
+                                <input id="isfirstlogin" class="checkbox i-checks" type="checkbox" name="isfirstlogin" value="1">
+                            </div>
+
+
+                            <div class="pull-right m-t-n-xs">
+                                <button class="btn btn-sm btn-default" data-dismiss="modal"><strong>关闭</strong>
+                                </button>
+                                <button class="btn btn-sm btn-primary" type="button" id="save"><strong>保存</strong>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/hplus/js/content.min.js?v=1.0.0"></script>
+<script src="/hplus/js/plugins/iCheck/icheck.min.js"></script>
+<script>
+    $(function () {
+        $(".i-checks").iCheck({
+            checkboxClass:"icheckbox_square-green",
+            radioClass:"iradio_square-green"
+        })
+        $table = $('#user-list-table');
+        $('#role').multiselect({
+            includeSelectAllOption: false,
+            numberDisplayed: 5,
+            nonSelectedText: "请选择角色"
+        });
+        $('#role').setMultiselect('赋予角色', '/mcdata/role/system/select');
+        $("#submit").click(function() {
+            $table.bootstrapTable("refresh");
+        })
+
+        $table.bootstrapTable({
+            method: 'get',
+            cache: false,
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            pageList: [10, 20, 50, 100],
+            pageSize: 20,
+            pagination: true,
+            showColumns: true,
+            showRefresh: true,
+            sidePagination: 'server',
+            url: '/mcdata/user/system/list',
+            dataType: 'json',
+            queryParams: function(params) {
+                var form = $("#mainForm");
+                var formJSON = getFormJSON(form, params);
+                return formJSON;
+            },
+            columns: [
+                {
+                    field: 'id',
+                    title: '用户ID',
+                    width:80,
+                    visible: false,
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {
+                    field: 'username',
+                    title: '登录名',
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {
+                    field: 'realName',
+                    title: 'Name',
+                    visible: true
+                },
+                {
+                    field: 'isfirstlogin',
+                    title: '',
+                    visible: false
+                },
+                {
+                    field: 'roleid',
+                    title: '角色ID',
+                    visible: false
+                },
+                {
+                    field: 'rolename',
+                    title: '所属角色',
+                    visible: true,
+                    formatter: function(value,row,index){
+                        if(value==undefined||value==null){
+                            value='未定义'
+                        }
+                        return value;
+                    }
+                },
+                {
+                    field: 'descs',
+                    title: '权限描述',
+                    visible: false,
+                    formatter: function(value,row,index){
+                        if(value==undefined||value==null){
+                            value='未定义'
+                        }
+                        return value;
+                    }
+                },
+                {
+                    field: 'createTime',
+                    title: '最后更新时间 ',
+                    align:'center',
+                    halign:'center',
+                    valign:'middle',
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {
+                    field: 'status',
+                    title: '状态 ',
+                    align:'center',
+                    halign:'center',
+                    valign:'middle',
+                    visible:false,
+                    formatter: function(value,row,index){
+                        if(value==0){
+                            return '启用';
+                        }else{
+                            return '禁用';
+                        }
+                    }
+                },
+                {
+                    field: '',
+                    title: '操作',
+                    width:120,
+                    align:'center',
+                    halign:'center',
+                    valign:'middle',
+                    events: operateEvents,
+                    formatter: function(value,row,index){
+                        return  row.id==1?"":  [
+                            '<a class="edit" href="javascript:void(0)" title="修改">',
+                            '<i class="glyphicon glyphicon-edit"></i>',
+                            '</a>',
+                            '<a class="remove" href="javascript:void(0)" title="删除">',
+                            '<i class="glyphicon glyphicon-trash"></i>',
+                            '</a>'
+                        ].join('&nbsp;');
+                    }
+                }
+            ]
+        });
+
+        $('.i-checks').on('ifChecked', function(event){
+            console.log(event.type + ' callback');
+            $('.i-checks').val(0)
+        });
+        $('.i-checks').on('ifUnchecked', function(event){
+            console.log(event.type + ' callback');
+            $('.i-checks').val(1)
+        });
+
+//        $('.i-checks').on('ifChanged', function(event){
+//            alert($("#isfirstlogin").val());
+//        });
+
+
+        $("#addUser").click(function() {
+            //$('#role').setMultiselect('赋予角色', '/mcdata/role/system/select');
+            $("#form-title").html("添加用户");
+            $("#form-p").html("请填写信息");
+            $("#id").val(-1);
+            $("#uname").val("");
+            $("#password ").val("")
+            $("#realname ").val("")
+            $("#role").multiselect('select', -1)
+            $(".i-checks").iCheck('check')
+            $(".i-checks").iCheck('disable')
+            $("#modal-form").modal("show");
+        })
+
+        validate = function(flag,colume,info){
+            if(flag){
+                $("#"+colume+"-input").addClass("has-error")
+                $("#"+colume+"-error").html('<i class="fa fa-times-circle">'+info)
+                return false
+            }else{
+                $("#"+colume+"-input").removeClass("has-error")
+                $("#"+colume+"-error").html("")
+                return true
+            }
+        }
+
+        $('#modal-form').on('hidden.bs.modal', function (e) {
+            $("[id *= -input]").removeClass("has-error")
+            $("[id *= -error]").html("")
+            $(".i-checks").iCheck('enable')
+            $('#role').setMultiselect('赋予角色', '/mcdata/role/system/select');
+        })
+
+        $("#save").click(function() {
+            var id = $("#id").val(),
+                uname = $("#uname").val(),
+                password = $("#password").val(),
+                realname = $("#realname").val(),
+                isfirstlogin = $("#isfirstlogin").val();
+            var vuname = validate(uname.trim()=="","uname","必填")
+            var vpassword = validate(password.trim().length<6,"password","长度必须大于等于6位")
+            var vrealname = validate(realname.trim()=="","realname","必填")
+            var roles = $("#role").getMultiselect("value");
+
+            $.ajax({
+                url: '/mcdata/user/system/checkusername',
+                type: 'POST',
+                async: false,
+                data: {'username': uname},
+                success: function( response ) {
+                    if(vuname&&($("#oldusername").val().trim()!=uname.trim()||id==-1)){
+                        vuname = validate(response,"uname","该登录用户名已存在")
+                    }
+                },
+                error: function( error ) {
+                    //layer.msg('添加失败：'+error.status, {icon: 2});
+                }
+            });
+
+
+            if(!(vuname&&vpassword&&vrealname)){
+                console.log("检验不通过")
+                return false
+            }
+
+            if(id==-1) {
+                $.ajax({
+                    url: '/mcdata/user/system/add',
+                    type: 'POST',
+                    data: {'username': uname, 'password': password,'real_name':realname,'roles':roles,'isfirstlogin':0},
+                    success: function( response ) {
+                        $("#modal-form").modal("hide");
+                        $table.bootstrapTable("refresh");
+                        layer.msg('添加成功', {icon: 1});
+                    },
+                    error: function( error ) {
+                        layer.msg('添加失败：'+error.status, {icon: 2});
+                    }
+                });
+
+            } else {
+                $.ajax({
+                    url: '/mcdata/user/system/update',
+                    type: 'POST',
+                    data: {'id':id,'username': uname, 'password': password,'real_name':realname,'roles':roles,'isfirstlogin':isfirstlogin},
+                    success: function( response ) {
+                        $("#modal-form").modal("hide");
+                        $table.bootstrapTable("refresh");
+                        layer.msg('修改成功', {icon: 1});
+                    },
+                    error: function( error ) {
+                        layer.msg('修改失败：'+error.status, {icon: 2});
+                    }
+                });
+            }
+        })
+    })
+    window.operateEvents = {
+        'click .edit': function (e, value, row, index) {
+            $("#form-title").html("修改用户");
+            $("#form-p").html("请修改信息");
+            $("#id").val(row.id);
+            $("#uname").val(row.username);
+            $("#oldusername").val(row.username)
+            $("#password").val("@#$1-2-3-i4-5-6-7$#@")
+            $("#realname").val(row.realName)
+            if(row.isfirstlogin==0){
+                $(".i-checks").iCheck('check')
+            }else{
+                $(".i-checks").iCheck('uncheck')
+            }
+            //$(".i-checks").iCheck('uncheck')
+            if(row.roleid){
+                $("#role").multiselect('select', row.roleid.split(','))
+            }else{
+                $("#role").multiselect('select', -1)
+            }
+
+            $("#modal-form").modal("show");
+        },
+        'click .remove': function (e, value, row, index) {
+            layer.confirm('您确定要删除这条数据吗，请谨慎操作！', {
+                btn: ['确定','取消']
+            }, function(){
+                $.ajax({
+                    url: '/mcdata/user/system/delete',
+                    type: 'GET',
+                    data: {'id':row.id},
+                    success: function( response ) {
+                        layer.msg('删除成功', {icon: 1});
+                        $('#user-list-table').bootstrapTable("refresh");
+                    },
+                    error: function( error ) {
+                        layer.msg('删除失败：'+error.status, {icon: 2});
+                    }
+                });
+
+            }, function(){
+
+            });
+        }
+    };
+
+</script>
+</body>
+
+</html>

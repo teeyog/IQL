@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:replace="head::headerFragment('IDFA授权')">
+    <link href="/bootstrap-multiselect/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+    <script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect-collapsible-groups.js"></script>
+
+    <link href="/toastr/toastr.min.css" rel="stylesheet">
+    <script src="/toastr/toastr.min.js"></script>
+
+    <script src="/util/dataUtil.js"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    查询
+                </div>
+                <div class="panel-body">
+                    <form role="form" class="form-inline" id="mainForm">
+                        <div class="form-group">
+                            <label for="user" class="control-label">授权用户：</label>
+                            <select class="form-control" size="2" id="user" name="user" style="width: 100%">
+                            </select>
+                        </div>
+                        <input id="userid" type="hidden" th:value="${session.user}==null? '':${session.user.id}">
+                        <!--<button class="btn btn-white" type="button" id="submit" style="margin-bottom: 0px">查询</button>-->
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>已授权APP</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="btn-group" id="authtoolbar" role="group">
+                        <button type="button" class="btn btn-outline btn-danger" id="delAuth">
+                            <i class="glyphicon glyphicon-remove" aria-hidden="true"></i>
+                           取消授权
+                        </button>
+                    </div>
+                    <table id="auth-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>未授权APP</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="btn-group" id="apptoolbar" role="group">
+                            <form role="form" class="form-inline" id="tableform">
+                                <div class="form-group">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline btn-primary" id="addAuth">
+                                            <i class="glyphicon glyphicon-ok" aria-hidden="true"></i>
+                                            添加授权
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="appName" class="control-label">APP名称 /APPID：</label>
+                                    <input type="text" class="form-control" id="appName" name="appName">
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-prepend input-group" >
+                                        <span class="add-on input-group-addon">
+                                            <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                                        </span>
+                                        <input class="form-control" id="date" name="date" value="">
+                                    </div>
+                                </div>
+                            </form>
+
+                    </div>
+                    <table id="app-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/hplus/js/content.min.js?v=1.0.0"></script>
+<script>
+    $(function () {
+        $.ajaxSetup({
+            async: false
+        });
+        $('#user').setMultiselect('', '/mcdata/user/system/select');
+        $('#user').multiselect('select', $("#userid").val())
+        var endDate = getPointDate(0)
+        var startDate = operDay(endDate, -30)
+        var flag = false;
+        $('#date').daterangepicker({
+            "startDate": startDate,
+            "endDate": endDate,
+            "maxDate": operDay(endDate, 0)
+        }, function (start, end, label) {
+        })
+        $.ajaxSetup({
+            async: true
+        });
+        $authtable = $('#auth-list-table');
+        $apptable = $('#app-list-table');
+        $('#user').change(function(){
+            $authtable.bootstrapTable("refresh");
+            $apptable.bootstrapTable("refresh");
+            setTimeout(function () {
+                $('.authdate').daterangepicker({"drops": "up"}, function(start, end, label) {
+                    flag = true;
+                });
+            },500)
+        })
+
+
+        changeAuthDate = function(appid){
+            var date = $("#auth-"+appid).val()
+            var userid = $("#user").getMultiselect("value");
+            if(flag){
+//                $.post('/app/idfa/updateauth',{userid:userid,appid:appid,date:date},function(data){
+//                    flag=false
+//                })
+
+                $.ajax({
+                    url: '/app/idfa/updateauth',
+                    type: 'POST',
+                    data: {userid:userid,appid:appid,date:date},
+                    success: function( response ) {
+                        flag=false
+                        toastr.success('修改成功!', 'Success')
+                    },
+                    error: function( error ) {
+                        toastr.error('发生了一个错误.', 'Error!')
+                    }
+                });
+            }
+
+        }
+
+        $authtable.bootstrapTable({
+            method: 'get',
+            cache: false,
+            showColumns: false,
+            showRefresh: false,
+            toolbar: '#authtoolbar',
+            checkboxHeader: true,
+            showToggle: false,
+            pageList: [20],
+            pageSize: 20,
+            pagination: true,
+            clickToSelect: false,
+            onLoadSuccess:function (number, size) {
+                //$authtable.bootstrapTable('scrollTo', 'bottom');
+                setTimeout(function () {
+                    $('.authdate').daterangepicker({"drops": "up"}, function(start, end, label) {
+                        flag = true;
+                    });
+                },200)
+
+            },
+            sidePagination: 'server',
+            url: '/app/idfa/authapp',
+            dataType: 'json',
+            queryParams: function(params) {
+                return {
+                    'userid':$("#user").getMultiselect("value"),
+                    'limit':params.limit,
+                    'offset':params.offset }
+            },
+            columns: [
+                {field: 'check',checkbox: true },
+                {field: 'appid',title: 'ID', width:100, align:'center'},
+                {field: 'appName',title: 'App名称',width: 750},
+                {field: 'authdate',title: '授权期限',align:'center',
+                    formatter: function(value,row,index){
+                        return '<input onchange="changeAuthDate(\''+row.appid+'\')" id="auth-'+row.appid+'" type="text" readonly style="height: 17px;width: 170px;padding:0px;cursor:pointer" class="form-control authdate" value="'+value+'" />';
+                    }
+                }
+            ]
+        });
+
+        $apptable.bootstrapTable({
+            method: 'get',
+            cache: false,
+            showColumns: false,
+            showRefresh: false,
+            striped: true,
+            toolbar: '#apptoolbar',
+            checkboxHeader: true,
+            showToggle: false,
+            pageList: [20],
+            pageSize: 20,
+            pagination: true,
+            clickToSelect: false,
+            sidePagination: 'server',
+            url: '/app/idfa/allapp',
+            dataType: 'json',
+            queryParams: function(params) {
+                return {
+                    'userid':$("#user").getMultiselect("value"),
+                    'appname':$('#appName').val(),
+                    'limit':params.limit,
+                    'offset':params.offset }
+            },
+            columns: [
+                {field: 'check',checkbox: true},
+                {field: 'appid',title: 'ID',width:100,align:'center'},
+                {field: 'appName',title: 'App名称'}
+            ]
+        });
+
+        $("#addAuth").click(function(){
+            var ids = getSelections("app-list-table");
+            var userid = $("#user").getMultiselect("value");
+            if(ids==undefined||ids==""){
+                layer.msg('请先选择要授权的APP!', {icon: 2});
+                return;
+            }
+            if(userid==undefined||userid==""){
+                layer.msg('请先选择用户！', {icon: 2});
+                return;
+            }
+            $.ajax({
+                url: '/app/idfa/addauth',
+                type: 'POST',
+                data: {userid:userid,appidStr:ids.toString(),date:$('#date').val()},
+                success: function( response ) {
+                    $apptable.bootstrapTable('refresh');
+                    $authtable.bootstrapTable('refresh');
+                    toastr.success('添加成功!', 'Success')
+                },
+                error: function( error ) {
+                    toastr.error('发生了一个错误.', 'Error!')
+                }
+            });
+        })
+
+        $("#delAuth").click(function(){
+            var ids = getSelections("auth-list-table");
+            var userid = $("#user").getMultiselect("value");
+            if(ids==undefined||ids==""){
+                layer.msg('请先选择要删除权限的APP!', {icon: 2});
+                return;
+            }
+            if(userid==undefined||userid==""){
+                layer.msg('请先选择用户！', {icon: 2});
+                return;
+            }
+            $.ajax({
+                url: '/app/idfa/delauth',
+                type: 'GET',
+                data: {userid:userid,appidStr:ids.toString()},
+                success: function( response ) {
+                    $apptable.bootstrapTable('refresh');
+                    $authtable.bootstrapTable('refresh');
+                    toastr.success('删除成功!', 'Success')
+                },
+                error: function( error ) {
+                    toastr.error('发生了一个错误.', 'Error!')
+                }
+            });
+        })
+
+
+        $("#appName").change(function(){
+            setTimeout($apptable.bootstrapTable('refresh'),200);
+        });
+
+        function getSelections(tableId) {
+            return $.map($('#'+tableId).bootstrapTable('getSelections'), function (row) {
+                return row.appid
+            });
+        }
+
+    })
+
+
+</script>
+</body>
+
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+	<link th:replace="head :: headerFragment('字典管理')">
+	<script src="/sweetalert/dist/sweetalert.min.js"></script>
+    <link href="/sweetalert/dist/sweetalert.css" rel="stylesheet" >
+    <link href="/hplus/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/hplus/js/plugins/iCheck/icheck.min.js"></script>
+    
+    <script src="/hplus/js/plugins/validate/jquery.validate.min.js"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+    	<div class="col-sm-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                	查询
+                </div>
+                <div class="panel-body">
+                    <form role="form" class="form-inline" id="mainForm">
+                        <div class="form-group">
+                        	<label for="name" class="control-label">Name：</label>
+                        	<input type="text" class="form-control" id="name" name="name">
+                        </div>
+                        <div class="form-group">
+                        	<label for="type" class="control-label">类型：</label>
+                            <select class="form-control" id="type" name="type">
+                            	<option value="" selected="selected">全部</option>
+			                	<option value="1">1</option>
+			                	<option value="2">2</option>
+			                	<option value="3">3</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                        	<label for="useful" class="control-label">是否启用：</label>
+                            <select class="form-control" id="useful" name="useful">
+                            	<option value="" selected="selected">全部</option>
+			                	<option value="1">禁用</option>
+			                	<option value="2">启用</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-white" type="button" id="submit" style="margin-bottom: 0px">查询</button>
+                        <button class="btn btn-white" type="reset" style="margin-bottom: 0px">重置</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    	<div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                	<div class="btn-group hidden-xs" id="toolbar" role="group">
+                        <button class="btn btn-outline btn-primary" id="addBtn">
+                            <i class="glyphicon glyphicon-plus" aria-hidden="true"></i>添加
+                        </button>
+                    </div>
+                    <table id="dictionary-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-form" class="modal fade" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-10 b-r">
+                        <h3 class="m-t-none m-b" id="form-title">添加字典</h3>
+
+                        <p id="form-p">请填写字典信息(⊙o⊙)</p>
+
+                        <form role="form" id="form1">
+                        	<div>
+                        		<input type="hidden" id="m_idx" name="m_idx">
+                        		<input type="hidden" id="m_id" name="m_id" value="-1">
+                        	</div>
+                            <div class="form-group">
+                                <label for="m_name" class="control-label">Name：</label>
+                                <input type="text" class="form-control" id="m_name" name="m_name">
+                            </div>
+                            <div class="form-group">
+                                <label for="m_value" class="control-label">value：</label>
+                                <input type="text" class="form-control" id="m_value" name="m_value">
+                            </div>
+                            <div class="form-group">
+                                <label for="m_description" class="control-label">描述：</label>
+                                <input type="text" class="form-control" id="m_description" name="m_description">
+                            </div>
+                            <div class="form-group">
+                            	<label for="type" class="control-label">类型：</label>
+                            	<select class="form-control" id="m_type" name="m_type">
+			                		<option value="1" selected="selected">1</option>
+			                		<option value="2">2</option>
+			                		<option value="3">3</option>
+                            	</select>
+                            </div>
+                            <div class="form-group">
+                            	<label for="m_useful" class="control-label">是否启用：</label>
+                            	<label class="checkbox-inline i-checks">
+                                        <input type="checkbox" id="m_useful"></label>
+                            </div>
+                            <div class="form-group">
+                            	<label for="m_sortnum" class="control-label">排序编号：</label>
+                            	<input type="text" class="form-control" id="m_sortnum" name="m_sortnum">
+                            </div>
+                            <div class="pull-right m-t-n-xs">
+                            	<button class="btn btn-sm btn-default" data-dismiss="modal"><strong>关闭</strong>
+                            	</button>
+                                <button class="btn btn-sm btn-primary" type="button" id="save"><strong>保存</strong>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/hplus/js/content.min.js?v=1.0.0"></script>
+<script>
+$table = $("#dictionary-list-table")
+
+$(function () {
+	$(".i-checks").iCheck({
+		checkboxClass: "icheckbox_square-green",
+		radioClass: "iradio_square-green"
+	})
+	
+    $("#submit").click(function() {
+    	$table.bootstrapTable("refresh");
+    })
+    
+    $table.bootstrapTable({
+    	method: 'get',
+    	cache: false,
+        striped: true, //是否显示行间隔色
+        toolbar: '#toolbar', //工具按钮用哪个容器
+    	pageList: [10, 20, 50, 100],
+    	pageSize: 20,
+    	pagination: true,
+    	showColumns: true,
+    	showRefresh: true,
+    	sidePagination: 'server',
+    	url: '/mcdata/dictionary/list',
+    	dataType: 'json',
+    	queryParams: function(params) {
+			return $("#mainForm").getFormJSON(params)
+    	},
+    	columns: [
+    		{
+				field: 'id',
+				title: 'ID',
+				visible: false
+			},
+			{
+				field: 'name',
+				title: 'Name'
+			},
+			{
+				field: 'value',
+				title: 'Value'
+			},
+			{
+				field: 'description',
+				title: '描述'
+			},
+			{
+				field: 'type',
+				title: '类型'
+			},
+			{
+				field: 'useful',
+				title: '是否启用 ',
+				formatter: function(value, row, index) {
+					if(value==1) {
+						return '禁用';
+					} else {
+						return '启用';
+					}
+				}
+			},
+			{
+				field: 'sortnum',
+				title: '排序编号'
+			},
+			{
+				field: 'operate',
+				title: '操作 ',
+				align:'center',
+				events: operateEvents,
+				formatter: function(value, row, index) {
+					return [
+			            '<a class="edit" href="javascript:void(0)" title="修改">',
+			            '<i class="glyphicon glyphicon-edit"></i>',
+			            '</a>',
+			            '<a class="remove" href="javascript:void(0)" title="删除">',
+			            '<i class="glyphicon glyphicon-trash"></i>',
+			            '</a>'
+			        ].join('&nbsp;');
+				}
+			}
+    	]
+    });
+    
+    $("#save").click(function() {
+		var idx = $("#m_idx").val(), 
+		id = $("#m_id").val()
+		var data = {
+			name: $("#m_name").val(),
+			value: $("#m_value").val(),
+			description: $("#m_description").val(),
+			type: $("#m_type").val(),
+			useful: $("#m_useful").is(':checked')? 2:1,
+			sortnum: $("#m_sortnum").val()
+		}
+		if(id==-1) {
+			$.ajax({
+				url: '/mcdata/dictionary/save',
+				type: 'POST',
+				data: data,
+				success: function( response ) {
+					$("#form-title").empty()
+					$("#modal-form").modal("hide");
+					$table.bootstrapTable("refresh")
+					layer.msg('已经添加了', {icon: 1});
+				},
+				error: function( error ) {
+					layer.msg('错误了', {icon: 2});
+				}
+			});
+		} else {
+			data.id = id
+			$.ajax({
+				url: '/mcdata/dictionary/update',
+				type: 'PUT',
+				data: data,
+				success: function( response ) {
+					$("#modal-form").modal("hide");
+					$table.bootstrapTable("updateRow", {index: idx, row: data})
+					layer.msg('已经更新了', {icon: 1});
+				},
+				error: function( error ) {
+					layer.msg('错误了', {icon: 2});
+				}
+			});
+		}
+	})
+	
+	$("#addBtn").click(function() {
+		$("#form-title").html("添加字典");
+		$("#form-p").html("请填写字典信息(⊙o⊙)");
+		$("#m_useful").iCheck('uncheck')
+		$("#form1")[0].reset();
+		$("#modal-form").modal("show");
+	})
+	 
+})
+
+window.operateEvents = {
+	'click .edit': function (e, value, row, index) {
+		$("#form-title").html("修改字典");
+		$("#form-p").html("请修改字典信息(⊙o⊙)");
+		$("#modal-form").modal("show");
+		$("#m_idx").val(index)
+		$("#m_id").val(row.id==undefined? -1:row.id);
+		$("#m_name").val(row.name);
+		$("#m_value").val(row.value);
+		$("#m_description").val(row.description);
+		$("#m_type").val(row.type);
+		if(row.useful==2)
+			$('#m_useful').iCheck('check')
+		else 
+			$('#m_useful').iCheck('uncheck')
+		$("#m_sortnum").val(row.sortnum);
+	},
+	'click .remove': function (e, value, row, index) {
+		layer.confirm('确定要删除？', {
+			closeBtn: 0,
+			btn: ['是的','取消'] //按钮
+		}, function(){
+			$.ajax({
+				url: '/mcdata/dictionary/remove/'+row.id,
+				type: 'DELETE',
+				success: function( response ) {
+					$table.bootstrapTable("refresh")
+					layer.msg('已经删除了', {icon: 1});
+				},
+				error: function( error ) {
+					layer.msg('出错了', {icon: 2});
+				}
+			});
+		}, function(){
+		});
+	}
+};
+</script>
+</body>
+
+</html>

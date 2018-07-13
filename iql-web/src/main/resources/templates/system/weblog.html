@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<link th:replace="head::headerFragment('实时日志')">
+	<link href="/bootstrap-multiselect/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+	<script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+	<script src="/bootstrap-multiselect/dist/js/bootstrap-multiselect-collapsible-groups.js"></script>
+	<script src="/util/dataUtil.js"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="ibox float-e-margins">
+				<div class="ibox-title">
+					<form role="form" class="form-inline" id="mainForm">
+						<div class="form-group">
+							<label class="control-label" for="logtype">日志类型：</label>
+							<select class="form-control" id="logtype" name="logtype">
+								<option value="log" selected="selected">后台请求日志</option>
+								<option value="task">定时任务日志</option>
+								<option value="down">数据下载日志</option>
+							</select>
+						</div>
+					</form>
+				</div>
+				<div class="ibox-content">
+					<div id="log-container" style="height: 1015px; overflow-y: scroll; background: #333; color: #aaa; padding: 10px;font-size: 14px;">
+						<div></div>
+					</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var logtype=$("#logtype option:selected").val()
+    var websocket = new WebSocket('ws://192.168.1.62:80/log?file='+logtype);
+	showLog = function(logtype){
+        $("#log-container div").empty();
+        // 指定websocket路径
+        websocket = new WebSocket('ws://192.168.1.62:80/log?file='+logtype);
+        var i=0;
+        websocket.onmessage = function(event) {
+            //if($("#auto").val()=="true"){ #273B4B
+            var log = "<span>"+event.data+"</span>"
+            var s = event.data.toString().split("《执行时间 》: ")
+            //alert(s[1].replace("ms","").replace("<br>",""))
+            if(event.data.toString().indexOf("系统")>0){
+                log = "<span style='color: green;'>"+event.data+"</span>"
+            }
+            if(event.data.toString().indexOf("删除IDFA")>0){
+                log = "<span style='color: lightgoldenrodyellow;'>"+event.data+"</span>"
+            }
+
+            if(event.data.toString().indexOf("同步")>0&&event.data.toString().indexOf("完成")>0&&i%2!=0){
+                log = "<span style='color:#5EA294;'>"+event.data+"</span>"
+            }
+            if(event.data.toString().indexOf("同步")>0&&event.data.toString().indexOf("完成")>0&&i%2==0){
+                log = "<span style='color:#2bd5d5;'>"+event.data+"</span>"
+            }
+            if(event.data.toString().indexOf("ringspeciallist")>0){
+                i++
+            }
+            if((event.data.toString().indexOf("同步")>0&&event.data.toString().indexOf("失败")>0)||event.data.toString().indexOf("服务器不存在")>0){
+                log = "<span style='color:red;'>"+event.data+"</span>"
+            }
+            if(s.length>1&&s[1].replace("ms","").replace("<br>","").trim()>1000){
+                log = "<span style='color: red;'>"+event.data+"</span>"
+            }
+            // 接收服务端的实时日志并添加到HTML页面中
+            $("#log-container div").append(log);
+            // 滚动条滚动到最低部
+            $("#log-container").scrollTop($("#log-container div").height() - $("#log-container").height());
+            //}
+        };
+	}
+
+    showLog(logtype)
+
+	$("#logtype").change(function () {
+        websocket.close()
+        logtype=$("#logtype option:selected").val()
+        showLog(logtype)
+    })
+});
+
+</script>
