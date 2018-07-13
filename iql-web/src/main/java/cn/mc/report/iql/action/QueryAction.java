@@ -154,7 +154,8 @@ public class QueryAction {
      */
     @RequestMapping(value = "/getActiveStreams", method = RequestMethod.GET)
     @ResponseBody
-    public JSONArray getActtiveStreams() {
+    public JSONObject getActtiveStreams() {
+        JSONObject res = new JSONObject();
         JSONArray validStreams = new JSONArray();
         List<String> validEngines = JavaConversions.seqAsJavaList(ZkUtils.getChildren(zkClient, ZkUtils.validEnginePath()));
         if (validEngines.size() == 0) {
@@ -172,8 +173,10 @@ public class QueryAction {
                     e.printStackTrace();
                 }
             });
-            return validStreams;
         }
+        res.put("total", validStreams.size());
+        res.put("rows", validStreams);
+        return res;
     }
 
     /**

@@ -55,11 +55,14 @@
                 <div class="mybtn sj">StreamJob</div>
             </div>
         </div>
-        <div class="content_db" style="padding-top: 10px;display: none">
+        <div class="content_db" style="padding-top: 10px;">
             <ul id="treeDemo" class="ztree"></ul>
         </div>
-        <div class="content_sj" style="padding-top: 10px">
-
+        <div class="content_sj" style="padding-top: 10px;display: none">
+            <table id="active-streamjob-table"
+                   data-classes="table table-hover table-condensed  table-no-head"
+                   data-mobile-responsive="true">
+            </table>
         </div>
     </div>
     <div id="body_right">
@@ -216,22 +219,81 @@
 
 <script type="text/javascript">
 
-    $(".db").click(function(){
-        $(".db").css("background-color","#fafafa");
-        $(".db").css("border","1px solid #a5c7fe");
-        $(".sj").css("background-color","#f0f0f0");
-        $(".sj").css("border","1px solid #d3d3d3");
-        $(".content_db").show();
-    });
+    $(function () {
 
-    $(".sj").click(function(){
-        $(".sj").css("background-color","#fafafa");
-        $(".sj").css("border","1px solid #a5c7fe");
-        $(".db").css("background-color","#f0f0f0");
-        $(".db").css("border","1px solid #d3d3d3");
-        $(".content_db").hide();
-    });
+        window.operateEvents_stop_streamjob = {
+            //加载历史查询结果
+            'click .RoleOfstopStreamJob': function (e, value, row, index) {
+                $.post("/stopStreamJob", {engineInfo: row.engineInfo, name: row.name, uid: row.uid}, function (data) {
+                    if (data.isSuccess) {
 
+                        loadActiveStreamJob();
+                    } else {
+                        $("#errorMessage").show();
+                        $("#errorMessage pre").html(data.errorMessage)
+                    }
+                })
+            }
+        };
+
+        $(".db").click(function(){
+            $(".db").css("background-color","#fafafa");
+            $(".db").css("border","1px solid #a5c7fe");
+            $(".sj").css("background-color","#f0f0f0");
+            $(".sj").css("border","1px solid #d3d3d3");
+            $(".content_sj").hide();
+            $(".content_db").show();
+        });
+
+        $(".sj").click(function(){
+            $(".sj").css("background-color","#fafafa");
+            $(".sj").css("border","1px solid #a5c7fe");
+            $(".db").css("background-color","#f0f0f0");
+            $(".db").css("border","1px solid #d3d3d3");
+            $(".content_db").hide();
+            $(".content_sj").show();
+            loadActiveStreamJob();
+        });
+
+        //加载活跃的StreamJob
+        function loadActiveStreamJob() {
+            $("#active-streamjob-table").bootstrapTable("destroy");
+            $("#active-streamjob-table").bootstrapTable({
+                method: 'get',
+                cache: false,
+                striped: true, //是否显示行间隔色
+                sidePagination: 'server',
+                url: '/getActiveStreams',
+                dataType: 'json',
+                columns: [
+                    {
+                        field: 'name',
+                        title: 'StreamName',
+                        width: 50
+                    },
+                    {
+                        field: 'engineInfo',
+                        title: 'engineInfo',
+                        visible: false
+                    },
+                    {
+                        field: 'uid',
+                        title: 'uid',
+                        visible: false
+                    },
+                    {
+                        field: 'uid',
+                        title: '操作',
+                        align: 'center',
+                        width: 50,
+                        events: operateEvents_stop_streamjob,
+                        formatter: operateFormatter_stop_streamjob
+                    }
+                ]
+            });
+        }
+
+    });
 
 
     var obj;
@@ -628,6 +690,13 @@
     function operateFormatter(value, row, index) {
         return [
             '<button type="button" class="RoleOfdelete btn btn-ms btn-default" style="margin-right:15px;">delete</button>'
+        ].join('');
+    }
+
+    //为行添加加载结果操作
+    function operateFormatter_stop_streamjob(value, row, index) {
+        return [
+            '<button type="button" class="RoleOfstopStreamJob btn btn-ms btn-default" style="margin-right:10px;">stop</button>'
         ].join('');
     }
 </script>
