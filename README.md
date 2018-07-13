@@ -7,6 +7,7 @@
 - 多session模式实现并行查询
 - 采用spark的FAIR调度
 - 基于spark的动态资源分配，在无任务的情况下不会占用executor资源
+- 基于Structured Streaming实现SQL动态添加流
 
 支持的数据源：hdfs、hive、hbase、kafka、mysql、es
 
@@ -28,6 +29,8 @@ save tb1 as hive.table
 ### Hbase
  
 ##### 加载数据
+
+
 
 - hbase.zookeeper.quorum：zookeeper地址
 - spark.table.schema：Spark临时表对应的schema  eg: "ID:String,appname:String,age:Int"
@@ -85,7 +88,7 @@ load formate.`path` as tb;
 ```
 
  - 保存数据
- ```
+```
 save tb as formate.`path` partitionBy uid coalesce 2;
 ```
 

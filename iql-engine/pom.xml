@@ -14,7 +14,8 @@
     <properties>
         <scala.version>2.11</scala.version>
         <spark.version>2.3.1</spark.version>
-        <i4scope>compile</i4scope>
+        <i4scope>provided</i4scope>
+        <!--<i4scope>compile</i4scope>-->
     </properties>
 
     <dependencies>

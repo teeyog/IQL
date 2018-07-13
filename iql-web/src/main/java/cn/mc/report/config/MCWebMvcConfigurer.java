@@ -31,7 +31,9 @@ public class MCWebMvcConfigurer extends WebMvcConfigurerAdapter{
                 .excludePathPatterns("/page/500")
                 .excludePathPatterns("/page/firstlogin")
                 .excludePathPatterns("/getActiveStreams")
-                .excludePathPatterns("/query");
+                .excludePathPatterns("/query")
+                .excludePathPatterns("/getStreamStatus")
+                .excludePathPatterns("/stopStreamJob");
         super.addInterceptors(registry);
     }
 }

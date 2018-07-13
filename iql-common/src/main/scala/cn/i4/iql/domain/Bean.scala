@@ -16,6 +16,8 @@ object Bean {
 
   case class StopSreamJob(streamName:String)
 
+  case class StreamJobStatus(streamName:String)
+
   case class StreamJob(engineInfo:String,name:String,uid:String)
 
   case class CancelJob(groupId:Int)

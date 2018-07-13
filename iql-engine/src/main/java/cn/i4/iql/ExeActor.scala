@@ -17,7 +17,7 @@ import cn.i4.iql.IqlService._
 import org.apache.spark.sql.bridge.SparkBridge
 
 
-class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Logging {
+class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with Logging {
 
   var sparkSession: SparkSession = _
   var interpreter: SparkInterpreter = _
@@ -44,26 +44,26 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
   override def receive: Receive = {
 
     case HiveCatalog() =>
-        sender() ! getHiveCatalog
+      sender() ! getHiveCatalog
 
     case HiveCatalogWithAutoComplete() =>
       sender() ! getHiveCatalogWithAutoComplete
 
     case Iql(code, iql, variables) =>
-      actorWapper(){() => {
+      actorWapper() { () => {
         var rIql = iql
         val variblesIters = JSON.parseArray(variables).iterator()
-        while (variblesIters.hasNext){
+        while (variblesIters.hasNext) {
           val nObject = JSON.parseObject(variblesIters.next().toString)
-          rIql = rIql.replace("${" + nObject.getString("name") + "}",nObject.getString("value"))
+          rIql = rIql.replace("${" + nObject.getString("name") + "}", nObject.getString("value"))
         }
         warn("\n" + rIql)
-        schedulerMode = !schedulerMode  //切换调度池
+        schedulerMode = !schedulerMode //切换调度池
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resJson = new JSONObject()
         resJson.put("startTime", new Timestamp(System.currentTimeMillis))
         resJson.put("iql", iql)
-        resJson.put("variables",variables)
+        resJson.put("variables", variables)
         resJson.put("code", code)
         if (!code.trim.equals("")) interpreter.execute(code.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")) //过滤掉注释
         //为当前iql设置groupId
@@ -75,34 +75,34 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
         //将该iql任务的唯一标识返回
         sender() ! resJson.toJSONString
         //解析iql并执行
-        parse(rIql, new IQLSQLExecListener(sparkSession,iqlSession))
-        }
+        parse(rIql, new IQLSQLExecListener(sparkSession, iqlSession))
+      }
       }
 
     case GetBatchResult(engineInfoAndGroupId) =>
-        if (iqlSession.batchJob.keySet().contains(engineInfoAndGroupId)) {
-          sender() ! iqlSession.batchJob.get(engineInfoAndGroupId)
-          iqlSession.batchJob.remove(engineInfoAndGroupId)
-        } else {
-          sender() ! "{'status':'RUNNING'}"
-        }
-
-    case GetStreamStatus(name) =>
-      iqlSession.streamJob(name).isActive
+      if (iqlSession.batchJob.keySet().contains(engineInfoAndGroupId)) {
+        sender() ! iqlSession.batchJob.get(engineInfoAndGroupId)
+        iqlSession.batchJob.remove(engineInfoAndGroupId)
+      } else {
+        sender() ! "{'status':'RUNNING'}"
+      }
 
     case GetActiveStream() =>
-     sender() ! iqlSession.streamJob.filter(_._2.isActive).keys.foldLeft(new JSONArray()){
-        case (array,stream) =>
+      sender() ! iqlSession.streamJob.filter(_._2.isActive).keys.foldLeft(new JSONArray()) {
+        case (array, stream) =>
           stream.split("_") match {
-            case Array(engineInfo,name,uid) =>
+            case Array(engineInfo, name, uid) =>
               val obj = new JSONObject()
-              obj.put("engineInfo",engineInfo)
-              obj.put("name",name)
-              obj.put("uid",uid)
+              obj.put("engineInfo", engineInfo)
+              obj.put("name", name)
+              obj.put("uid", uid)
               array.add(obj)
           }
           array
       }.toJSONString
+
+    case StreamJobStatus(name) =>
+     sender() ! iqlSession.streamJob(name).status.prettyJson
 
     case StopSreamJob(name) =>
       iqlSession.streamJob(name).stop()
@@ -147,21 +147,21 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
   //执行前从zk中删除当前对应节点（标记不可用），执行后往zk中写入可用节点（标记可以）
   def actorWapper()(f: () => Unit) {
     ZkUtils.deletePath(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath)
-      try {
-        f()
-      } catch {
-        case e:Exception =>
-          resJson.put("isSuccess", false)
-          val out = new ByteArrayOutputStream()
-          e.printStackTrace(new PrintStream(out))
-          resJson.put("errorMessage", new String(out.toByteArray))
-          sender() ! resJson.toJSONString
-      }
+    try {
+      f()
+    } catch {
+      case e: Exception =>
+        resJson.put("isSuccess", false)
+        val out = new ByteArrayOutputStream()
+        e.printStackTrace(new PrintStream(out))
+        resJson.put("errorMessage", new String(out.toByteArray))
+        sender() ! resJson.toJSONString
+    }
     ZkUtils.registerActorInEngine(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath, "", 6000, -1)
   }
 
   //获取hive元数据信息
-  def getHiveCatalog:String = {
+  def getHiveCatalog: String = {
     val hiveArray = new JSONArray()
     var num: Int = 0
     SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
@@ -169,7 +169,7 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
       val dbId = num
       val dbObj = new JSONObject()
       dbObj.put("id", dbId)
-      dbObj.put("name",s"""<span class="button ico_close" style="background:url('iql/img/db.jpg') center center/15px 15px no-repeat"></span>$db""")
+      dbObj.put("name",s"""<span class="button ico_close" style="background:url('/iql/img/db.jpg') center center/15px 15px no-repeat"></span>$db""")
       dbObj.put("pId", 0)
       hiveArray.add(dbObj)
       SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
@@ -178,7 +178,7 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
         val tbObj = new JSONObject()
         tbObj.put("id", tbId)
         tbObj.put("pId", dbId)
-        tbObj.put("name",s"""<span class="button ico_close" style="background:url('iql/img/tb.jpg') center center/15px 15px no-repeat"></span>$tb""")
+        tbObj.put("name",s"""<span class="button ico_close" style="background:url('/iql/img/tb.jpg') center center/15px 15px no-repeat"></span>$tb""")
         hiveArray.add(tbObj)
         SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
           num += 1
@@ -195,7 +195,7 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
     hiveArray.toJSONString
   }
 
-  def getHiveCatalogWithAutoComplete:String = {
+  def getHiveCatalogWithAutoComplete: String = {
     val hiveObj = new JSONObject()
     SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
       val tbArray = new JSONArray()
@@ -203,9 +203,9 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
         tbArray.add(tb)
         val cloArray = new JSONArray()
         SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
-        hiveObj.put(tb,cloArray)
+        hiveObj.put(tb, cloArray)
       })
-      hiveObj.put(db,tbArray)
+      hiveObj.put(db, tbArray)
     })
     hiveObj.toJSONString
   }
@@ -213,6 +213,6 @@ class ExeActor(spark: SparkSession,iqlSession:IQLSession) extends Actor with Log
 
 object ExeActor {
 
-  def props(spark: SparkSession,iqlSession:IQLSession): Props = Props(new ExeActor(spark,iqlSession))
+  def props(spark: SparkSession, iqlSession: IQLSession): Props = Props(new ExeActor(spark, iqlSession))
 
 }

@@ -1,29 +1,35 @@
 #body_1 {
     width: auto;
 }
+
 #body_top {
     border: 1px solid silver;
     height: 60px;
     width: 100%;
     background-color: chocolate;
 }
+
 #body_left {
     width: 17%;
     float: left;
 }
+
 #body_right {
     width: 82%;
-    min-height:1250px; height:auto!important;
+    min-height: 1250px;
+    height: auto !important;
     float: left;
     border-left: 1px solid lightslategrey;
 }
+
 .body_lr_top {
     height: 60px;
     width: 100%;
     border-bottom: 1px solid lightslategrey;
 }
+
 #iql_input {
-    font-size:14px;
+    font-size: 14px;
     border-bottom: 1px solid #e0e0e0;
     border-top: 1px solid #e0e0e0;
     border-right: 1px solid #e0e0e0;
@@ -33,7 +39,7 @@
     border-left: 1px solid #e0e0e0;
     border-right: 1px solid #e0e0e0;
     border-bottom: 1px solid #e0e0e0;
-    overflow:scroll;
+    overflow: scroll;
 }
 
 .fixed-table-loading {
@@ -44,15 +50,16 @@
     border-bottom: 1px solid #EFEFEF;
 }
 
-#variable ul{
-    display:inline;
+#variable ul {
+    display: inline;
     white-space: nowrap;
     height: auto;
 }
-#variable ul li{
+
+#variable ul li {
     padding: 10px 5px;
     display: inline-block;
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 .input-prepend {
@@ -62,7 +69,7 @@
 
 }
 
-.input-medium{
+.input-medium {
     border-radius: 0 4px 4px 0;
     vertical-align: top;
     display: inline-block;
@@ -89,4 +96,19 @@
     margin-right: -4px;
     line-height: 28px;
     padding: 0 5px;
+}
+
+.mybtn {
+    float: left;
+    width: 197px;
+    text-align:center;
+    line-height:60px;
+    font-size: 20px;
+    border: 1px solid #d3d3d3;
+    background-color: #f0f0f0;
+}
+
+.db {
+    background-color: #fafafa;
+    border: 1px solid #a5c7fe;
 }

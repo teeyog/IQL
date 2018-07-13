@@ -9,12 +9,12 @@
     <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
     <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/codemirror/lib/codemirror.css" />
-    <link rel="stylesheet" href="/font-awesome-4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="/codemirror/lib/codemirror.css"/>
+    <link rel="stylesheet" href="/font-awesome-4.7.0/css/font-awesome.min.css"/>
     <!-- 自定义 -->
-    <link href="/iql/iql.css" rel="stylesheet" />
+    <link href="/iql/iql.css" rel="stylesheet"/>
     <!-- 动画 -->
-    <link href="/iql/animate.css" rel="stylesheet" />
+    <link href="/iql/animate.css" rel="stylesheet"/>
 
     <!-- 在线代码编辑 -->
     <script src="/codemirror/lib/codemirror.js"></script>
@@ -28,7 +28,7 @@
     <!-- 高亮 -->
     <script src="/codemirror/addon/selection/active-line.js"></script>
     <!-- ztree -->
-    <link href="/iql/bootstrap-ztree-style.css" rel="stylesheet" />
+    <link href="/iql/bootstrap-ztree-style.css" rel="stylesheet"/>
     <script src="/ztree/js/jquery.ztree.core-3.5.js"></script>
     <script src="/ztree/js/jquery.ztree.exedit-3.5.js"></script>
     <!-- 变量 -->
@@ -46,16 +46,27 @@
 
 <div id="body_1">
     <!--<div id="body_top">-->
-        <!--<div style="margin-left: 8%;padding-top:10px;font-size: 30px;height:60px;width:30px;text-align: center;color: white">IQL</div>-->
+    <!--<div style="margin-left: 8%;padding-top:10px;font-size: 30px;height:60px;width:30px;text-align: center;color: white">IQL</div>-->
     <!--</div>-->
     <div id="body_left">
-        <div class="body_lr_top"></div>
-        <ul id="treeDemo" class="ztree"></ul>
+        <div class="body_lr_top">
+            <div>
+                <div class="mybtn db">DataBase</div>
+                <div class="mybtn sj">StreamJob</div>
+            </div>
+        </div>
+        <div class="content_db" style="padding-top: 10px;display: none">
+            <ul id="treeDemo" class="ztree"></ul>
+        </div>
+        <div class="content_sj" style="padding-top: 10px">
+
+        </div>
     </div>
     <div id="body_right">
         <div class="body_lr_top">
             <div class="form-group">
-                <a class="btn" style="margin-left: 10px;margin-top: 10px;font-size:20px" data-toggle="modal" data-target="#myModal" title="add query"><i class="fa fa-plus"  aria-hidden="true"></i></a>
+                <a class="btn" style="margin-left: 10px;margin-top: 10px;font-size:20px" data-toggle="modal"
+                   data-target="#myModal" title="add query"><i class="fa fa-plus" aria-hidden="true"></i></a>
                 <!--<a style="float: right;padding-top: 15px" href="http://192.168.1.233:8888/joblog" target="_blank">实时日志</a>-->
             </div>
         </div>
@@ -65,39 +76,45 @@
                     <div class="form-group" style="margin-right: 15px;">
                         <a class="btn" onclick="execIQL()" title="execute"><i class="fa fa-play"></i></a>
                     </div>
-                    <div class="form-group"  style="margin-right: 15px;">
-                        <a class="btn" data-toggle="modal" data-target="#myModal" title="save query as..."><i class="fa fa-save"></i></a>
+                    <div class="form-group" style="margin-right: 15px;">
+                        <a class="btn" data-toggle="modal" data-target="#myModal" title="save query as..."><i
+                                class="fa fa-save"></i></a>
                     </div>
                     <div class="form-group">
-                        <a class="btn" onclick="formatIQL()"  title="format the current iql query"><i class="fa fa-indent"></i></a>
+                        <a class="btn" onclick="formatIQL()" title="format the current iql query"><i
+                                class="fa fa-indent"></i></a>
                     </div>
                 </form>
                 <div class="loading" style="display: none;padding-top: 5px;margin-left: 30px">
                     <div class="form-group">
-                        <a class="btn" onclick="stopQuery()" title="stop query ..." style="color: red"><i class="fa fa-stop"></i></a>
+                        <a class="btn" onclick="stopQuery()" title="stop query ..." style="color: red"><i
+                                class="fa fa-stop"></i></a>
                         <input id="iqlId" type="hidden" name="field＿name" value=""/>
                     </div>
                     <!--<h4 class="text-info" style="float: left;margin-left: 30px">execution...</h4>-->
                 </div>
             </div>
             <div id="iql_input">
-                <textarea id="iql" rows="15" placeholder="Example: SELECT * FROM tablename, or press CTRL + space" style="width: 100%"></textarea>
+                <textarea id="iql" rows="15" placeholder="Example: SELECT * FROM tablename, or press CTRL + space"
+                          style="width: 100%"></textarea>
             </div>
             <div id="variable">
                 <ul data-bind="foreach: variables" style="list-style:none">
                     <li>
                         <div class="input-prepend">
                             <span class="muted" data-bind="text:name"></span>
-                            <input class="input-medium" type="text" data-bind="value:value" placeholder="Variable value"/>
+                            <input class="input-medium" type="text" data-bind="value:value"
+                                   placeholder="Variable value"/>
                         </div>
                     </li>
                 </ul>
             </div>
-            <div id="errorMessage" style="min-height:10px; max-height:350px;width: 100%;background-color: #f7f7f7;padding-bottom: 20px;padding-left: 30px;padding-right: 30px;overflow:scroll;display: none">
+            <div id="errorMessage"
+                 style="min-height:10px; max-height:350px;width: 100%;background-color: #f7f7f7;padding-bottom: 20px;padding-left: 30px;padding-right: 30px;overflow:scroll;display: none">
                 <pre style="color:red;"></pre>
             </div>
             <div class="loading" style="background-color: #f0f0f0; display: none">
-                <div class="sk-spinner sk-spinner-wave" >
+                <div class="sk-spinner sk-spinner-wave">
                     <div class="sk-rect1"></div>
                     <div class="sk-rect2"></div>
                     <div class="sk-rect3"></div>
@@ -105,26 +122,30 @@
                     <div class="sk-rect5"></div>
                 </div>
             </div>
-            <div class="ibox-content" >
+            <div class="ibox-content">
                 <div class="tabs-container" style="margin-top: 20px">
                     <ul class="nav nav-tabs" style="margin-left: 20px">
                         <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true">Query History</a>
                         </li>
                         <li class=""><a data-toggle="tab" href="#tab-2" aria-expanded="false">Saved Queries</a>
                         </li>
-                        <li class=""><a id="results-tab" data-toggle="tab" href="#tab-3" aria-expanded="false">Results</a>
+                        <li class=""><a id="results-tab" data-toggle="tab" href="#tab-3"
+                                        aria-expanded="false">Results</a>
                         </li>
                     </ul>
                     <div class="tab-content" style="margin-left: 20px">
                         <div id="tab-1" class="tab-pane active">
                             <div class="panel-body">
-                                <table id="history-list-table" data-classes="table table-hover table-condensed  table-no-head" data-mobile-responsive="true">
+                                <table id="history-list-table"
+                                       data-classes="table table-hover table-condensed  table-no-head"
+                                       data-mobile-responsive="true">
                                 </table>
                             </div>
                         </div>
                         <div id="tab-2" class="tab-pane">
                             <div class="panel-body">
-                                <table id="saved-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                                <table id="saved-list-table" data-classes="table table-hover table-condensed"
+                                       data-mobile-responsive="true">
                                 </table>
                             </div>
                         </div>
@@ -133,7 +154,8 @@
                                 <form role="form" class="form-inline" id="downloadForm" style="display: none;">
                                     <div class="form-group">
                                         <div class="dropdown">
-                                            <button class="btn dropdown-toggle" data-toggle="dropdown" id="rankType-dropdown" aria-expanded="false">
+                                            <button class="btn dropdown-toggle" data-toggle="dropdown"
+                                                    id="rankType-dropdown" aria-expanded="false">
                                                 <i class="fa fa-download"></i>
                                                 <span class="caret"></span>
                                             </button>
@@ -145,7 +167,8 @@
                                         </div>
                                     </div>
                                 </form>
-                                <table id="results-list-table" data-classes="table table-hover table-condensed" data-mobile-responsive="true">
+                                <table id="results-list-table" data-classes="table table-hover table-condensed"
+                                       data-mobile-responsive="true">
                                 </table>
                             </div>
                         </div>
@@ -166,17 +189,21 @@
                         <form role="form" id="saveQueryForm">
                             <div class="form-group">
                                 <label>Name：</label>
-                                <input type="text" class="form-control" id="queryId" name="queryId" value="" style="display: none"/>
-                                <input type="text" class="form-control" id="queryName" name="queryName" value="" oninput="enableSave()"/>
+                                <input type="text" class="form-control" id="queryId" name="queryId" value=""
+                                       style="display: none"/>
+                                <input type="text" class="form-control" id="queryName" name="queryName" value=""
+                                       oninput="enableSave()"/>
                             </div>
                             <div class="form-group">
                                 <label>Description：</label>
-                                <input type="text" class="form-control" id="queryDescription" name="queryDescription" value=""/>
+                                <input type="text" class="form-control" id="queryDescription" name="queryDescription"
+                                       value=""/>
                             </div>
                             <div class="pull-right m-t-n-xs">
                                 <button class="btn btn-sm btn-default" data-dismiss="modal"><strong>Cancel</strong>
                                 </button>
-                                <button class="btn btn-sm btn-success" type="button" onclick="saveIql()" id="saveQuery" disabled="disabled"><strong>Save</strong>
+                                <button class="btn btn-sm btn-success" type="button" onclick="saveIql()" id="saveQuery"
+                                        disabled="disabled"><strong>Save</strong>
                                 </button>
                             </div>
                         </form>
@@ -188,6 +215,25 @@
 </div>
 
 <script type="text/javascript">
+
+    $(".db").click(function(){
+        $(".db").css("background-color","#fafafa");
+        $(".db").css("border","1px solid #a5c7fe");
+        $(".sj").css("background-color","#f0f0f0");
+        $(".sj").css("border","1px solid #d3d3d3");
+        $(".content_db").show();
+    });
+
+    $(".sj").click(function(){
+        $(".sj").css("background-color","#fafafa");
+        $(".sj").css("border","1px solid #a5c7fe");
+        $(".db").css("background-color","#f0f0f0");
+        $(".db").css("border","1px solid #d3d3d3");
+        $(".content_db").hide();
+    });
+
+
+
     var obj;
     var varis = [];
     ko.applyBindings(new addVariables());
@@ -215,18 +261,18 @@
     function change(cm, event) {
         // $("#iql").attr("rows", window.editor.lastLine());
         var r = /\$\{([\s\S]*?)\}/g;
-        var kvdata={};
+        var kvdata = {};
         var list = $("#variable ul li");
-        list.each(function(){
+        list.each(function () {
             var value = $(this).children(".input-prepend ").children("input").val();
             var name = $(this).children(".input-prepend ").children("span").text();
             kvdata[name] = value;
         });
         obj.variables.removeAll();
-        var vSet={};
+        var vSet = {};
         while ((result = r.exec(window.editor.getValue())) != null) {
-            if(!vSet[result[1]]){
-                obj.variables.push({ name: result[1],value:kvdata[result[1]]});
+            if (!vSet[result[1]]) {
+                obj.variables.push({name: result[1], value: kvdata[result[1]]});
                 vSet[result[1]] = 'a';
             }
         }
@@ -243,7 +289,7 @@
         //删除一行保存的iql
         window.operateEvents = {
             'click .RoleOfdelete': function (e, value, row, index) {
-                $.post("/deleteiql", {id: row.id}, function(data) {
+                $.post("/deleteiql", {id: row.id}, function (data) {
                     $("#saved-list-table").bootstrapTable("refresh")
                 })
             }
@@ -254,14 +300,14 @@
             'click .RoleOfloadHistory': function (e, value, row, index) {
                 $("#errorMessage").hide();
                 $("#execForm, .loading").toggle();
-                $.post("/loadresult", {schema: row.tableSchema,hdfsPath: row.resultPath}, function(data) {
+                $.post("/loadresult", {schema: row.tableSchema, hdfsPath: row.resultPath}, function (data) {
                     $("#execForm, .loading").toggle();
-                    if(data.isSuccess) {
+                    if (data.isSuccess) {
                         hdfsPath = row.resultPath;
                         schema = row.tableSchema;
                         $("#results-tab").tab("show");
                         loadResultsTable(data.schema, JSON.parse(data.data))
-                    }else {
+                    } else {
                         $("#errorMessage").show();
                         $("#errorMessage pre").html(data.errorMessage)
                     }
@@ -269,7 +315,7 @@
             },
             //删除历史查询
             'click .RoleOfdeleteHistory': function (e, value, row, index) {
-                $.post("/deletehistoryiql", {id: row.id}, function(data) {
+                $.post("/deletehistoryiql", {id: row.id}, function (data) {
                     $("#history-list-table").bootstrapTable("refresh")
                 })
             }
@@ -280,19 +326,17 @@
         loadSavedTable();
 
         //行点击事件，将对应的iql显示在编辑框内
-        $('#history-list-table').on('click-row.bs.table', function (e, row, element)
-        {
+        $('#history-list-table').on('click-row.bs.table', function (e, row, element) {
             window.editor.setValue(row.iql);
             $("#queryId").val("");
             $("#queryName").val("");
             $("#queryDescription").val("");
             obj.variables.removeAll();
-            $.each(JSON.parse(row.variables),function(index,data){
-                obj.variables.push({ name: data.name,value:data.value } );
+            $.each(JSON.parse(row.variables), function (index, data) {
+                obj.variables.push({name: data.name, value: data.value});
             });
         });
-        $('#saved-list-table').on('click-row.bs.table', function (e, row, element)
-        {
+        $('#saved-list-table').on('click-row.bs.table', function (e, row, element) {
             window.editor.setValue(row.iql);
             $("#queryId").val(row.id);
             $("#queryName").val(row.name);
@@ -306,39 +350,43 @@
     function execIQL() {
 
         var iqlText;
-        if(window.editor.getSelection() == ""){
+        if (window.editor.getSelection() == "") {
             iqlText = window.editor.getValue()
-        }else {
+        } else {
             iqlText = window.editor.getSelection()
         }
         varis = [];
         var list = $("#variable ul li");
-        list.each(function(){
+        list.each(function () {
             var value = $(this).children(".input-prepend ").children("input").val();
             var name = $(this).children(".input-prepend ").children("span").text();
-            varis.push({name:name,value:value})
+            varis.push({name: name, value: value})
         });
 
         $("#errorMessage").hide();
         $("#errorMessage pre").html("");
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
-        $.post("/query", {iql: iqlText,variables: JSON.stringify(varis),descrption:$("#queryDescription").val()}, function(data) {
-            if(data.isSuccess) {
+        $.post("/query", {
+            iql: iqlText,
+            variables: JSON.stringify(varis),
+            descrption: $("#queryDescription").val()
+        }, function (data) {
+            if (data.isSuccess) {
                 $("#iqlId").val(data.engineInfoAndGroupId);
-                $.post("/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function(data) {
+                $.post("/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function (data) {
                     $("#execForm, .loading").toggle();
-                    if(data.isSuccess) {
+                    if (data.isSuccess) {
                         $("#results-tab").tab("show");
                         hdfsPath = data.hdfsPath;
                         schema = data.schema;
                         loadResultsTable(data.schema, JSON.parse(data.data))
-                    }else {
+                    } else {
                         $("#errorMessage").show();
                         $("#errorMessage pre").html(data.errorMessage)
                     }
                 });
-            }else {
+            } else {
                 $("#execForm, .loading").toggle();
                 $("#errorMessage").show();
                 $("#errorMessage pre").html(data.errorMessage)
@@ -348,21 +396,22 @@
 
     // 美化IQL
     function formatIQL() {
-        $.post("/formatSql", {iql: window.editor.getValue()}, function(data) {
+        $.post("/formatSql", {iql: window.editor.getValue()}, function (data) {
             window.editor.setValue(data.iql);
         })
     }
 
     // 停止query
     function stopQuery() {
-        $.post("/stopquery", {engineInfoAndGroupId: $("#iqlId").val()}, function(data) {})
+        $.post("/stopquery", {engineInfoAndGroupId: $("#iqlId").val()}, function (data) {
+        })
     }
 
     //加载结果数据
     function loadResultsTable(schema, data) {
         var columns = [];
         var headTitles = schema.split(",");
-        $.each(headTitles, function(i, name) {
+        $.each(headTitles, function (i, name) {
             columns.push({
                 title: name,
                 field: name,
@@ -396,22 +445,22 @@
             striped: true, //是否显示行间隔色
             pageList: [10, 20, 50, 100],
             pageSize: 20,
-            showRefresh:true,
+            showRefresh: true,
             search: true,
             strictSearch: true,
             pagination: true,
             sidePagination: 'server',
             url: '/history',
             dataType: 'json',
-            queryParams: function(params) {
+            queryParams: function (params) {
                 // var params = {
                 //     search:$(".form-control").val()
                 // };
                 var param = {
-                    offset:params.offset,
-                    limit:params.limit,
-                    order:params.order,
-                    search:$(".form-control").val()
+                    offset: params.offset,
+                    limit: params.limit,
+                    order: params.order,
+                    search: $(".form-control").val()
                 };
                 return param;
             },
@@ -420,27 +469,27 @@
                     field: 'startTime',
                     title: '开始时间',
                     width: 80,
-                    formatter: function(value, row, index) {
-                        return '<span title="'+timestampToTime(value)+'">'+timeago(value)+'</span>'
+                    formatter: function (value, row, index) {
+                        return '<span title="' + timestampToTime(value) + '">' + timeago(value) + '</span>'
                     }
                 },
                 {
                     field: 'isSuccess',
                     title: '执行结果',
                     width: 80,
-                    formatter: function(value, row, index) {
-                        if(value)
+                    formatter: function (value, row, index) {
+                        if (value)
                             return '<span class="text-success" title="successful"><i class="glyphicon glyphicon-ok"></i></span>';
                         else
                             return '<span class="text-warning" title="failed"><i class="glyphicon glyphicon-exclamation-sign"></i></span>'
                     }
                 },
                 {
-                    field:'takeTime',
-                    title:'耗时',
-                    width:80,
-                    formatter: function(value, row, index) {
-                        return '<span>'+value + ' s' +'</span>'
+                    field: 'takeTime',
+                    title: '耗时',
+                    width: 80,
+                    formatter: function (value, row, index) {
+                        return '<span>' + value + ' s' + '</span>'
                     }
                 },
                 {
@@ -472,7 +521,7 @@
                     field: 'id',
                     title: '操作',
                     align: 'center',
-                    width : 100,
+                    width: 100,
                     events: operateEvents_loadresult,
                     formatter: operateFormatter_loadresult
                 }
@@ -488,12 +537,12 @@
             striped: true, //是否显示行间隔色
             pageList: [10, 20, 50, 100],
             pageSize: 20,
-            showRefresh:true,
+            showRefresh: true,
             pagination: true,
             sidePagination: 'server',
             dataType: 'json',
             url: '/iqls',
-            onLoadSuccess: function(data) {
+            onLoadSuccess: function (data) {
                 console.log(data)
             },
             columns: [
@@ -518,14 +567,14 @@
                 {
                     field: 'updateTime',
                     title: 'Last Modified',
-                    formatter: function(value, row, index) {
-                        return '<span title="'+timestampToTime(value)+'">'+timestampToTime(value)+'</span>'
+                    formatter: function (value, row, index) {
+                        return '<span title="' + timestampToTime(value) + '">' + timestampToTime(value) + '</span>'
                     }
                 }, {
                     field: 'id',
                     title: '操作',
                     align: 'center',
-                    width : 100,
+                    width: 100,
                     events: operateEvents,
                     formatter: operateFormatter
                 }
@@ -541,11 +590,11 @@
             fileType: fileType
         }
         var url = addParamsToUrl('/fileDownload', formParams);
-        window.location.href=url
+        window.location.href = url
     }
 
     function enableSave() {
-        if($("#queryName").val().trim()=='') {
+        if ($("#queryName").val().trim() == '') {
             $("#saveQuery").attr("disabled", true)
         } else {
             $("#saveQuery").attr("disabled", false)
@@ -559,7 +608,7 @@
             iql: window.editor.getValue(),
             name: $("#queryName").val(),
             description: $("#queryDescription").val()
-        }, function() {
+        }, function () {
             $("#myModal").modal('hide');
             $("#saveQueryForm")[0].reset();
             $("#saveQuery").attr("disabled", true);
@@ -589,8 +638,9 @@
         var zTree = $.fn.zTree.getZTreeObj(treeId);
         zTree.expandNode(treeNode, true, false, true);
     }
+
     function zTreeOnNodeCreated(event, treeId, treeNode) {
-        $('#'+treeNode.tId+'_ico').css("display", "none");
+        $('#' + treeNode.tId + '_ico').css("display", "none");
     }
 
     var setting = {

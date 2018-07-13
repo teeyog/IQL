@@ -150,7 +150,7 @@ public class QueryAction {
 
 
     /**
-     * 或者hive元数据
+     * 获取活跃StreamJobs
      */
     @RequestMapping(value = "/getActiveStreams", method = RequestMethod.GET)
     @ResponseBody
@@ -173,6 +173,35 @@ public class QueryAction {
                 }
             });
             return validStreams;
+        }
+    }
+
+    /**
+     * 获取StreamJob状态
+     */
+    @RequestMapping(value = "/getStreamStatus", method = RequestMethod.POST)
+    @ResponseBody
+    public JSONObject getStreamStatus(String engineInfo, String name, String uid) {
+        JSONObject resultObj = new JSONObject();
+        resultObj.put("isSuccess", true);
+        String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfo);
+        if (validEngineByEngineInfo == null) {
+            resultObj.put("isSuccess", false);
+            resultObj.put("errorMessage", "get stream staus fail,no valid engine...");
+            return resultObj;
+        } else {
+            String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
+            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
+            try {
+                Timeout timeout = new Timeout(Duration.create(2, "s"));
+                Future<Object> future = Patterns.ask(selection, new Bean.StreamJobStatus(engineInfo + "_" + name + "_" + uid), timeout);
+                String resultStr = Await.result(future, timeout.duration()).toString();
+                resultObj.put("data",resultStr);
+            } catch (Exception e) {
+                resultObj.put("errorMessage", e.getMessage());
+                resultObj.put("isSuccess", false);
+            }
+            return resultObj;
         }
     }
 
