@@ -16,6 +16,6 @@ class JdbcSourceProvider extends DataSourceRegister
                           parameters: Map[String, String],
                           partitionColumns: Seq[String],
                           outputMode: OutputMode): Sink = {
-    new JdbcSink(sqlContext,parameters,parameters.get("dbtable").map(_.trim))
+    new JdbcSink(sqlContext,parameters)
   }
 }
