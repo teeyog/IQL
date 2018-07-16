@@ -30,11 +30,12 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
               format = s.getText
           }
         case s: PathContext =>
-          format match {
-            case "jdbc" | "hive" | "kafka8" | "kafka9" | "hbase" | "redis" | "es" | "json" =>
-              final_path = cleanStr(s.getText)
-            case _ =>
-          }
+          final_path = cleanStr(s.getText)
+//          format match {
+//            case "jdbc" | "hive" | "kafka8" | "kafka9" | "hbase" | "redis" | "es" | "json" | "csv" | "orc" | "parquet" | "text" =>
+//              final_path = cleanStr(s.getText)
+//            case _ =>
+//          }
         case s: TableNameContext =>
           tableName = s.getText
           oldDF = scriptSQLExecListener.sparkSession.table(s.getText)
