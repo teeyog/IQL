@@ -13,6 +13,8 @@
 
 支持的文件格式：parquet、csv、orc、json、text
 
+在Structured Streaming支持的Sink之外还增加了对Hbase、MySQL、es的支持
+
 ---
 
 ### Hive
