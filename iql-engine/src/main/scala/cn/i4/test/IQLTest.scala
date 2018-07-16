@@ -51,9 +51,9 @@ object IQLTest {
 
       override def open(partitionId: Long, version: Long): Boolean = true
     })
-        .outputMode("complete")
+      .outputMode("complete")
       .option("checkpointLocation", "/tmp/cp/cp81")
-//      .format("console")
+      .format("console")
       .trigger(Trigger.ProcessingTime(5, TimeUnit.SECONDS))
       .start()
     query.awaitTermination()

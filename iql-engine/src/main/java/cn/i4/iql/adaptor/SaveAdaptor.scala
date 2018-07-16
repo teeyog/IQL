@@ -18,7 +18,7 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
     var option = Map[String, String]()
     var tableName = ""
     var partitionByCol = Array[String]()
-    var numPartition:Int = 1
+    var numPartition: Int = 1
 
     (0 until ctx.getChildCount).foreach { tokenIndex =>
       ctx.getChild(tokenIndex) match {
@@ -59,10 +59,10 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         case _ =>
       }
     }
-    if(scriptSQLExecListener.env().contains("stream")){
-      new StreamSaveAdaptor(scriptSQLExecListener,option,oldDF,final_path,tableName,format,mode,partitionByCol,numPartition).parse
-    }else {
-      new BatchSaveAdaptor(scriptSQLExecListener,option,oldDF,final_path,tableName,format,mode,partitionByCol,numPartition).parse
+    if (scriptSQLExecListener.env().contains("stream")) {
+      new StreamSaveAdaptor(scriptSQLExecListener, option, oldDF, final_path, tableName, format, mode, partitionByCol, numPartition).parse
+    } else {
+      new BatchSaveAdaptor(scriptSQLExecListener, option, oldDF, final_path, tableName, format, mode, partitionByCol, numPartition).parse
     }
   }
 }
@@ -76,18 +76,18 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
                        var format: String,
                        var mode: SaveMode,
                        var partitionByCol: Array[String],
-                       val numPartition:Int
+                       val numPartition: Int
                       ) {
   def parse = {
     var writer = oldDF.write
     writer = writer.format(format).mode(mode).partitionBy(partitionByCol: _*).options(option)
     format match {
       case "json" | "csv" | "orc" | "parquet" | "text" =>
-        val tmpPath = "/tmp/iql/tmp/"+System.currentTimeMillis()
-        writer.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).save(tmpPath)//写
-        scriptSQLExecListener.sparkSession.read.option("header", "true").option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").format(format).load(tmpPath).coalesce(numPartition)//读
+        val tmpPath = "/tmp/iql/tmp/" + System.currentTimeMillis()
+        writer.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).save(tmpPath) //写
+        scriptSQLExecListener.sparkSession.read.option("header", "true").option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").format(format).load(tmpPath).coalesce(numPartition) //读
           .write.mode(mode).partitionBy(partitionByCol: _*).options(option).option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
-          .format(format).save(final_path)//写
+          .format(format).save(final_path) //写
       case "es" =>
         writer.save(final_path)
       case "hive" =>
@@ -103,9 +103,9 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
         writer.option("outputTableName", final_path).format("org.apache.spark.sql.execution.datasources.redis").save()
       case "jdbc" =>
         writer
-          .option("driver",option.getOrElse("driver",PropsUtils.get("jdbc.driver")))
-          .option("url",option.getOrElse("url",PropsUtils.get("jdbc.url")))
-          .option("dbtable",final_path)
+          .option("driver", option.getOrElse("driver", PropsUtils.get("jdbc.driver")))
+          .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
+          .option("dbtable", final_path)
           .save()
       case _ =>
         writer.save(final_path)
@@ -122,29 +122,39 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
                         var format: String,
                         var mode: SaveMode,
                         var partitionByCol: Array[String],
-                        val numPartition:Int
+                        val numPartition: Int
                        ) {
-  def parse:Unit = {
+  def parse: Unit = {
     var writer: DataStreamWriter[Row] = oldDF.writeStream
 
     require(option.contains("checkpointLocation"), "checkpointLocation is required")
     require(option.contains("duration"), "duration is required")
     require(option.contains("mode"), "mode is required")
 
-    writer = writer.format(option.getOrElse("implClass", format)).outputMode(option("mode")).
-      partitionBy(partitionByCol: _*).
-      options(option - "mode" - "duration")
-
-    val dbtable = if (option.contains("dbtable")) option("dbtable") else final_path
-
-    if (dbtable != null && dbtable != "-") {
-      writer.option("path", dbtable)
+    format match {
+      case "jdbc" =>
+        option += ("implClass" -> "org.apache.spark.sql.jdbc.JdbcSourceProvider")
+        writer
+          .option("driver", option.getOrElse("driver", PropsUtils.get("jdbc.driver")))
+          .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
+          .option("dbtable", final_path)
+      case "es" =>
+        option += ("implClass" -> "org.apache.spark.sql.es.EsSourceProvider")
+        writer
+          .option("es.nodes", option.getOrElse("es.nodes", PropsUtils.get("es.nodes")))
+          .option("es.port", option.getOrElse("es.port", PropsUtils.get("es.port")))
+          .option("resource", final_path)
     }
+
+    writer = writer.format(option.getOrElse("implClass", format)).outputMode(option("mode"))
+      .partitionBy(partitionByCol: _*)
+      .options(option - "mode" - "duration")
+
     option.get("streamName") match {
       case Some(name) => writer.queryName(name)
       case None =>
     }
     val query = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
-    scriptSQLExecListener.iqlSession.streamJob.put(scriptSQLExecListener.iqlSession.engineInfo + "_" + query.name + "_" + query.id,query)
+    scriptSQLExecListener.iqlSession.streamJob.put(scriptSQLExecListener.iqlSession.engineInfo + "_" + query.name + "_" + query.id, query)
   }
 }
