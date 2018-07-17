@@ -28,9 +28,9 @@ object IqlService {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       //调度模式
       .config("spark.scheduler.mode", "FAIR")
-//      .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
+      .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
       .config("spark.yarn.executor.memoryOverhead","1024")
-     .master("local[4]")
+//     .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
 

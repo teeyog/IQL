@@ -439,7 +439,6 @@ public class QueryAction {
         return validEngines.size() == 0 ? null : validEngines.head();
     }
 
-
     @RequestMapping(value = "/appnames", method = RequestMethod.GET)
     public JSONArray getAppName() throws IOException {
         JSONArray array = new JSONArray();
@@ -472,9 +471,6 @@ public class QueryAction {
         return rObj;
     }
 
-    /**
-     * @return
-     */
     @PostMapping(value = "/formatSql")
     public JSONObject formatSql(String iql) {
         String formatedIql = SQLUtils.formatHive(iql);
