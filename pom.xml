@@ -10,8 +10,8 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>iql-engine</module>
-        <module>iql-springboot-http</module>
         <module>iql-common</module>
+        <module>iql-web</module>
     </modules>
 
     <repositories>
@@ -38,7 +38,8 @@
         <mysql.version>5.1.32</mysql.version>
         <lamma.version>2.2.2</lamma.version>
         <fastjson.version>1.2.16</fastjson.version>
-        <i4scope>compile</i4scope>
+        <i4scope>provided</i4scope>
+        <!--<i4scope>compile</i4scope>-->
         <iqlscope>compile</iqlscope>
     </properties>
 
@@ -48,13 +49,6 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.version}</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-        <!--解压-->
-        <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant</artifactId>
-            <version>1.10.1</version>
             <scope>${i4scope}</scope>
         </dependency>
 
@@ -123,12 +117,6 @@
             <scope>${i4scope}</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor -->
-      <!--  <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.11</artifactId>
-            <version>2.5.9</version>
-        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-remote -->
         <dependency>
