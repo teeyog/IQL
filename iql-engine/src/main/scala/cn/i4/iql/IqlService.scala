@@ -20,6 +20,7 @@ object IqlService {
       .config("spark.dynamicAllocation.enabled", "true")
       .config("spark.dynamicAllocation.executorIdleTimeout", "30s")
       .config("spark.dynamicAllocation.maxExecutors", "60")
+      .config("spark.dynamicAllocation.minExecutors", "0")
       //动态分区
       .config("hive.exec.dynamic.partition", "true")
       .config("hive.exec.dynamic.partition.mode", "nonstrict")
@@ -29,7 +30,7 @@ object IqlService {
       //调度模式
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
-      .config("spark.yarn.executor.memoryOverhead","1024")
+      .config("spark.executor.memoryOverhead","1024")
 //     .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()

@@ -147,6 +147,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
           .option("resource", final_path)
       case "hbase" =>
         option += ("implClass" -> "org.apache.spark.sql.hbase.HBaseSourceProvider")
+      case _ => option += ("path" -> tableName)
     }
 
     writer = writer.format(option.getOrElse("implClass", format)).outputMode(option("mode"))

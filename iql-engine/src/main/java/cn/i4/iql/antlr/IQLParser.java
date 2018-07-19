@@ -1,4 +1,4 @@
-// Generated from E:/BigData/spark/workspace/iql/iql-engine/src/main/resources\IQL.g4 by ANTLR 4.5.3
+// Generated from E:/BigData/spark/workspace/iql/iql-engine/src/main/resources\IQL.g4 by ANTLR 4.7
 
 package cn.i4.iql.antlr;
 
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class IQLParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.5.3", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.7", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -250,6 +250,7 @@ public class IQLParser extends Parser {
 		try {
 			int _alt;
 			setState(197);
+			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__0:
 			case T__1:
@@ -259,12 +260,16 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__0 || _la==T__1) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(51);
 				format();
 				setState(53);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__2) {
 					{
@@ -276,6 +281,7 @@ public class IQLParser extends Parser {
 				setState(55);
 				path();
 				setState(57);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
@@ -285,6 +291,7 @@ public class IQLParser extends Parser {
 				}
 
 				setState(60);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==IDENTIFIER || _la==BACKQUOTED_IDENTIFIER) {
 					{
@@ -321,7 +328,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__5 || _la==T__6) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(79);
@@ -330,6 +340,7 @@ public class IQLParser extends Parser {
 				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__28) | (1L << T__29) | (1L << T__30) | (1L << T__31) | (1L << T__32))) != 0)) {
 					{
 					setState(77);
+					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case T__28:
 						{
@@ -380,6 +391,7 @@ public class IQLParser extends Parser {
 				setState(86);
 				path();
 				setState(88);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
@@ -389,6 +401,7 @@ public class IQLParser extends Parser {
 				}
 
 				setState(91);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==IDENTIFIER || _la==BACKQUOTED_IDENTIFIER) {
 					{
@@ -412,6 +425,7 @@ public class IQLParser extends Parser {
 					_la = _input.LA(1);
 				}
 				setState(101);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__7) {
 					{
@@ -423,6 +437,7 @@ public class IQLParser extends Parser {
 				}
 
 				setState(105);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__8) {
 					{
@@ -443,7 +458,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__9 || _la==T__10) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(111);
@@ -457,7 +475,10 @@ public class IQLParser extends Parser {
 						_la = _input.LA(1);
 						if ( _la <= 0 || (_la==T__11) ) {
 						_errHandler.recoverInline(this);
-						} else {
+						}
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
 							consume();
 						}
 						}
@@ -468,6 +489,7 @@ public class IQLParser extends Parser {
 					_alt = getInterpreter().adaptivePredict(_input,12,_ctx);
 				}
 				setState(115);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__4) {
 					{
@@ -488,7 +510,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__12 || _la==T__13) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(122);
@@ -501,7 +526,10 @@ public class IQLParser extends Parser {
 					_la = _input.LA(1);
 					if ( _la <= 0 || (_la==T__11) ) {
 					_errHandler.recoverInline(this);
-					} else {
+					}
+					else {
+						if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+						_errHandler.reportMatch(this);
 						consume();
 					}
 					}
@@ -520,7 +548,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__14 || _la==T__15) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(129);
@@ -533,7 +564,10 @@ public class IQLParser extends Parser {
 					_la = _input.LA(1);
 					if ( _la <= 0 || (_la==T__11) ) {
 					_errHandler.recoverInline(this);
-					} else {
+					}
+					else {
+						if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+						_errHandler.reportMatch(this);
 						consume();
 					}
 					}
@@ -552,7 +586,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__16 || _la==T__17) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(136);
@@ -565,7 +602,10 @@ public class IQLParser extends Parser {
 					_la = _input.LA(1);
 					if ( _la <= 0 || (_la==T__11) ) {
 					_errHandler.recoverInline(this);
-					} else {
+					}
+					else {
+						if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+						_errHandler.reportMatch(this);
 						consume();
 					}
 					}
@@ -584,12 +624,16 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__18 || _la==T__19) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(140);
 				format();
 				setState(142);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
@@ -599,6 +643,7 @@ public class IQLParser extends Parser {
 				}
 
 				setState(145);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==IDENTIFIER || _la==BACKQUOTED_IDENTIFIER) {
 					{
@@ -622,6 +667,7 @@ public class IQLParser extends Parser {
 					_la = _input.LA(1);
 				}
 				setState(155);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__4) {
 					{
@@ -642,7 +688,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__20 || _la==T__21) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(158);
@@ -656,6 +705,7 @@ public class IQLParser extends Parser {
 				setState(162);
 				path();
 				setState(164);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==T__3) {
 					{
@@ -665,6 +715,7 @@ public class IQLParser extends Parser {
 				}
 
 				setState(167);
+				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==IDENTIFIER || _la==BACKQUOTED_IDENTIFIER) {
 					{
@@ -697,7 +748,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__22 || _la==T__23) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(176);
@@ -720,7 +774,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__24 || _la==T__25) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(186);
@@ -733,7 +790,10 @@ public class IQLParser extends Parser {
 					_la = _input.LA(1);
 					if ( _la <= 0 || (_la==T__11) ) {
 					_errHandler.recoverInline(this);
-					} else {
+					}
+					else {
+						if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+						_errHandler.reportMatch(this);
 						consume();
 					}
 					}
@@ -752,7 +812,10 @@ public class IQLParser extends Parser {
 				_la = _input.LA(1);
 				if ( !(_la==T__26 || _la==T__27) ) {
 				_errHandler.recoverInline(this);
-				} else {
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
 					consume();
 				}
 				setState(193);
@@ -765,7 +828,10 @@ public class IQLParser extends Parser {
 					_la = _input.LA(1);
 					if ( _la <= 0 || (_la==T__11) ) {
 					_errHandler.recoverInline(this);
-					} else {
+					}
+					else {
+						if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+						_errHandler.reportMatch(this);
 						consume();
 					}
 					}
@@ -1487,6 +1553,7 @@ public class IQLParser extends Parser {
 		enterRule(_localctx, 36, RULE_strictIdentifier);
 		try {
 			setState(246);
+			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case IDENTIFIER:
 				enterOuterAlt(_localctx, 1);
@@ -1608,7 +1675,7 @@ public class IQLParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3.\u0102\4\2\t\2\4"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3.\u0102\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\3\2\3\2\3\2\7\2\60\n\2\f\2\16"+
@@ -1629,8 +1696,8 @@ public class IQLParser extends Parser {
 		"\23\3\23\3\24\3\24\5\24\u00f9\n\24\3\25\3\25\3\26\6\26\u00fe\n\26\r\26"+
 		"\16\26\u00ff\3\26\2\2\27\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&("+
 		"*\2\16\3\2\3\4\3\2\b\t\3\2\f\r\3\2\16\16\3\2\17\20\3\2\21\22\3\2\23\24"+
-		"\3\2\25\26\3\2\27\30\3\2\31\32\3\2\33\34\3\2\35\36\u0119\2\61\3\2\2\2"+
-		"\4\u00c7\3\2\2\2\6\u00c9\3\2\2\2\b\u00cb\3\2\2\2\n\u00cd\3\2\2\2\f\u00cf"+
+		"\3\2\25\26\3\2\27\30\3\2\31\32\3\2\33\34\3\2\35\36\2\u0119\2\61\3\2\2"+
+		"\2\4\u00c7\3\2\2\2\6\u00c9\3\2\2\2\b\u00cb\3\2\2\2\n\u00cd\3\2\2\2\f\u00cf"+
 		"\3\2\2\2\16\u00d1\3\2\2\2\20\u00d3\3\2\2\2\22\u00d6\3\2\2\2\24\u00da\3"+
 		"\2\2\2\26\u00dc\3\2\2\2\30\u00e0\3\2\2\2\32\u00e4\3\2\2\2\34\u00e6\3\2"+
 		"\2\2\36\u00e8\3\2\2\2 \u00ea\3\2\2\2\"\u00ec\3\2\2\2$\u00f4\3\2\2\2&\u00f8"+
