@@ -1,7 +1,5 @@
 ## IQL
-
-![image.png](https://upload-images.jianshu.io/upload_images/3597066-f92d5093a9787a4f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
+ 
 参考 [spark sql在喜马拉雅的使用之xql](https://github.com/cjuexuan/mynote/issues/21)的load、select、save语法实现了一套基于spark的即席查询服务
 - 优雅的交互方式，支持多种datasource/sink
 - spark常驻服务，基于zookeeper的引擎自动发现
