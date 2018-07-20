@@ -1,10 +1,8 @@
 package cn.i4.iql.adaptor
 
-import java.util.concurrent.ConcurrentHashMap
-
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLLexer
-import cn.i4.iql.antlr.IQLParser.{SqlContext, TableNameContext}
+import cn.i4.iql.antlr.IQLParser.SqlContext
 import org.antlr.v4.runtime.misc.Interval
 
 class SelectAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {

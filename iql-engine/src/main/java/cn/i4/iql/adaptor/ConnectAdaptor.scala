@@ -4,15 +4,13 @@ import java.util.concurrent.ConcurrentHashMap
 
 import cn.i4.iql.IQLSQLExecListener
 import cn.i4.iql.antlr.IQLParser._
-import org.apache.spark.sql._
-import org.apache.spark.sql.bridge.SparkBridge
 
 class ConnectAdaptor(scriptSQLExecListener: IQLSQLExecListener, dbMap: ConcurrentHashMap[String, Map[String, String]]) extends DslAdaptor {
   override def parse(ctx: SqlContext): Unit = {
 
     var option = Map[String, String]()
 
-    (0 to ctx.getChildCount() - 1).foreach { tokenIndex =>
+    (0 until  ctx.getChildCount).foreach { tokenIndex =>
       ctx.getChild(tokenIndex) match {
         case s: FormatContext =>
           option += ("format" -> s.getText)
