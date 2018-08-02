@@ -76,7 +76,6 @@
             <scope>${i4scope}</scope>
         </dependency>
 
-
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-jexl -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -84,8 +83,6 @@
             <version>2.1.1</version>
             <scope>${i4scope}</scope>
         </dependency>
-
-
     </dependencies>
 
 

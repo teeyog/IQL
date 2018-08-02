@@ -9,7 +9,7 @@ import org.apache.spark.sql.SparkSession
 object IqlService {
 
   var schedulerMode:Boolean = true
-  val numActor:Int = 2
+  val numActor:Int = 3
 
   def main(args: Array[String]): Unit = {
 
@@ -35,33 +35,15 @@ object IqlService {
       .enableHiveSupport()
       .getOrCreate()
 
-//    val interpreter = new SparkInterpreter(spark)
-//    interpreter.start()
-//
-//    val withoutUdfString:String = Array(
-//      "import spark.implicits._",
-//      "val df = spark.sparkContext.parallelize(Seq('interpreted without udf', 'foo','bar')).toDF",
-//      "df.show(false)",
-//      "df.createOrReplaceTempView('df')"
-//    ).mkString("\n").replaceAll("'", "\"")
-//
-//    println(withoutUdfString)
-//
-//    interpreter.execute(withoutUdfString) match {
-//      case _: ExecuteIncomplete =>
-//      case e: ExecuteSuccess =>
-//        println(e.content)
-//      case e: ExecuteError =>
-//        println(e.ename + "--" + e.evalue)
-//      case e: ExecuteAborted =>
-//        println(e.message)
-//      case _ =>
-//    }
+
+    val interpreter = new SparkInterpreter(spark)
+    interpreter.start()
+    interpreter.execute("""spark.sql("select keywords from i4.app group by keywords limit 20").show(false)""")
 
 
-    val actorConf = AkkaUtils.getConfig
-    val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
-    val actorSystem = ActorSystem("iqlSystem", actorConf)
-    (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(spark,iqlSession), name = "actor"+ id))
+//    val actorConf = AkkaUtils.getConfig
+//    val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
+//    val actorSystem = ActorSystem("iqlSystem", actorConf)
+//    (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(spark,iqlSession), name = "actor"+ id))
   }
 }

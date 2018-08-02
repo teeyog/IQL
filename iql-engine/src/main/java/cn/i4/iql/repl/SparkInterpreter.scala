@@ -1,19 +1,17 @@
 package cn.i4.iql.repl
 
 import java.io.File
-import java.net.URLClassLoader
+import java.net.{URI, URLClassLoader}
 import java.nio.file.{Files, Paths}
 
 import org.apache.spark.{SparkConf, SparkUtils}
 import org.apache.spark.repl.SparkILoop
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.util.Utils
 
 import scala.tools.nsc.{GenericRunnerSettings, Settings}
 import scala.tools.nsc.interpreter.Completion.ScalaCompleter
 import scala.tools.nsc.interpreter.{IMain, JLineCompletion, JPrintWriter}
 import scala.tools.nsc.interpreter.Results.Result
-import scala.util.control.NonFatal
 
 class SparkInterpreter(protected override val spark: SparkSession) extends AbstractSparkInterpreter {
 
@@ -33,15 +31,24 @@ class SparkInterpreter(protected override val spark: SparkSession) extends Abstr
   override def start(): Unit = {
     require(sparkILoop == null)
 
-    val rootDir = conf.get("spark.repl.classdir", System.getProperty("java.io.tmpdir"))
-    val outputDir = Files.createTempDirectory(Paths.get(rootDir), "spark").toFile
+    val rootDir = conf.getOption("spark.repl.classdir").getOrElse(SparkUtils.getLocalDir(conf))
+    val outputDir = SparkUtils.createTempDir(root = rootDir, namePrefix = "repl")
+
+    val jars  = conf.getOption("spark.repl.local.jars")
+        .map(_.split(",")).map(_.filter(_.nonEmpty)).toSeq.flatten
+        .map { x => if (x.startsWith("file:")) new File(new URI(x)).getPath else x }
+        .mkString(File.pathSeparator)
+
     outputDir.deleteOnExit()
     conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath)
 
-
     val settings = new Settings()
-    settings.processArguments(List("-Yrepl-class-based",
-      "-Yrepl-outdir", s"${outputDir.getAbsolutePath}"), true)
+    settings.processArguments(List(
+      "-Yrepl-class-based",
+      "-Yrepl-outdir", s"${outputDir.getAbsolutePath}",
+      "-classpath", jars
+    ), true
+    )
     settings.usejavacp.value = true
     settings.embeddedDefaults(Thread.currentThread().getContextClassLoader())
 
