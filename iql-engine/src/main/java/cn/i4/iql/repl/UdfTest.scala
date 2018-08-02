@@ -40,7 +40,7 @@ object UdfTest {
         ).mkString("\n").replaceAll("'", "\"")
 
     def main(args: Array[String]) {
-        notInterpreted()
+//        notInterpreted()
         interpret(withoutUdfString)
         interpret(withUdfString)
         spark.stop()

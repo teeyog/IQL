@@ -14,8 +14,8 @@ public class IqlExcution {
     private Long id;
     @Column(nullable = true)
     private String iql;
-    @Column(nullable = true)
-    private String code;
+    @Column(nullable = false)
+    private String mode;
     @Column(nullable = false,name = "start_time")
     private Timestamp startTime;
     @Column(nullable = true,name = "take_time")
@@ -28,6 +28,8 @@ public class IqlExcution {
     private String description;
     @Column(nullable = true,name = "error_message")
     private String errorMessage;
+    @Column(nullable = true,name = "content")
+    private String content;
     @Column(nullable = true,name = "table_schema")
     private String tableSchema;
     @Column(nullable = true,name = "variables")
@@ -36,17 +38,26 @@ public class IqlExcution {
     public IqlExcution() {
     }
 
-    public IqlExcution(String iql, String code, Timestamp startTime, Long takeTime, Boolean isSuccess, String resultPath, String description, String errorMessage, String tableSchema, String variables) {
+    public IqlExcution(String iql, String mode, Timestamp startTime, Long takeTime, Boolean isSuccess, String resultPath, String description, String errorMessage, String content, String tableSchema, String variables) {
         this.iql = iql;
-        this.code = code;
+        this.mode = mode;
         this.startTime = startTime;
         this.takeTime = takeTime;
         this.isSuccess = isSuccess;
         this.resultPath = resultPath;
         this.description = description;
         this.errorMessage = errorMessage;
+        this.content = content;
         this.tableSchema = tableSchema;
         this.variables = variables;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public String getVariables() {
@@ -89,12 +100,12 @@ public class IqlExcution {
         this.iql = iql;
     }
 
-    public String getCode() {
-        return code;
+    public String getMode() {
+        return mode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
     public Timestamp getStartTime() {
@@ -141,7 +152,7 @@ public class IqlExcution {
         JSONObject object = new JSONObject();
         object.put("id",id);
         object.put("iql",iql);
-        object.put("code",code);
+        object.put("mode",mode);
         object.put("startTime",startTime);
         object.put("takeTime",takeTime);
         object.put("isSuccess",isSuccess);

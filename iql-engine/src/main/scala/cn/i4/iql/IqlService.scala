@@ -1,15 +1,15 @@
 package cn.i4.iql
 
-import java.util.concurrent.ConcurrentHashMap
-
 import akka.actor.ActorSystem
-import cn.i4.iql.utils.{AkkaUtils, PropsUtils}
+import cn.i4.iql.repl.Interpreter.{ExecuteAborted, ExecuteError, ExecuteIncomplete, ExecuteSuccess}
+import cn.i4.iql.repl.SparkInterpreter
+import cn.i4.iql.utils.AkkaUtils
 import org.apache.spark.sql.SparkSession
 
 object IqlService {
 
   var schedulerMode:Boolean = true
-  val numActor:Int = 3
+  val numActor:Int = 2
 
   def main(args: Array[String]): Unit = {
 
@@ -29,11 +29,34 @@ object IqlService {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       //调度模式
       .config("spark.scheduler.mode", "FAIR")
-      .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
+//      .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
       .config("spark.executor.memoryOverhead","1024")
-//     .master("local[4]")
+     .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
+
+//    val interpreter = new SparkInterpreter(spark)
+//    interpreter.start()
+//
+//    val withoutUdfString:String = Array(
+//      "import spark.implicits._",
+//      "val df = spark.sparkContext.parallelize(Seq('interpreted without udf', 'foo','bar')).toDF",
+//      "df.show(false)",
+//      "df.createOrReplaceTempView('df')"
+//    ).mkString("\n").replaceAll("'", "\"")
+//
+//    println(withoutUdfString)
+//
+//    interpreter.execute(withoutUdfString) match {
+//      case _: ExecuteIncomplete =>
+//      case e: ExecuteSuccess =>
+//        println(e.content)
+//      case e: ExecuteError =>
+//        println(e.ename + "--" + e.evalue)
+//      case e: ExecuteAborted =>
+//        println(e.message)
+//      case _ =>
+//    }
 
 
     val actorConf = AkkaUtils.getConfig

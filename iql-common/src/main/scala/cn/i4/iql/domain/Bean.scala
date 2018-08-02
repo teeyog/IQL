@@ -4,7 +4,7 @@ object Bean {
 
   case class IQLEngine(engineId:Int,engineInfo:String)
 
-  case class Iql(code:String,iql:String, variables:String)
+  case class Iql(mode:String,iql:String, variables:String)
 
   case class StopIQL()
 

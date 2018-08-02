@@ -14,6 +14,7 @@ import org.apache.spark.sql.SparkSession
 import cn.i4.iql.repl.SparkInterpreter
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import cn.i4.iql.IqlService._
+import cn.i4.iql.repl.Interpreter._
 import org.apache.spark.sql.bridge.SparkBridge
 
 
@@ -49,7 +50,7 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
     case HiveCatalogWithAutoComplete() =>
       sender() ! getHiveCatalogWithAutoComplete
 
-    case Iql(code, iql, variables) =>
+    case Iql(mode, iql, variables) =>
       actorWapper() { () => {
         var rIql = iql
         val variblesIters = JSON.parseArray(variables).iterator()
@@ -64,8 +65,6 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
         resJson.put("startTime", new Timestamp(System.currentTimeMillis))
         resJson.put("iql", iql)
         resJson.put("variables", variables)
-        resJson.put("code", code)
-        if (!code.trim.equals("")) interpreter.execute(code.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "")) //过滤掉注释
         //为当前iql设置groupId
         val groupId = BatchSQLRunnerEngine.getGroupId
         resJson.put("engineInfoAndGroupId", iqlSession.engineInfo + "_" + groupId)
@@ -74,8 +73,18 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
         sparkSession.sparkContext.setJobGroup("iqlid:" + groupId, "iql:" + rIql)
         //将该iql任务的唯一标识返回
         sender() ! resJson.toJSONString
-        //解析iql并执行
-        parse(rIql, new IQLSQLExecListener(sparkSession, iqlSession))
+
+        mode match {
+          case "iql" =>
+            resJson.put("mode", "iql")
+            parse(rIql, new IQLSQLExecListener(sparkSession, iqlSession))
+          case "code" =>
+            resJson.put("mode", "code")
+            rIql = rIql.replaceAll("'", "\"")
+            val response = interpreter.execute(rIql)
+            getExecuteState(response)
+          case _ =>
+        }
       }
       }
 
@@ -102,7 +111,7 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
       }.toJSONString
 
     case StreamJobStatus(name) =>
-     sender() ! iqlSession.streamJob(name).status.prettyJson
+      sender() ! iqlSession.streamJob(name).status.prettyJson
 
     case StopSreamJob(name) =>
       iqlSession.streamJob(name).stop()
@@ -119,7 +128,6 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
 
   //antlr4解析SQL语句
   def parse(input: String, listener: IQLSQLExecListener): Unit = {
-    resJson.put("status", "FINISH")
     try {
       val loadLexer = new IQLLexer(new ANTLRInputStream(input))
       val tokens = new CommonTokenStream(loadLexer)
@@ -141,6 +149,7 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
         resJson.put("errorMessage", new String(out.toByteArray))
         out.close()
     }
+    resJson.put("status", "FINISH")
     iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
   }
 
@@ -208,6 +217,31 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
       hiveObj.put(db, tbArray)
     })
     hiveObj.toJSONString
+  }
+
+  def getExecuteState(response:ExecuteResponse): Unit = {
+
+    response match {
+      case _: ExecuteIncomplete => getExecuteState(response)
+      case e: ExecuteSuccess =>
+        val take = (System.currentTimeMillis() - resJson.getTimestamp("startTime").getTime) / 1000
+        resJson.put("takeTime", take)
+        resJson.put("isSuccess", true)
+        resJson.put("content",e.content.values.map(_._2).mkString("\n"))
+        resJson.put("status", "FINISH")
+        iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+      case e: ExecuteError =>
+        resJson.put("isSuccess", false)
+        resJson.put("errorMessage",e.evalue)
+        resJson.put("status", "FINISH")
+        iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+      case e: ExecuteAborted =>
+        resJson.put("isSuccess", false)
+        resJson.put("errorMessage",e.message)
+        resJson.put("status", "FINISH")
+        iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+      case _ =>
+    }
   }
 }
 

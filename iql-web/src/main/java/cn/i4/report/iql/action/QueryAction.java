@@ -58,8 +58,8 @@ public class QueryAction {
      */
     @PostMapping(value = "/query")
     public JSONObject execution(@RequestParam("iql") String iql,
+                                @RequestParam("mode") String mode,
                                 @RequestParam(value = "variables") String variables,
-                                @RequestParam(value = "code", required = false, defaultValue = "") String code,
                                 @RequestParam(value = "descrption", required = false, defaultValue = "") String descrption) {
         JSONObject resultObj = new JSONObject();
         resultObj.put("isSuccess", false);
@@ -77,7 +77,7 @@ public class QueryAction {
             ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
             try {
                 Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(code, iql, variables), timeout);
+                Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(mode, iql, variables), timeout);
                 String result1 = Await.result(future1, timeout.duration()).toString();
                 resultObj = JSON.parseObject(result1);
                 resultObj.put("isSuccess", true);
@@ -111,10 +111,10 @@ public class QueryAction {
                 resultObj.put("errorMessage", e.getMessage());
             }
             if (!resultObj.getString("status").equals("RUNNING")) {
-                iqlExcutionRepository.save(new IqlExcution(resultObj.getString("iql"), resultObj.getString("code"), resultObj.getTimestamp("startTime"),
+                iqlExcutionRepository.save(new IqlExcution(resultObj.getString("iql"), resultObj.getString("mode"), resultObj.getTimestamp("startTime"),
                         Long.valueOf(resultObj.getOrDefault("takeTime", "0").toString()), resultObj.getBoolean("isSuccess"),
                         resultObj.getOrDefault("hdfsPath", "").toString(), "", resultObj.getOrDefault("errorMessage", "").toString(),
-                        resultObj.getOrDefault("schema", "").toString(), resultObj.getString("variables")));
+                        resultObj.getOrDefault("content", "").toString(),resultObj.getOrDefault("schema", "").toString(), resultObj.getString("variables")));
                 if (resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0) {
                     resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString()));
                     resultObj.put("schema", resultObj.getOrDefault("schema", "").toString());
@@ -147,7 +147,6 @@ public class QueryAction {
             return jsonObject;
         }
     }
-
 
     /**
      * 获取活跃StreamJobs
@@ -209,7 +208,7 @@ public class QueryAction {
     }
 
     /**
-     * 根据历史查询加载结果
+     * 停止StreamJob
      */
     @PostMapping(value = "/stopStreamJob")
     public JSONObject stopStreamJob(String engineInfo, String name, String uid) {
@@ -236,15 +235,15 @@ public class QueryAction {
         }
     }
 
-
     /**
      * 根据历史查询加载结果
      */
     @PostMapping(value = "/loadresult")
-    public JSONObject loadResult(String hdfsPath, String schema) {
+    public JSONObject loadResult(String hdfsPath, String schema, String mode, Long id) {
         JSONObject resultObj = new JSONObject();
         try {
-            resultObj.put("data", HdfsUtils.readFileToString(hdfsPath));
+            if(mode.equals("iql")) resultObj.put("data", HdfsUtils.readFileToString(hdfsPath));
+            else resultObj.put("content",iqlExcutionRepository.findOne(id).getContent());
             resultObj.put("schema", schema);
             resultObj.put("isSuccess", true);
         } catch (Exception e) {
@@ -375,13 +374,13 @@ public class QueryAction {
     @ResponseBody
     public String updateIql(@RequestParam(value = "id", required = false, defaultValue = "") String id,
                             @RequestParam(value = "iql", required = false, defaultValue = "") String iql,
-                            @RequestParam(value = "code", required = false, defaultValue = "") String code,
+                            @RequestParam(value = "mode", required = false, defaultValue = "") String mode,
                             @RequestParam(value = "name", required = false, defaultValue = "defaultName") String name,
                             @RequestParam(value = "description", required = false, defaultValue = "") String description) {
         if (id.equals("")) {
-            saveIqlRepository.save(new SaveIql(iql, code, name, description, new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis())));
+            saveIqlRepository.save(new SaveIql(iql, mode, name, description, new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis())));
         } else {
-            saveIqlRepository.updateOne(iql, code, name, description, new Timestamp(System.currentTimeMillis()), Integer.valueOf(id));
+            saveIqlRepository.updateOne(iql, mode, name, description, new Timestamp(System.currentTimeMillis()), Integer.valueOf(id));
         }
         return "success";
     }

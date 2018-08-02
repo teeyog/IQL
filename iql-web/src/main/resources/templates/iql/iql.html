@@ -87,6 +87,17 @@
                         <a class="btn" onclick="formatIQL()" title="format the current iql query"><i
                                 class="fa fa-indent"></i></a>
                     </div>
+
+                    <div class="form-group" style="float: right;margin-right: 10px">
+                        <div class="btn-group" data-toggle="buttons">
+                            <label class="btn btn-primary btn-outline active">
+                                <input name="findType" type="radio" value="iql">SQL
+                            </label>
+                            <label class="btn btn-primary btn-outline">
+                                <input name="findType" type="radio" value="code">Code
+                            </label>
+                        </div>
+                    </div>
                 </form>
                 <div class="loading" style="display: none;padding-top: 5px;margin-left: 30px">
                     <div class="form-group">
@@ -172,6 +183,10 @@
                                 </form>
                                 <table id="results-list-table" data-classes="table table-hover table-condensed"
                                        data-mobile-responsive="true">
+                                    <div id="result-content"
+                                         style="width: 100%;background-color: #f7f7f7;display: none">
+                                        <pre></pre>
+                                    </div>
                                 </table>
                             </div>
                         </div>
@@ -362,13 +377,23 @@
             'click .RoleOfloadHistory': function (e, value, row, index) {
                 $("#errorMessage").hide();
                 $("#execForm, .loading").toggle();
-                $.post("/loadresult", {schema: row.tableSchema, hdfsPath: row.resultPath}, function (data) {
+                $.post("/loadresult", {schema: row.tableSchema, hdfsPath: row.resultPath, mode:row.mode,id: row.id}, function (data) {
                     $("#execForm, .loading").toggle();
+                    $("#result-content").hide();
+                    $("#result-content pre").html("");
+                    $("#results-list-table").bootstrapTable("destroy")
+                    $("#downloadForm").hide();
                     if (data.isSuccess) {
-                        hdfsPath = row.resultPath;
-                        schema = row.tableSchema;
-                        $("#results-tab").tab("show");
-                        loadResultsTable(data.schema, JSON.parse(data.data))
+                        if(row.mode == "code"){
+                            $("#results-tab").tab("show");
+                            $("#result-content").show();
+                            $("#result-content pre").html(data.content)
+                        }else{
+                            hdfsPath = row.resultPath;
+                            schema = row.tableSchema;
+                            $("#results-tab").tab("show");
+                            loadResultsTable(data.schema, JSON.parse(data.data))
+                        }
                     } else {
                         $("#errorMessage").show();
                         $("#errorMessage pre").html(data.errorMessage)
@@ -393,6 +418,13 @@
             $("#queryId").val("");
             $("#queryName").val("");
             $("#queryDescription").val("");
+            if(row.mode == "iql"){
+                $(".btn-group").find("label").eq(0).addClass("active");
+                $(".btn-group").find("label").eq(1).removeClass("active");
+            }else {
+                $(".btn-group").find("label").eq(1).addClass("active");
+                $(".btn-group").find("label").eq(0).removeClass("active");
+            }
             obj.variables.removeAll();
             $.each(JSON.parse(row.variables), function (index, data) {
                 obj.variables.push({name: data.name, value: data.value});
@@ -403,6 +435,13 @@
             $("#queryId").val(row.id);
             $("#queryName").val(row.name);
             $("#queryDescription").val(row.description);
+            if(row.mode == "iql"){
+                $(".btn-group").find("label").eq(0).addClass("active");
+                $(".btn-group").find("label").eq(1).removeClass("active");
+            }else {
+                $(".btn-group").find("label").eq(1).addClass("active");
+                $(".btn-group").find("label").eq(0).removeClass("active");
+            }
         });
 
         $.fn.zTree.init($("#treeDemo"), setting);
@@ -427,10 +466,13 @@
 
         $("#errorMessage").hide();
         $("#errorMessage pre").html("");
+        $("#result-content").hide();
+        $("#result-content pre").html("");
         $("#execForm, .loading").toggle();
         $("#downloadForm").hide();
         $.post("/query", {
             iql: iqlText,
+            mode:$(".btn-group").children(".active").children("input").val(),
             variables: JSON.stringify(varis),
             descrption: $("#queryDescription").val()
         }, function (data) {
@@ -439,10 +481,17 @@
                 $.post("/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function (data) {
                     $("#execForm, .loading").toggle();
                     if (data.isSuccess) {
-                        $("#results-tab").tab("show");
-                        hdfsPath = data.hdfsPath;
-                        schema = data.schema;
-                        loadResultsTable(data.schema, JSON.parse(data.data))
+                        $("#results-list-table").bootstrapTable("destroy")
+                        if("content" in data){
+                            $("#results-tab").tab("show");
+                            $("#result-content").show();
+                            $("#result-content pre").html(data.content)
+                        }else {
+                            $("#results-tab").tab("show");
+                            hdfsPath = data.hdfsPath;
+                            schema = data.schema;
+                            loadResultsTable(data.schema, JSON.parse(data.data))
+                        }
                     } else {
                         $("#errorMessage").show();
                         $("#errorMessage pre").html(data.errorMessage)
@@ -481,7 +530,6 @@
                 align: 'center'
             })
         });
-        $("#results-list-table").bootstrapTable("destroy")
         $("#results-list-table").bootstrapTable({
             method: 'get',
             cache: false,
@@ -580,6 +628,16 @@
                     visible: false
                 },
                 {
+                    field: 'mode',
+                    title: 'mode',
+                    visible: false
+                },
+                {
+                    field: 'id',
+                    title: 'id',
+                    visible: false
+                },
+                {
                     field: 'id',
                     title: '操作',
                     align: 'center',
@@ -632,6 +690,11 @@
                     formatter: function (value, row, index) {
                         return '<span title="' + timestampToTime(value) + '">' + timestampToTime(value) + '</span>'
                     }
+                },
+                {
+                    field: 'mode',
+                    title: 'mode',
+                    visible: false
                 }, {
                     field: 'id',
                     title: '操作',
@@ -668,6 +731,7 @@
         $.post('/saveiql', {
             id: $("#queryId").val(),
             iql: window.editor.getValue(),
+            mode:$(".btn-group").children(".active").children("input").val(),
             name: $("#queryName").val(),
             description: $("#queryDescription").val()
         }, function () {
@@ -693,7 +757,7 @@
         ].join('');
     }
 
-    //为行添加加载结果操作
+    //为行添加结束StreamJob操作
     function operateFormatter_stop_streamjob(value, row, index) {
         return [
             '<button type="button" class="RoleOfstopStreamJob btn btn-ms btn-default" style="margin-right:10px;">stop</button>'

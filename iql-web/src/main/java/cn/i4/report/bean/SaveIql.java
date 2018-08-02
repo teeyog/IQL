@@ -14,8 +14,8 @@ public class SaveIql {
     private Long id;
     @Column(nullable = true)
     private String iql;
-    @Column(nullable = true)
-    private String code;
+    @Column(nullable = false)
+    private String mode;
     @Column(nullable = false)
     private String name;
     @Column(nullable = true)
@@ -28,9 +28,9 @@ public class SaveIql {
     public SaveIql() {
     }
 
-    public SaveIql(String iql, String code, String name, String description, Timestamp createTime, Timestamp updateTime) {
+    public SaveIql(String iql, String mode, String name, String description, Timestamp createTime, Timestamp updateTime) {
         this.iql = iql;
-        this.code = code;
+        this.mode = mode;
         this.name = name;
         this.description = description;
         this.createTime = createTime;
@@ -69,12 +69,12 @@ public class SaveIql {
         this.iql = iql;
     }
 
-    public String getCode() {
-        return code;
+    public String getMode() {
+        return mode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
     public String getName() {
@@ -97,7 +97,7 @@ public class SaveIql {
         JSONObject object = new JSONObject();
         object.put("id",id);
         object.put("iql",iql);
-        object.put("code",code);
+        object.put("mode",mode);
         object.put("name",name);
         object.put("description",description);
         object.put("createTime",createTime);

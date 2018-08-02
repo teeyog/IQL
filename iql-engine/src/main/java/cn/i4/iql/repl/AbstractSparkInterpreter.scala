@@ -55,11 +55,10 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
         spark,
         List("""@transient"""))
 //      bind("sc", "org.apache.spark.SparkContext", sparkEntries.sc().sc, List("""@transient"""))
-
-//      execute("import org.apache.spark.SparkContext._")
-//      execute("import spark.implicits._")
-//      execute("import spark.sql")
-//      execute("import org.apache.spark.sql.functions._")
+      execute("import org.apache.spark.SparkContext._")
+      execute("import spark.implicits._")
+      execute("import spark.sql")
+      execute("import org.apache.spark.sql.functions._")
     } else {
       bind("sc", "org.apache.spark.SparkContext", sparkEntries.sc().sc, List("""@transient"""))
       val sqlContext = Option(sparkEntries.hivectx()).getOrElse(sparkEntries.sqlctx())
