@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import cn.i4.iql.repl.Interpreter.{ExecuteAborted, ExecuteError, ExecuteIncomplete, ExecuteSuccess}
 import cn.i4.iql.repl.SparkInterpreter
 import cn.i4.iql.utils.AkkaUtils
+import org.apache.spark.{SparkConf, SparkUtils}
 import org.apache.spark.sql.SparkSession
 
 object IqlService {
@@ -29,21 +30,15 @@ object IqlService {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       //调度模式
       .config("spark.scheduler.mode", "FAIR")
-//      .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
+      .config("spark.scheduler.allocation.file","/home/runtime_file/fairscheduler.xml")
       .config("spark.executor.memoryOverhead","1024")
-     .master("local[4]")
+//     .master("local[4]")
       .enableHiveSupport()
       .getOrCreate()
 
-
-    val interpreter = new SparkInterpreter(spark)
-    interpreter.start()
-    interpreter.execute("""spark.sql("select keywords from i4.app group by keywords limit 20").show(false)""")
-
-
-//    val actorConf = AkkaUtils.getConfig
-//    val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
-//    val actorSystem = ActorSystem("iqlSystem", actorConf)
-//    (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(spark,iqlSession), name = "actor"+ id))
+    val actorConf = AkkaUtils.getConfig
+    val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
+    val actorSystem = ActorSystem("iqlSystem", actorConf)
+    (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(spark,iqlSession), name = "actor"+ id))
   }
 }

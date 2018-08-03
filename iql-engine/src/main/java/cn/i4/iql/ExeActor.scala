@@ -29,7 +29,7 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
     warn("Actor Start ...")
     sparkSession = spark.newSession()
     interpreter = new SparkInterpreter(sparkSession)
-//    interpreter.start()
+    interpreter.start()
     Class.forName("cn.i4.iql.utils.SparkUDF").getMethods.filter(_.getModifiers == 9).foreach { f =>
       f.invoke(null, sparkSession)
     }
@@ -82,7 +82,6 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
             resJson.put("mode", "code")
             rIql = rIql.replaceAll("'", "\"")
             val response = interpreter.execute(rIql)
-            interpreter.close()
             getExecuteState(response)
           case _ =>
         }

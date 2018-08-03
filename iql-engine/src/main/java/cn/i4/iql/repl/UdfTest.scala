@@ -1,13 +1,14 @@
 package cn.i4.iql.repl
 
 import java.io.File
+
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkConf, SparkUtils}
 
 object UdfTest {
     val spark = SparkSession.builder()
             .appName("udftest")
-            .master("local")
+//            .master("local")
             .getOrCreate()
     import spark.implicits._
 
@@ -42,7 +43,7 @@ object UdfTest {
     def main(args: Array[String]) {
 //        notInterpreted()
         interpret(withoutUdfString)
-        interpret(withUdfString)
+//        interpret(withUdfString)
         spark.stop()
     }
 
@@ -53,7 +54,7 @@ object UdfTest {
         val cl = ClassLoader.getSystemClassLoader
         val conf = new SparkConf()
         val settings = new GenericRunnerSettings( println _ )
-        val jars = (getUserJars(conf, isShell = true) ++ cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator)
+        val jars = (SparkUtils.getUserJars(conf, isShell = true) ++ cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator)
         val interpArguments = List(
             "-classpath", jars
         )
@@ -68,20 +69,5 @@ object UdfTest {
         intp.interpret(script)
     }
 
-    def getUserJars(conf: SparkConf, isShell: Boolean = false): Seq[String] = {
-        val sparkJars = conf.getOption("spark.jars")
-//        if (conf.get("spark.master") == "yarn" && isShell) {
-//            val yarnJars = conf.getOption("spark.yarn.dist.jars")
-//            unionFileLists(sparkJars, yarnJars).toSeq
-//        } else {
-            sparkJars.map(_.split(",")).map(_.filter(_.nonEmpty)).toSeq.flatten
-//        }
-    }
 
-    def unionFileLists(leftList: Option[String], rightList: Option[String]): Set[String] = {
-        var allFiles = Set[String]()
-        leftList.foreach { value => allFiles ++= value.split(",") }
-        rightList.foreach { value => allFiles ++= value.split(",") }
-        allFiles.filter { _.nonEmpty }
-    }
 }
