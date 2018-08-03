@@ -10,6 +10,7 @@
 - 采用spark的FAIR调度
 - 基于spark的动态资源分配，在无任务的情况下不会占用executor资源
 - 基于Structured Streaming实现SQL动态添加流
+- 可以直接写代码
 
 支持的数据源：hdfs、hive、hbase、kafka、mysql、es
 

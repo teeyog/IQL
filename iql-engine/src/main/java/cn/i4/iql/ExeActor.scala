@@ -58,7 +58,7 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
           val nObject = JSON.parseObject(variblesIters.next().toString)
           rIql = rIql.replace("${" + nObject.getString("name") + "}", nObject.getString("value"))
         }
-        warn("\n" + rIql)
+        warn("\n" + ("*" * 80) + "\n" + rIql + "\n" + ("*" * 80))
         schedulerMode = !schedulerMode //切换调度池
         sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
         resJson = new JSONObject()
@@ -226,7 +226,7 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
         val take = (System.currentTimeMillis() - resJson.getTimestamp("startTime").getTime) / 1000
         resJson.put("takeTime", take)
         resJson.put("isSuccess", true)
-        resJson.put("content",e.content.values.map(_._2).mkString("\n"))
+        resJson.put("content",e.content.values.values.mkString("\n"))
         resJson.put("status", "FINISH")
         iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
       case e: ExecuteError =>

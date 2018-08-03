@@ -27,7 +27,6 @@ object SparkUtils {
     Utils.createTempDir(root,namePrefix)
   }
 
-
   def unionFileLists(leftList: Option[String], rightList: Option[String]): Set[String] = {
     var allFiles = Set[String]()
     leftList.foreach { value => allFiles ++= value.split(",") }
