@@ -2,7 +2,9 @@ package cn.i4.iql.repl
 
 import java.io.File
 
+import org.apache.spark.repl.SparkILoop
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
 import org.apache.spark.{SparkConf, SparkUtils}
 
 object UdfTest {
@@ -42,22 +44,45 @@ object UdfTest {
 
     def main(args: Array[String]) {
 //        notInterpreted()
-        interpret(withoutUdfString)
+        interpret(withoutUdfString)/**/
+//        val s =
+//            """
+//              | spark.sparkContext.parallelize(Seq(("A",12),("B",13))).reduceByKey(_+_).foreach(println)
+//            """.stripMargin
+//        SparkILoop.run(s)
+//        interpret(s)
 //        interpret(withUdfString)
-        spark.stop()
+//        spark.stop()
+
+//        spark.sparkContext.parallelize(Seq(("A",12),("B",13)))
+//            .reduceByKey(_+_).foreach(println)
     }
 
     def interpret(script:String) {
         import scala.tools.nsc.GenericRunnerSettings
         import scala.tools.nsc.interpreter.IMain
 
-        val cl = ClassLoader.getSystemClassLoader
         val conf = new SparkConf()
+        val rootDir = conf.getOption("spark.repl.classdir").getOrElse(SparkUtils.getLocalDir(conf))
+        val outputDir = SparkUtils.createTempDir(root = rootDir, namePrefix = "repl")
+        conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath())
+
+        outputDir.deleteOnExit()
+        conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath)
+
+        val cl = ClassLoader.getSystemClassLoader
+
         val settings = new GenericRunnerSettings( println _ )
-        val jars = (SparkUtils.getUserJars(conf, isShell = true) ++ cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator)
+        val jars = (SparkUtils.getUserJars(conf) ++ cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator)
         val interpArguments = List(
-            "-classpath", jars
+            "-usejavacp",
+            "-Yrepl-class-based",
+            "-Yrepl-outdir",
+            s"${outputDir.getAbsolutePath}",
+            "-classpath",
+            jars
         )
+
         settings.processArguments(interpArguments, true)
         settings.usejavacp.value = true
 

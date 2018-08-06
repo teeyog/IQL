@@ -18,17 +18,17 @@ import cn.i4.iql.repl.Interpreter._
 import org.apache.spark.sql.bridge.SparkBridge
 
 
-class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with Logging {
+class ExeActor( iqlSession: IQLSession) extends Actor with Logging {
 
-  var sparkSession: SparkSession = _
+  var sparkSession: SparkSession = _//IqlService.createSparkSession()
   var interpreter: SparkInterpreter = _
   var resJson = new JSONObject()
   val zkValidActorPath = ZkUtils.validEnginePath + "/" + iqlSession.engineInfo + "_" + context.self.path.name
 
   override def preStart(): Unit = {
     warn("Actor Start ...")
-    sparkSession = spark.newSession()
-    interpreter = new SparkInterpreter(sparkSession)
+    sparkSession = IqlService.getSpark
+    interpreter = new SparkInterpreter()
     interpreter.start()
     Class.forName("cn.i4.iql.utils.SparkUDF").getMethods.filter(_.getModifiers == 9).foreach { f =>
       f.invoke(null, sparkSession)
@@ -80,7 +80,7 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
             parse(rIql, new IQLSQLExecListener(sparkSession, iqlSession))
           case "code" =>
             resJson.put("mode", "code")
-            rIql = rIql.replaceAll("'", "\"")
+            rIql = rIql.replaceAll("'", "\"").replaceAll("\n"," ")
             val response = interpreter.execute(rIql)
             getExecuteState(response)
           case _ =>
@@ -246,6 +246,6 @@ class ExeActor(spark: SparkSession, iqlSession: IQLSession) extends Actor with L
 
 object ExeActor {
 
-  def props(spark: SparkSession, iqlSession: IQLSession): Props = Props(new ExeActor(spark, iqlSession))
+  def props(iqlSession: IQLSession): Props = Props(new ExeActor( iqlSession))
 
 }

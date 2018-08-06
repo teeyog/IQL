@@ -9,7 +9,7 @@ object SparkUtils {
 
   def getUserJars(conf: SparkConf, isShell: Boolean = false): Seq[String] = {
     val sparkJars = conf.getOption("spark.jars")
-    if (conf.get("spark.master") == "yarn" && isShell) {
+    if (isShell && conf.get("spark.master") == "yarn" ) {
       val yarnJars = conf.getOption("spark.yarn.dist.jars")
       unionFileLists(sparkJars, yarnJars).toSeq
     } else {

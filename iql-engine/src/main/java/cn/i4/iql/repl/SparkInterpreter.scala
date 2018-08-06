@@ -4,7 +4,7 @@ import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Paths
 
-import org.apache.spark. SparkUtils
+import org.apache.spark.{SparkConf, SparkUtils}
 import org.apache.spark.repl.SparkILoop
 import org.apache.spark.sql.SparkSession
 
@@ -13,13 +13,10 @@ import scala.tools.nsc.interpreter.Completion.ScalaCompleter
 import scala.tools.nsc.interpreter.{IMain, JLineCompletion, JPrintWriter}
 import scala.tools.nsc.interpreter.Results.Result
 
-class SparkInterpreter(protected override val spark: SparkSession) extends AbstractSparkInterpreter {
+class SparkInterpreter extends AbstractSparkInterpreter {
 
     private var sparkILoop: SparkILoop = _
     private var sparkHttpServer: Object = _
-
-
-    def conf = spark.sparkContext.getConf
 
     private var hasErrors = false
 
@@ -30,7 +27,7 @@ class SparkInterpreter(protected override val spark: SparkSession) extends Abstr
 
     override def start(): Unit = {
         require(sparkILoop == null)
-
+        val conf = new SparkConf()
         val rootDir = conf.getOption("spark.repl.classdir").getOrElse(SparkUtils.getLocalDir(conf))
         val outputDir = SparkUtils.createTempDir(root = rootDir, namePrefix = "repl")
         conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath())
@@ -44,18 +41,23 @@ class SparkInterpreter(protected override val spark: SparkSession) extends Abstr
 
         val settings = new Settings()
         settings.processArguments(List(
+            "-usejavacp",
             "-Yrepl-class-based",
-            "-Yrepl-outdir", s"${outputDir.getAbsolutePath}",
-            "-classpath", jars
+            "-Yrepl-outdir",
+            s"${outputDir.getAbsolutePath}",
+            "-classpath",
+            jars
         ), true
         )
-        settings.usejavacp.value = true
-        settings.embeddedDefaults(Thread.currentThread().getContextClassLoader())
+//        settings.usejavacp.value = true
+//        settings.embeddedDefaults(Thread.currentThread().getContextClassLoader())
 
         sparkILoop = new SparkILoop(None, new JPrintWriter(outputStream, true))
         sparkILoop.settings = settings
         sparkILoop.createInterpreter()
+        sparkILoop.setContextClassLoader()
         sparkILoop.initializeSynchronous()
+        println("settings.outputDirs().getSingleOutput().get() : " + settings.outputDirs.getSingleOutput.get)
 
         restoreContextClassLoader {
             sparkILoop.setContextClassLoader()
