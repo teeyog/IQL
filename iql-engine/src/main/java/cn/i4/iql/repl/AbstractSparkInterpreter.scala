@@ -46,11 +46,12 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
     protected def bind(name: String, tpe: String, value: Object, modifier: List[String]): Unit
 
     protected def postStart(): Unit = {
-            execute("@transient val spark = cn.i4.iql.IqlService.getSpark")
+            execute("@transient val spark = cn.i4.iql.IqlService.createSpark")
             execute("import org.apache.spark.SparkContext._")
             execute("import spark.implicits._")
             execute("import spark.sql")
             execute("import org.apache.spark.sql.functions._")
+//            execute("spark.sparkContext.parallelize(Seq((\"A\",12),(\"B\",13))).reduceByKey(_+_).foreach(println)")
     }
 
     override def close(): Unit = {

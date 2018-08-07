@@ -33,6 +33,7 @@ public class MCWebMvcConfigurer extends WebMvcConfigurerAdapter{
                 .excludePathPatterns("/getActiveStreams")
                 .excludePathPatterns("/query")
                 .excludePathPatterns("/query2")
+                .excludePathPatterns("/getresult")
                 .excludePathPatterns("/getStreamStatus")
                 .excludePathPatterns("/stopStreamJob");
         super.addInterceptors(registry);

@@ -92,7 +92,7 @@ public class QueryAction {
      * 获取结果
      */
     @PostMapping(value = "/getresult")
-    public JSONObject getResult(String engineInfoAndGroupId) {
+    public JSONObject getResult(@RequestParam("engineInfoAndGroupId") String engineInfoAndGroupId) {
         JSONObject resultObj = new JSONObject();
         String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfoAndGroupId.split("_")[0]);
         if (validEngineByEngineInfo == null) {
@@ -132,16 +132,17 @@ public class QueryAction {
     }
 
     @PostMapping(value = "/query2")
-    public JSONObject execution(@RequestParam("iql") String iql) throws Exception {
-        HashMap pramMap = new HashMap<String, String>();
+    public JSONObject execution(String iql, int timeout) throws Exception {
+        Map pramMap = new HashMap<String, String>();
         pramMap.put("iql", iql);
         pramMap.put("variables", "[]");
-        String postResult = HttpUtils.post("http://192.168.1.233:8888/query", pramMap, 600, "utf-8");
+        pramMap.put("mode", "iql");
+        String postResult = HttpUtils.post("http://localhost:8888/query", pramMap, 6000, "utf-8");
         JSONObject jsonObject = JSON.parseObject(postResult);
         if (jsonObject.getBoolean("isSuccess")) {
-            HashMap pramMap2 = new HashMap<String, String>();
+            Map pramMap2 = new HashMap<String, String>();
             pramMap2.put("engineInfoAndGroupId", jsonObject.getString("engineInfoAndGroupId"));
-            String postResult2 = HttpUtils.post("http://192.168.1.233:8888/getresult", pramMap2, 60000, "utf-8");
+            String postResult2 = HttpUtils.post("http://localhost:8888/getresult", pramMap2, timeout, "utf-8");
             return JSON.parseObject(postResult2);
         } else {
             return jsonObject;
@@ -296,7 +297,7 @@ public class QueryAction {
     }
 
     /**
-     * 或者hive元数据
+     * 获取hive元数据
      */
     @RequestMapping(value = "/hiveMetadata", method = RequestMethod.GET)
     @ResponseBody
@@ -321,7 +322,7 @@ public class QueryAction {
     }
 
     /**
-     * 或者hive元数据
+     * hive元数据自动补全
      */
     @RequestMapping(value = "/autoCompletehiveMetadata", method = RequestMethod.GET)
     @ResponseBody

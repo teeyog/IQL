@@ -34,4 +34,8 @@ object SparkUtils {
     allFiles.filter { _.nonEmpty }
   }
 
+  def getLocalUserJarsForShell(conf: SparkConf): Seq[String] = {
+    Utils.getLocalUserJarsForShell(conf)
+  }
+
 }

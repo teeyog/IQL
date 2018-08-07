@@ -18,18 +18,20 @@ import cn.i4.iql.repl.Interpreter._
 import org.apache.spark.sql.bridge.SparkBridge
 
 
-class ExeActor( iqlSession: IQLSession) extends Actor with Logging {
+class ExeActor(iqlSession: IQLSession) extends Actor with Logging {
 
-  var sparkSession: SparkSession = _//IqlService.createSparkSession()
+  var sparkSession: SparkSession = _
   var interpreter: SparkInterpreter = _
   var resJson = new JSONObject()
   val zkValidActorPath = ZkUtils.validEnginePath + "/" + iqlSession.engineInfo + "_" + context.self.path.name
 
   override def preStart(): Unit = {
     warn("Actor Start ...")
-    sparkSession = IqlService.getSpark
     interpreter = new SparkInterpreter()
     interpreter.start()
+    Thread.sleep(50000)
+//    interpreter.execute("""spark.sparkContext.parallelize(Seq(("A",12),("B",13))).reduceByKey(_+_).take(10)""")
+    sparkSession = IqlService.createSpark().newSession()
     Class.forName("cn.i4.iql.utils.SparkUDF").getMethods.filter(_.getModifiers == 9).foreach { f =>
       f.invoke(null, sparkSession)
     }
@@ -246,6 +248,6 @@ class ExeActor( iqlSession: IQLSession) extends Actor with Logging {
 
 object ExeActor {
 
-  def props(iqlSession: IQLSession): Props = Props(new ExeActor( iqlSession))
+  def props(iqlSession: IQLSession): Props = Props(new ExeActor(iqlSession))
 
 }

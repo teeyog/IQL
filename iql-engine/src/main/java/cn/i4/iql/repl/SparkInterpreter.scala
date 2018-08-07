@@ -1,12 +1,14 @@
 package cn.i4.iql.repl
 
 import java.io.File
-import java.net.URLClassLoader
+import java.net.{URI, URLClassLoader}
 import java.nio.file.Paths
 
+import org.apache.spark.repl.Main.conf
 import org.apache.spark.{SparkConf, SparkUtils}
 import org.apache.spark.repl.SparkILoop
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.util.Utils
 
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interpreter.Completion.ScalaCompleter
@@ -34,7 +36,10 @@ class SparkInterpreter extends AbstractSparkInterpreter {
 
         val cl = ClassLoader.getSystemClassLoader
         val jars = (SparkUtils.getUserJars(conf) ++
-            cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator)
+            cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator) ++
+            SparkUtils.getLocalUserJarsForShell(conf)
+                .map { x => if (x.startsWith("file:")) new File(new URI(x)).getPath else x }
+                .mkString(File.pathSeparator)
 
         outputDir.deleteOnExit()
         conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath)

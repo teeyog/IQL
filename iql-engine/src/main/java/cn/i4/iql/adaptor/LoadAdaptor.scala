@@ -71,6 +71,7 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         if(path.startsWith("'") || path.startsWith("`") || path.startsWith("\"")) path = path.substring(1)
         if(path.endsWith("'") || path.endsWith("`") || path.endsWith("\"")) path = path.substring(0,path.length - 1)
+        if(option.contains("schema")) reader.schema(option("schema"))
         table = reader.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).load(path)
 
       case _ =>
