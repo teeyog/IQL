@@ -6,4 +6,3 @@ target/
 */*.iml
 */src/main/resources/*.xml
 */src/main/resources/*.conf
-iql-web/src/main/resource/static/swagger-ui/package.json
