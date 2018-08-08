@@ -1,9 +1,9 @@
 package cn.i4.iql
 
-import akka.actor.{ActorSystem, Props}
-import cn.i4.iql.repl.Interpreter.{ExecuteAborted, ExecuteError, ExecuteIncomplete, ExecuteSuccess}
+import akka.actor.{ActorSystem}
 import cn.i4.iql.repl.SparkInterpreter
 import cn.i4.iql.utils.AkkaUtils
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
 object IqlService extends Logging {
@@ -11,11 +11,11 @@ object IqlService extends Logging {
     var schedulerMode: Boolean = true
     val numActor: Int = 3
 
-
-    def createSpark() = {
+    def createSpark(sparkConf: SparkConf) = {
         SparkSession
             .builder
             .appName("IQL")
+            .config(sparkConf)
             //动态资源调整
             .config("spark.dynamicAllocation.enabled", "true")
             .config("spark.dynamicAllocation.executorIdleTimeout", "30s")
@@ -31,25 +31,18 @@ object IqlService extends Logging {
             .config("spark.scheduler.mode", "FAIR")
             .config("spark.scheduler.allocation.file", "/home/runtime_file/fairscheduler.xml")
             .config("spark.executor.memoryOverhead", "1024")
-//                        .master("local[4]")
+            //                        .master("local[4]")
             .enableHiveSupport()
             .getOrCreate()
     }
 
     def main(args: Array[String]): Unit = {
 
+        val interpreter = new SparkInterpreter()
+        interpreter.start()
         val actorConf = AkkaUtils.getConfig
         val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
         val actorSystem = ActorSystem("iqlSystem", actorConf)
-        (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(iqlSession), name = s"actor${id}"))
-
-//                val system = ActorSystem("HelloSystem")
-//                // create and start the actor
-//                val helloActor = system.actorOf(Props[TestActor], name = "helloActor")
-//                // send two messages
-//                helloActor ! """spark.sparkContext.parallelize(Seq(("A",12),("B",13))).reduceByKey(_+_).foreach(println)"""
-//                Thread.sleep(40000)
-//                IqlService.createSpark()
-
+        (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession), name = s"actor${id}"))
     }
 }

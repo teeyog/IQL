@@ -2,10 +2,10 @@ package cn.i4.iql.repl
 
 import java.io.ByteArrayOutputStream
 
-import cn.i4.iql.Logging
+import cn.i4.iql.{IqlService, Logging}
 
 import scala.tools.nsc.interpreter.Results
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.json4s.DefaultFormats
@@ -45,13 +45,23 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
 
     protected def bind(name: String, tpe: String, value: Object, modifier: List[String]): Unit
 
+
+     def sparkCreateContext(conf: SparkConf): Unit = {
+        val spark = IqlService.createSpark(conf)
+        bind("spark", spark.getClass.getCanonicalName, spark, List("""@transient"""))
+        execute("import org.apache.spark.SparkContext._")
+        execute("import spark.implicits._")
+        execute("import spark.sql")
+        execute("import org.apache.spark.sql.functions._")
+    }
+
+
     protected def postStart(): Unit = {
             execute("@transient val spark = cn.i4.iql.IqlService.createSpark")
             execute("import org.apache.spark.SparkContext._")
             execute("import spark.implicits._")
             execute("import spark.sql")
             execute("import org.apache.spark.sql.functions._")
-//            execute("spark.sparkContext.parallelize(Seq((\"A\",12),(\"B\",13))).reduceByKey(_+_).foreach(println)")
     }
 
     override def close(): Unit = {

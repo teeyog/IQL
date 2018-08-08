@@ -2,13 +2,10 @@ package cn.i4.iql.repl
 
 import java.io.File
 import java.net.{URI, URLClassLoader}
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 
-import org.apache.spark.repl.Main.conf
 import org.apache.spark.{SparkConf, SparkUtils}
 import org.apache.spark.repl.SparkILoop
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.util.Utils
 
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interpreter.Completion.ScalaCompleter
@@ -30,23 +27,26 @@ class SparkInterpreter extends AbstractSparkInterpreter {
     override def start(): Unit = {
         require(sparkILoop == null)
         val conf = new SparkConf()
-        val rootDir = conf.getOption("spark.repl.classdir").getOrElse(SparkUtils.getLocalDir(conf))
-        val outputDir = SparkUtils.createTempDir(root = rootDir, namePrefix = "repl")
-        conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath())
 
-        val cl = ClassLoader.getSystemClassLoader
-        val jars = (SparkUtils.getUserJars(conf) ++
-            cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator) ++
-            SparkUtils.getLocalUserJarsForShell(conf)
-                .map { x => if (x.startsWith("file:")) new File(new URI(x)).getPath else x }
-                .mkString(File.pathSeparator)
-
+        val rootDir = conf.get("spark.repl.classdir", System.getProperty("java.io.tmpdir"))
+        val outputDir = Files.createTempDirectory(Paths.get(rootDir), "spark").toFile
         outputDir.deleteOnExit()
         conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath)
 
+        val execUri = System.getenv("SPARK_EXECUTOR_URI")
+        if (execUri != null) {
+            conf.set("spark.executor.uri", execUri)
+        }
+        if (System.getenv("SPARK_HOME") != null) {
+            conf.setSparkHome(System.getenv("SPARK_HOME"))
+        }
+
+        val cl = ClassLoader.getSystemClassLoader
+        val jars = (SparkUtils.getUserJars(conf) ++
+            cl.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.toString)).mkString(File.pathSeparator)
+
         val settings = new Settings()
         settings.processArguments(List(
-            "-usejavacp",
             "-Yrepl-class-based",
             "-Yrepl-outdir",
             s"${outputDir.getAbsolutePath}",
@@ -54,13 +54,12 @@ class SparkInterpreter extends AbstractSparkInterpreter {
             jars
         ), true
         )
-//        settings.usejavacp.value = true
-//        settings.embeddedDefaults(Thread.currentThread().getContextClassLoader())
+        settings.usejavacp.value = true
+        settings.embeddedDefaults(Thread.currentThread().getContextClassLoader())
 
         sparkILoop = new SparkILoop(None, new JPrintWriter(outputStream, true))
         sparkILoop.settings = settings
         sparkILoop.createInterpreter()
-        sparkILoop.setContextClassLoader()
         sparkILoop.initializeSynchronous()
         println("settings.outputDirs().getSingleOutput().get() : " + settings.outputDirs.getSingleOutput.get)
 
@@ -77,9 +76,9 @@ class SparkInterpreter extends AbstractSparkInterpreter {
                         // Livy rsc and repl are also in the extra jars list. Filter them out.
                         .filterNot { u => Paths.get(u.toURI).getFileName.toString.startsWith("livy-") }
                         // Some bad spark packages depend on the wrong version of scala-reflect. Blacklist it.
-//                        .filterNot { u =>
-//                        Paths.get(u.toURI).getFileName.toString.contains("org.scala-lang_scala-reflect")
-//                    }
+                        .filterNot { u =>
+                        Paths.get(u.toURI).getFileName.toString.contains("org.scala-lang_scala-reflect")
+                    }
 
                     extraJarPath.foreach { p => debug(s"Adding $p to Scala interpreter's class path...") }
                     sparkILoop.addUrlsToClassPath(extraJarPath: _*)
@@ -88,7 +87,7 @@ class SparkInterpreter extends AbstractSparkInterpreter {
                     classLoader = classLoader.getParent
                 }
             }
-            postStart()
+            sparkCreateContext(conf)
         }
     }
 

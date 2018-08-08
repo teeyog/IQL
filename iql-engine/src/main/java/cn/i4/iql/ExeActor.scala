@@ -15,10 +15,11 @@ import cn.i4.iql.repl.SparkInterpreter
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import cn.i4.iql.IqlService._
 import cn.i4.iql.repl.Interpreter._
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.bridge.SparkBridge
 
 
-class ExeActor(iqlSession: IQLSession) extends Actor with Logging {
+class ExeActor(_interpreter:SparkInterpreter, iqlSession: IQLSession) extends Actor with Logging {
 
   var sparkSession: SparkSession = _
   var interpreter: SparkInterpreter = _
@@ -27,11 +28,8 @@ class ExeActor(iqlSession: IQLSession) extends Actor with Logging {
 
   override def preStart(): Unit = {
     warn("Actor Start ...")
-    interpreter = new SparkInterpreter()
-    interpreter.start()
-    Thread.sleep(50000)
-//    interpreter.execute("""spark.sparkContext.parallelize(Seq(("A",12),("B",13))).reduceByKey(_+_).take(10)""")
-    sparkSession = IqlService.createSpark().newSession()
+    interpreter = _interpreter
+    sparkSession = IqlService.createSpark(new SparkConf()).newSession()
     Class.forName("cn.i4.iql.utils.SparkUDF").getMethods.filter(_.getModifiers == 9).foreach { f =>
       f.invoke(null, sparkSession)
     }
@@ -248,6 +246,6 @@ class ExeActor(iqlSession: IQLSession) extends Actor with Logging {
 
 object ExeActor {
 
-  def props(iqlSession: IQLSession): Props = Props(new ExeActor(iqlSession))
+  def props(interpreter:SparkInterpreter, iqlSession: IQLSession): Props = Props(new ExeActor(interpreter,iqlSession))
 
 }
