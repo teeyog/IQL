@@ -12,14 +12,14 @@ object IqlService extends Logging {
     val numActor: Int = 3
 
     def createSpark(sparkConf: SparkConf) = {
-        SparkSession
+        val spark = SparkSession
             .builder
             .appName("IQL")
             .config(sparkConf)
             //动态资源调整
             .config("spark.dynamicAllocation.enabled", "true")
             .config("spark.dynamicAllocation.executorIdleTimeout", "30s")
-            .config("spark.dynamicAllocation.maxExecutors", "60")
+            .config("spark.dynamicAllocation.maxExecutors", "100")
             .config("spark.dynamicAllocation.minExecutors", "0")
             //动态分区
             .config("hive.exec.dynamic.partition", "true")
@@ -30,10 +30,12 @@ object IqlService extends Logging {
             //调度模式
             .config("spark.scheduler.mode", "FAIR")
             .config("spark.scheduler.allocation.file", "/home/runtime_file/fairscheduler.xml")
-            .config("spark.executor.memoryOverhead", "1024")
+            .config("spark.executor.memoryOverhead", "512")
             //                        .master("local[4]")
             .enableHiveSupport()
             .getOrCreate()
+        spark.sparkContext.setLogLevel("WARN")
+        spark
     }
 
     def main(args: Array[String]): Unit = {
