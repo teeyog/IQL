@@ -38,8 +38,8 @@
         <mysql.version>5.1.32</mysql.version>
         <lamma.version>2.2.2</lamma.version>
         <fastjson.version>1.2.16</fastjson.version>
-        <i4scope>provided</i4scope>
-        <!--<i4scope>compile</i4scope>-->
+        <!--<i4scope>provided</i4scope>-->
+        <i4scope>compile</i4scope>
         <iqlscope>compile</iqlscope>
     </properties>
 
