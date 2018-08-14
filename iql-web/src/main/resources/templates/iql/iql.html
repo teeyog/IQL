@@ -35,6 +35,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
 
     <script src="/bootstrap-table/dist/bootstrap-table.min.js"></script>
+    <link href="/bootstrap-table/dist/bootstrap-table.min.css" rel="stylesheet">
     <script src="/bootstrap-table/dist/locale/bootstrap-table-zh-CN.min.js"></script>
     <script src="/iql/dateUtil.js"></script>
     <script src="/iql/dataUtil.js"></script>
@@ -151,7 +152,7 @@
                         <div id="tab-1" class="tab-pane active">
                             <div class="panel-body">
                                 <table id="history-list-table"
-                                       data-classes="table table-hover table-condensed  table-no-head"
+                                       data-classes="table table-hover table-condensed"
                                        data-mobile-responsive="true">
                                 </table>
                             </div>
@@ -253,18 +254,14 @@
 
         $(".db").click(function(){
             $(".db").css("background-color","#e6e6e6");
-            // $(".db").css("border","1px solid #a5c7fe");
             $(".sj").css("background-color","#f0f0f0");
-            // $(".sj").css("border","1px solid #d3d3d3");
             $(".content_sj").hide();
             $(".content_db").show();
         });
 
         $(".sj").click(function(){
             $(".sj").css("background-color","#e6e6e6");
-            // $(".sj").css("border","1px solid #a5c7fe");
             $(".db").css("background-color","#f0f0f0");
-            // $(".db").css("border","1px solid #d3d3d3");
             $(".content_db").hide();
             $(".content_sj").show();
             loadActiveStreamJob();
@@ -610,7 +607,7 @@
                 {
                     field: 'iql',
                     title: '执行操作',
-                    width: 600,
+                    width: 600
                 },
                 {
                     field: 'resultPath',
