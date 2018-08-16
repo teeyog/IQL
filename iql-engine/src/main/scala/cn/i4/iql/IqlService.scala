@@ -10,7 +10,6 @@ object IqlService extends Logging {
 
     var schedulerMode: Boolean = true
     val numActor: Int = 3
-
     def createSpark(sparkConf: SparkConf) = {
         val spark = SparkSession
             .builder
@@ -31,7 +30,7 @@ object IqlService extends Logging {
             .config("spark.scheduler.mode", "FAIR")
             .config("spark.scheduler.allocation.file", "/home/runtime_file/fairscheduler.xml")
             .config("spark.executor.memoryOverhead", "512")
-            //                        .master("local[4]")
+//                                    .master("local[4]")
             .enableHiveSupport()
             .getOrCreate()
         spark.sparkContext.setLogLevel("WARN")
