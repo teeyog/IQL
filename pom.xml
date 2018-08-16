@@ -12,6 +12,7 @@
         <module>iql-engine</module>
         <module>iql-common</module>
         <module>iql-web</module>
+        <module>iql-spark</module>
     </modules>
 
     <repositories>
