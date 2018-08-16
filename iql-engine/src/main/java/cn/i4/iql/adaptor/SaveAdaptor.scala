@@ -99,7 +99,10 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
       case "kafka8" | "kafka9" =>
         writer.option("topics", final_path).format("com.hortonworks.spark.sql.kafka08").save()
       case "hbase" =>
-        writer.option("hbase.table.name", final_path).format("org.apache.spark.sql.execution.datasources.hbase").save()
+        writer
+            .option("hbase.table.name", final_path)
+            .option("hbase.zookeeper.quorum", option.getOrElse("hbase.zookeeper.quorum", PropsUtils.get("hbase.zookeeper.quorum")))
+            .format("org.apache.spark.sql.execution.datasources.hbase").save()
       case "redis" =>
         writer.option("outputTableName", final_path).format("org.apache.spark.sql.execution.datasources.redis").save()
       case "jdbc" =>

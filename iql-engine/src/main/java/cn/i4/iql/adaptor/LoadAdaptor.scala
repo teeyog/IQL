@@ -57,7 +57,9 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         table = reader.format("org.elasticsearch.spark.sql").load(path)
 
       case "hbase" | "org.apache.spark.sql.execution.datasources.hbase" =>
-        reader.option("hbase.table.name",path)
+        reader
+            .option("hbase.table.name",path)
+            .option("hbase.zookeeper.quorum",option.getOrElse("hbase.zookeeper.quorum",PropsUtils.get("hbase.zookeeper.quorum")))
         table = reader.format("org.apache.spark.sql.execution.datasources.hbase").load()
 
       case "kafka" | "org.apache.spark.sql.execution.datasources.kafka" =>
