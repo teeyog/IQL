@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration
 public class AkkaConfig {
@@ -17,6 +18,8 @@ public class AkkaConfig {
     private ApplicationContext applicationContext;
     @Autowired
     private SpringExtension springExtension;
+    @Autowired
+    private Environment env;
 
     @Bean
     public ActorSystem actorSystem() {
@@ -27,12 +30,12 @@ public class AkkaConfig {
 
     @Bean
     public ZkClient getZkClient() {
-        return ZkUtils.getZkClient(ZkUtils.ZKURL());
+        return ZkUtils.getZkClient(env.getProperty("zkServers"));
     }
 
     @Bean
     public Config getConfig() {
-        return AkkaUtils.getConfig();
+        return AkkaUtils.getConfig(getZkClient());
     }
 
 }

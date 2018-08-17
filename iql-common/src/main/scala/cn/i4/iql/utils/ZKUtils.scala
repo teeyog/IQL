@@ -18,8 +18,6 @@ object ZkUtils {
   val enginePath = "/iql/engine"
   val validEnginePath = "/iql/valid_engine"
 
-  val ZKURL = "dsj01:2181"
-
   def getZkClient(zkServers: String):ZkClient = {
     if(zkClient == null) {
       zkClient = new ZkClient(zkServers, 60000, 60000, new ZkSerializer {

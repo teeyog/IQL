@@ -1,8 +1,8 @@
 package cn.i4.iql
 
-import akka.actor.{ActorSystem}
+import akka.actor.ActorSystem
 import cn.i4.iql.repl.SparkInterpreter
-import cn.i4.iql.utils.AkkaUtils
+import cn.i4.iql.utils.{AkkaUtils, PropsUtils, ZkUtils}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
@@ -10,6 +10,7 @@ object IqlService extends Logging {
 
     var schedulerMode: Boolean = true
     val numActor: Int = 3
+
     def createSpark(sparkConf: SparkConf) = {
         val spark = SparkSession
             .builder
@@ -41,7 +42,7 @@ object IqlService extends Logging {
 
         val interpreter = new SparkInterpreter()
         interpreter.start()
-        val actorConf = AkkaUtils.getConfig
+        val actorConf = AkkaUtils.getConfig(ZkUtils.getZkClient(PropsUtils.get("zkServers")))
         val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
         val actorSystem = ActorSystem("iqlSystem", actorConf)
         (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession), name = s"actor${id}"))

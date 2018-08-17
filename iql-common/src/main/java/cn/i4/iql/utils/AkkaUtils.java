@@ -18,16 +18,16 @@ import com.typesafe.config.ConfigFactory;
 public class AkkaUtils {
 
 
-    private static ActorSystem actorSystem;
+//    private static ActorSystem actorSystem;
+//
+//    public static ActorSystem getActorSystem(){
+//        if(actorSystem == null){
+//                actorSystem = ActorSystem.create("iqlSystem", getConfig());
+//        }
+//        return actorSystem;
+//    }
 
-    public static ActorSystem getActorSystem(){
-        if(actorSystem == null){
-                actorSystem = ActorSystem.create("iqlSystem", getConfig());
-        }
-        return actorSystem;
-    }
-
-    public static Config getConfig() {
+    public static Config getConfig(ZkClient zkClient) {
         Map<String, Object> map = new HashMap<String, Object>();
 //        map.put("akka.loglevel", "ERROR");
 //        map.put("akka.stdout-loglevel", "ERROR");
@@ -46,7 +46,6 @@ public class AkkaUtils {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        ZkClient zkClient = ZkUtils.getZkClient(ZkUtils.ZKURL());
         Seq<Bean.IQLEngine> allEngineInCluster = ZkUtils.getAllEngineInCluster(zkClient);
         Iterator<Bean.IQLEngine> iterator = allEngineInCluster.iterator();
         List ids = new ArrayList<Integer>();

@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
 import akka.actor.{Actor, Props}
 import cn.i4.iql.antlr.{IQLLexer, IQLListener, IQLParser}
 import cn.i4.iql.domain.Bean._
-import cn.i4.iql.utils.{BatchSQLRunnerEngine, ZkUtils}
+import cn.i4.iql.utils.{BatchSQLRunnerEngine, PropsUtils, ZkUtils}
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import org.antlr.v4.runtime.{ANTLRInputStream, CommonTokenStream}
 import org.apache.spark.sql.SparkSession
@@ -32,7 +32,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
         interpreter = _interpreter
         sparkSession = IqlService.createSpark(new SparkConf()).newSession()
         registerUDF("cn.i4.iql.utils.SparkUDF")
-        ZkUtils.registerActorInEngine(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath, "", 6000, -1)
+        ZkUtils.registerActorInEngine(ZkUtils.getZkClient(PropsUtils.get("zkServers")), zkValidActorPath, "", 6000, -1)
     }
 
     override def postStop(): Unit = {
@@ -154,7 +154,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
 
     // 执行前从zk中删除当前对应节点（标记不可用），执行后往zk中写入可用节点（标记可用）
     def actorWapper()(f: () => Unit) {
-        ZkUtils.deletePath(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath)
+        ZkUtils.deletePath(ZkUtils.getZkClient(PropsUtils.get("zkServers")), zkValidActorPath)
         try {
             f()
         } catch {
@@ -165,7 +165,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
                 resJson.put("errorMessage", new String(out.toByteArray))
                 sender() ! resJson.toJSONString
         }
-        ZkUtils.registerActorInEngine(ZkUtils.getZkClient(ZkUtils.ZKURL), zkValidActorPath, "", 6000, -1)
+        ZkUtils.registerActorInEngine(ZkUtils.getZkClient(PropsUtils.get("zkServers")), zkValidActorPath, "", 6000, -1)
     }
 
     // 获取hive元数据信息
