@@ -1,5 +1,5 @@
 
-## quick-start
+# quick-start
 ### web端
 - 配置application.properties，mysql连接信息和zookeeper地址
 ```
@@ -34,7 +34,7 @@ zkServers=localhost:2181
 - 默认配置文件
 
 ```
-默认配置文件信息在/data/resource/iql-default.properties，可在PropsUtils类中更改；
+默认配置文件信息在hdfs目录：/data/resource/iql-default.properties，可在PropsUtils类中更改；
 
 默认配置文件配置的都是一些常用的环境信息，比如加载mysql的数据，避免每次都写一遍连接信息
 
