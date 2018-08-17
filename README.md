@@ -20,6 +20,8 @@
 
 ---
 
+### [quick-start](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
+
 ### Hive
 - 加载数据
 ```
