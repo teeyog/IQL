@@ -23,7 +23,7 @@ public class RoleDaoImpl implements RoleDao {
 	@Override
 	public List<Map> findRoleMenuByIds(List<Integer> ids) {
 		String sql = "select b.id, b.menuname name, b.pid, b.url, b.icon from t_role_menu a"
-				+ " left join t_menu_copy b on a.menuid=b.id"
+				+ " left join t_menu b on a.menuid=b.id"
 				+ " where a.roleid in (:ids)"
 				+ " order by pid, orderBy";
 		Query query = em.createNativeQuery(sql);
@@ -96,7 +96,7 @@ public class RoleDaoImpl implements RoleDao {
 
 	@Override
 	public List<Map> findRoleMenuByRoleId(Role role) {
-		String sql = "select m.id,m.name,m.pid from t_role r,t_role_menu rm,t_menu_copy m where r.id=rm.roleid and rm.menuid=m.id and r.id=:roleid";
+		String sql = "select m.id,m.name,m.pid from t_role r,t_role_menu rm,t_menu m where r.id=rm.roleid and rm.menuid=m.id and r.id=:roleid";
 		Query query = em.createNativeQuery(sql);
 		query.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		query.setParameter("roleid", role.getId());

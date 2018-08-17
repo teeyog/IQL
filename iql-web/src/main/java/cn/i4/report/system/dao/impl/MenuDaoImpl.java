@@ -19,7 +19,7 @@ public class MenuDaoImpl implements MenuDao {
 	
 	@Override
 	public List<Menu> findAllMenuList() {
-		String sql = "select id, name, pid, url, icon, reorder from t_menu_copy order by reorder";
+		String sql = "select id, name, pid, url, icon, reorder from t_menu order by reorder";
 		Query query = em.createNativeQuery(sql, Menu.class);
 		return query.getResultList();
 	}
@@ -34,7 +34,7 @@ public class MenuDaoImpl implements MenuDao {
 
 	@Override
 	public Integer addMenu(Menu menu) {
-		String sql="insert into t_menu_copy(name, pid,url,icon,reorder) values(?, ?, ?, ?, ?)";
+		String sql="insert into t_menu(name, pid,url,icon,reorder) values(?, ?, ?, ?, ?)";
 		Query query = em.createNativeQuery(sql);
 		query.setParameter(1, menu.getName());
 		query.setParameter(2, menu.getPid());
@@ -47,7 +47,7 @@ public class MenuDaoImpl implements MenuDao {
 
 	@Override
 	public Integer updateMenu(Menu menu) {
-		String sql="update t_menu_copy set name=?,pid=?,url=?,icon=?, reorder=? where id=?";
+		String sql="update t_menu set name=?,pid=?,url=?,icon=?, reorder=? where id=?";
 		Query query = em.createNativeQuery(sql);
 		query.setParameter(1, menu.getName());
 		query.setParameter(2, menu.getPid());
@@ -61,7 +61,7 @@ public class MenuDaoImpl implements MenuDao {
 
 	@Override
 	public Integer delMenu(Menu menu) {
-		String sql="delete from t_menu_copy where id=?";
+		String sql="delete from t_menu where id=?";
 		Query query = em.createNativeQuery(sql);
 		query.setParameter(1, menu.getId());
 		Integer result = query.executeUpdate();
@@ -71,7 +71,7 @@ public class MenuDaoImpl implements MenuDao {
 	@Override
 	public List<Menu> findMenuListByUid(User user) {
 		String sql = "select DISTINCT m.id,m.name,m.pid,m.url,m.reorder,m.icon " +
-				"from t_user u,t_user_role ur,t_role r,t_role_menu rm,t_menu_copy m " +
+				"from t_user u,t_user_role ur,t_role r,t_role_menu rm,t_menu m " +
 				"where m.id=rm.menuid and rm.roleid=r.id and r.id=ur.roleid and ur.userid=u.id" +
 				" and u.id=:uid ORDER BY reorder";
 		Query query = em.createNativeQuery(sql, Menu.class);
@@ -81,7 +81,7 @@ public class MenuDaoImpl implements MenuDao {
 
 	@Override
 	public Menu findMenuById(Menu menu) {
-		String sql = "SELECT  id,name,pid,url,icon,reorder from t_menu_copy where id=:id ORDER BY reorder ";
+		String sql = "SELECT  id,name,pid,url,icon,reorder from t_menu where id=:id ORDER BY reorder ";
 		Query query = em.createNativeQuery(sql, Menu.class);
 		query.setParameter("id", menu.getId());
 		return query.getResultList().size()==0 ? null : (Menu) query.getResultList().get(0);
@@ -89,7 +89,7 @@ public class MenuDaoImpl implements MenuDao {
 
 	@Override
 	public List<Menu> findMenuByPid(Menu menu) {
-		String sql = "SELECT  id,name,pid,url,icon,reorder from t_menu_copy where pid=:pid ORDER BY reorder";
+		String sql = "SELECT  id,name,pid,url,icon,reorder from t_menu where pid=:pid ORDER BY reorder";
 		Query query = em.createNativeQuery(sql, Menu.class);
 		query.setParameter("pid", menu.getPid());
 		return query.getResultList();

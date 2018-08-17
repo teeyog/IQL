@@ -7,9 +7,7 @@ import cn.i4.report.util.TreeBuilder;
 import cn.i4.report.system.domain.EntityUser;
 import cn.i4.report.system.domain.Menu;
 import cn.i4.report.system.domain.User;
-import cn.i4.report.system.service.DictionaryService;
 import cn.i4.report.system.service.UserService;
-import cn.i4.report.system.vo.DictionaryVo;
 import cn.i4.report.util.MD5Util;
 import com.alibaba.fastjson.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +32,6 @@ public class WebController {
 
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private DictionaryService dictionaryService;
 	
 	@RequestMapping("/")
     public ModelAndView index(HttpServletRequest request) {
@@ -70,9 +65,6 @@ public class WebController {
 				mv.addObject("username", username);
 			}else{
 				session.setAttribute("user",u);
-				DictionaryVo vo = new DictionaryVo();
-				vo.setName("idfa_delete_permission");//idfa删除权限标识符
-				session.setAttribute("dict",dictionaryService.findfindDictionaryByName(vo));
 				mv.setViewName("redirect:/");
 			}
 		}else{

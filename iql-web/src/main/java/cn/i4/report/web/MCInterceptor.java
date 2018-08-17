@@ -14,15 +14,15 @@ import javax.servlet.http.HttpSession;
  */
 public class MCInterceptor implements HandlerInterceptor {
 
-    public static Logger logger  =  Logger.getLogger("IQL");
+    public static Logger logger = Logger.getLogger("IQL");
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         long startTime = System.currentTimeMillis();
         request.setAttribute("startTime", startTime);
         HttpSession session = request.getSession();
-        User u = (User)session.getAttribute("user");
-        if(u!=null){
+        User u = (User) session.getAttribute("user");
+        if (u != null) {
             return true;
         }
         response.sendRedirect("/page/login");
@@ -37,25 +37,25 @@ public class MCInterceptor implements HandlerInterceptor {
         long executeTime = endTime - startTime;
         //modelAndView.addObject("executeTime", executeTime);
         String s = "";
-        if(handler!=null&&handler.toString().split(" ").length>2){
-            s=handler.toString().split(" ")[2];
-        }else{
-            s=handler.toString();
+        if (handler != null && handler.toString().split(" ").length > 2) {
+            s = handler.toString().split(" ")[2];
+        } else {
+            s = handler.toString();
         }
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
 
-        String menu = (String)session.getAttribute("menu");
+        String menu = (String) session.getAttribute("menu");
 
-        if(menu==null){
-            menu="IQL";
+        if (menu == null) {
+            menu = "IQL";
         }
-        if(handler.toString().indexOf("login")>0){
-            menu="登录";
+        if (handler.toString().indexOf("login") > 0) {
+            menu = "登录";
         }
 
-        if(user!=null){
-            logger.info("《系统》-用户："+user.getReal_name()+"::::::::::::"+menu+"<<<<<<<<[##--" + s + "--##]>>>>>>>>  《执行时间 》: " + executeTime + "ms");
+        if (user != null) {
+            logger.info("《系统》-用户：" + user.getReal_name() + "::::::::::::" + menu + "<<<<<<<<[##--" + s + "--##]>>>>>>>>  《执行时间 》: " + executeTime + "ms");
         }
     }
 
