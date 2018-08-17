@@ -1,19 +1,19 @@
 
-##quick-start
+## quick-start
 ### web端
 - 配置application.properties，mysql连接信息和zookeeper地址
 ```
 spring.datasource.druid.url=jdbc:mysql://localhost:3306/iql?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
 spring.datasource.druid.username=root
 spring.datasource.druid.password=123456
-
+# 通过zk发现引擎地址
 zkServers=localhost:2181
 ```
 
 - 导入SQL表
-```$xslt
-位置在：
-```
+
+[iql.sql](https://github.com/teeyog/IQL/blob/master/docs/file/iql.sql)
+
 
 - 连接hdfs配置
 ```
@@ -23,13 +23,16 @@ zkServers=localhost:2181
 ```
 
 ### engine端
+
 - FAIR 公平调度
+
+[fairscheduler.xml](https://github.com/teeyog/IQL/blob/master/docs/file/fairscheduler.xml)
 ```$xslt
 由于spark引擎只能以client模式启动，需将自定义的调度池文件存放在启动spark的那台节点上即可，记得配置属性spark.scheduler.allocation.file。
-位置在：
 ```
 
 - 默认配置文件
+
 ```
 默认配置文件信息在/data/resource/iql-default.properties，可在PropsUtils类中更改；
 
