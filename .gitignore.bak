@@ -1,9 +1,0 @@
-.idea/
-.svn/
-target/
-*.iml
-*/target/
-*/*.iml
-*/src/main/resources/*.xml
-*/src/main/resources/*.conf
-iql-web/src/main/resources/static/swagger-ui/package.json
