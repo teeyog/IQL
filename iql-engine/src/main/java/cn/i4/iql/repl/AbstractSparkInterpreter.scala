@@ -29,10 +29,6 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
 
     protected val outputStream = new ByteArrayOutputStream()
 
-    protected var entries: SparkEntries = _
-
-    def sparkEntries(): SparkEntries = entries
-
     final def kind: String = "spark"
 
     protected def isStarted(): Boolean
@@ -55,30 +51,7 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
         execute("import org.apache.spark.sql.functions._")
     }
 
-
-    protected def postStart(): Unit = {
-            execute("@transient val spark = cn.i4.iql.IqlService.createSpark")
-            execute("import org.apache.spark.SparkContext._")
-            execute("import spark.implicits._")
-            execute("import spark.sql")
-            execute("import org.apache.spark.sql.functions._")
-    }
-
-    override def close(): Unit = {
-        if (entries != null) {
-            entries.stop()
-            entries = null
-        }
-    }
-
-    private def isSparkSessionPresent(): Boolean = {
-        try {
-            Class.forName("org.apache.spark.sql.SparkSession")
-            true
-        } catch {
-            case _: ClassNotFoundException | _: NoClassDefFoundError => false
-        }
-    }
+    override def close(): Unit = {}
 
     override def execute(code: String): Interpreter.ExecuteResponse =
         restoreContextClassLoader {
