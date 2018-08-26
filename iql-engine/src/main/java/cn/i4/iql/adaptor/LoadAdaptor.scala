@@ -67,8 +67,17 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         reader.option("zookeeper.connect", option.getOrElse("zookeeper.connect", PropsUtils.get("kafka.zookeeper.connect")))
         reader.option("topics", path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
-        if (option.getOrElse("data.type", "json").toLowerCase.equals("json"))
-          table = scriptSQLExecListener.sparkSession.read.json(table.select("msg").rdd.map(_.getString(0)))
+        if (option.getOrElse("data.type", "json").toLowerCase.equals("json")){
+          val JSON_REGEX = option.getOrElse("json_regex","(.*)").r
+          table = scriptSQLExecListener.sparkSession.read.json(
+            table.select("msg").rdd.map(r => {
+              r match {
+                case JSON_REGEX(jsonStr) => jsonStr
+              }
+            })
+          )
+        }
+
 
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         if (option.contains("schema")) {
