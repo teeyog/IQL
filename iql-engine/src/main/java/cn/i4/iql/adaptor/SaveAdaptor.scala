@@ -86,7 +86,8 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         val tmpPath = "/tmp/iql/tmp/" + System.currentTimeMillis()
         writer.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).save(tmpPath) //写
-        scriptSQLExecListener.sparkSession.read.option("header", "true").option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").format(format).load(tmpPath).coalesce(numPartition) //读
+        scriptSQLExecListener.sparkSession.read.option("header", "true").option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
+          .format(format).load(tmpPath).coalesce(numPartition) //读
           .write.mode(mode).partitionBy(partitionByCol: _*).options(option).option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
           .format(format).save(final_path) //写
       case "es" =>
