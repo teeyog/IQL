@@ -126,7 +126,6 @@ load jsonStr.'
 select myupper(name) as newName from tb1;
 ```
 
-
 ### 参考
 [StreamingPro之MLSQL](https://github.com/allwefantasy/streamingpro)
 
