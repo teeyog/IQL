@@ -19,9 +19,8 @@ sql
     | ('insert'|'INSERT') ~(';')*
     | ('create'|'CREATE') ~(';')*
     | ('set'|'SET') ~(';')*
-    | ('connect'|'CONNECT') format 'where'? expression? booleanExpression* ('as' db)?
     | ('train'|'TRAIN') tableName 'as' format '.' path 'where'? expression? booleanExpression*
-    | ('register'|'REGISTER') format '.' path 'as' functionName
+    | ('register'|'REGISTER') format '.' path 'where'? expression? booleanExpression*
     | ('show'|'SHOW') ~(';')*
     | ('describe'|'DESCRIBE') ~(';')*
     |  SIMPLE_COMMENT
@@ -104,6 +103,10 @@ quotedIdentifier
 STRING
     : '\'' ( ~('\''|'\\') | ('\\' .) )* '\''
     | '"' ( ~('"'|'\\') | ('\\' .) )* '"'
+    ;
+
+BLOCK_STRING
+    : '\'\'\'' ~[+] .*? '\'\'\''
     ;
 
 IDENTIFIER

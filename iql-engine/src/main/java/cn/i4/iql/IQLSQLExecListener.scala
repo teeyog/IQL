@@ -56,6 +56,9 @@ class IQLSQLExecListener(var _sparkSession: SparkSession,_iqlSession:IQLSession)
 
       case "show" =>
         new ShowAdaptor(this).parse(ctx)
+
+      case "register" =>
+        new RegisterAdaptor(this).parse(ctx)
     }
   }
 

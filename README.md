@@ -109,5 +109,5 @@ where maxRatePerPartition="200"
 ```
 
 ### 参考
-[StreamingPro 支持类SQL DSL](https://www.jianshu.com/p/b580ce1ed822)
+[StreamingPro之MLSQL](https://github.com/allwefantasy/streamingpro)
 

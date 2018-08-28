@@ -5,7 +5,7 @@ import cn.i4.iql.antlr.IQLParser._
 import cn.i4.iql.utils.PropsUtils
 import org.apache.spark.sql._
 
-class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
+class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor with DslTool{
   override def parse(ctx: SqlContext): Unit = {
     var format = ""
     var option = Map[String, String]()
@@ -40,11 +40,12 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
                        var path: String,
                        tableName: String,
                        format: String
-                      ) {
+                      )  extends DslTool {
   def parse = {
     var table: DataFrame = null
+    val sparkSession = scriptSQLExecListener.sparkSession
     val reader = scriptSQLExecListener.sparkSession.read
-    reader.options(option)
+    reader.options(option).option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
     format match {
       case "jdbc" =>
         reader
@@ -69,7 +70,7 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
         if (option.getOrElse("data.type", "json").toLowerCase.equals("json")){
 //          val JSON_REGEX = option.getOrElse("json_regex","(.*)").r
-          table = scriptSQLExecListener.sparkSession.read.json(
+          table = sparkSession.read.json(
             table.select("msg").rdd.map(_.getString(0))
 //            table.select("msg").rdd.map(r => {
 //              r match {
@@ -79,13 +80,16 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
           )
         }
 
-
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         if (option.contains("schema")) {
           reader.schema(option("schema"))
         }
-        table = reader.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).load(path)
+        table = reader.option("header", "true").format(format).load(path)
 
+      case "jsonStr" =>
+        import sparkSession.implicits._
+        val items = cleanStr(path).split("\n")
+        table = reader.json(sparkSession.createDataset[String](items))
       case _ =>
         table = reader.format(format).load(path)
     }

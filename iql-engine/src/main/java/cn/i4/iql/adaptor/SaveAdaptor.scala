@@ -9,7 +9,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.streaming.{DataStreamWriter, Trigger}
 
 //save new_tr as json.`/tmp/todd
-class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
+class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor with DslTool{
   override def parse(ctx: SqlContext): Unit = {
     var oldDF: DataFrame = null
     var mode = SaveMode.ErrorIfExists
@@ -31,11 +31,6 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
           }
         case s: PathContext =>
           final_path = cleanStr(s.getText)
-//          format match {
-//            case "jdbc" | "hive" | "kafka8" | "kafka9" | "hbase" | "redis" | "es" | "json" | "csv" | "orc" | "parquet" | "text" =>
-//              final_path = cleanStr(s.getText)
-//            case _ =>
-//          }
         case s: TableNameContext =>
           tableName = s.getText
           oldDF = scriptSQLExecListener.sparkSession.table(s.getText)
