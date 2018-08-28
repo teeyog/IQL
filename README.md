@@ -108,6 +108,25 @@ where maxRatePerPartition="200"
 	and `group.id`="consumerGroupId"
 ```
 
+### 动态注册UDF函数
+```
+register udf.`myupper`
+where func="
+		def apply(name:String)={
+			name.toUpperCase
+		}
+";
+
+load jsonStr.'
+{"name":"ufo"}
+{"name":"uu"}
+{"name":"HIN"}
+' as tb1;
+
+select myupper(name) as newName from tb1;
+```
+
+
 ### 参考
 [StreamingPro之MLSQL](https://github.com/allwefantasy/streamingpro)
 
