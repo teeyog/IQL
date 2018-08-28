@@ -68,13 +68,14 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         reader.option("topics", path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
         if (option.getOrElse("data.type", "json").toLowerCase.equals("json")){
-          val JSON_REGEX = option.getOrElse("json_regex","(.*)").r
+//          val JSON_REGEX = option.getOrElse("json_regex","(.*)").r
           table = scriptSQLExecListener.sparkSession.read.json(
-            table.select("msg").rdd.map(r => {
-              r match {
-                case JSON_REGEX(jsonStr) => jsonStr
-              }
-            })
+            table.select("msg").rdd.map(_.getString(0))
+//            table.select("msg").rdd.map(r => {
+//              r match {
+//                case JSON_REGEX(jsonStr) => jsonStr
+//              }
+//            })
           )
         }
 
