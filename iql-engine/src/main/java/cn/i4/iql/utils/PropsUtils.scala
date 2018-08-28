@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._
 
 object PropsUtils {
 
-  val confMap:Map[String,String] = getPropertiesFromHDFSFile("hdfs://i4ns/data/resource/iql-default.properties")
+  val confMap:Map[String,String] = getPropertiesFromHDFSFile("hdfs://dsj01:8020/data/resource/iql-default.properties")
 
   def get(k:String):String = {
     confMap(k)
