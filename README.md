@@ -112,9 +112,9 @@ where maxRatePerPartition="200"
 ```
 register udf.`myupper`
 where func="
-		def apply(name:String)={
-			name.toUpperCase
-		}
+	def apply(name:String)={
+		name.toUpperCase
+	}
 ";
 
 load jsonStr.'
