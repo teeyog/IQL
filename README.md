@@ -60,10 +60,11 @@ as tb;
 - bulkload.enable：是否启动bulkload，默认不启动，暂时bulkload有bug（排序问题），当要插入的hbase表只有一列rowkey时，必需启动。     
 - hbase.table.name：Hbase表名  
 - hbase.table.family：列族名，默认info
+- hbase.table.region.splits：预分区分区段，以数组字符串方式指定，如 ['1','2','3'] (预分区指定分区段优先级最高)
+- hbase.table.rowkey.prefix: 当rowkey是数字，预分区需要指明前缀的formate形式，如 00，在startKey和endKey都未设置的情况下会生成00-99等100个分区
 - hbase.table.startKey：预分区开始key，当hbase表不存在时，会自动创建Hbase表，不带一下三个参数则只有一个分区
 - hbase.table.endKey：预分区开始key
 - hbase.table.numReg：分区个数
-- hbase.table.rowkey.prefix: 当rowkey是数字，预分区需要指明前缀的formate形式，如 00
 - hbase.check_table: 写入hbase表时，是否需要检查表是否存在，默认 false
 
 ```
