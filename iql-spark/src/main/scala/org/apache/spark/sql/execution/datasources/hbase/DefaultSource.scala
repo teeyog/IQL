@@ -6,6 +6,7 @@ import java.sql.Timestamp
 import java.text.DecimalFormat
 import java.util
 
+import com.alibaba.fastjson.JSON
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
@@ -85,14 +86,14 @@ object HBaseUtils extends Logging {
     case class SparkTableSchema(fieldName: String, fieldType: DataType)
 
 
-    def createTable(connection: Connection, tName: TableName, family: String, startKey: String, endKey: String, numReg: Int, rowkeyPrefix: String) {
+    def createTable(connection: Connection, tName: TableName, family: String, startKey: String, endKey: String, numReg: Int, rowkeyPrefix: String, regionSplits: String) {
         // Initialize hBase table if necessary
-        if (numReg >= 3) {
-          if(null == rowkeyPrefix){
-            HBaseUtils.createTable(connection, tName, getHexSplits(startKey, endKey, numReg), family)
-          }else{
+        if (null != regionSplits) {
+            HBaseUtils.createTable(connection, tName, getSplitsByStrs(regionSplits), family)
+        } else if (null != rowkeyPrefix) {
             HBaseUtils.createTable(connection, tName, getSplitKeys(startKey, endKey, numReg, rowkeyPrefix), family)
-          }
+        } else if (numReg != -1) {
+            HBaseUtils.createTable(connection, tName, getHexSplits(startKey, endKey, numReg), family)
         } else {
             var admin: Admin = null
             try {
@@ -136,7 +137,7 @@ object HBaseUtils extends Logging {
     }
 
     /**
-      * 分区段
+      * 预分区段（16进制均分）
       * @param numRegins
       * @return
       */
@@ -159,7 +160,30 @@ object HBaseUtils extends Logging {
         splits
     }
 
+    /**
+      * 预分区段（直接指定）
+      * @return
+      */
+    def getSplitsByStrs(splits: String): Array[Array[Byte]] = {
+        val strs = JSON.parseArray(splits)
+        val splitsArray = new Array[Array[Byte]](strs.size() - 1)
+        var i = 0
+        while (i < strs.size() - 1) {
+            splitsArray(i) = strs.get(i).toString.getBytes
+            i += 1
+        }
+        splitsArray
+    }
 
+
+    /**
+      * 预分区段（根据10进制均分）
+      * @param startKey
+      * @param endKey
+      * @param regions
+      * @param rowkeyPrefix
+      * @return
+      */
   def getSplitKeys(startKey: String, endKey: String, regions: Int,rowkeyPrefix: String): Array[Array[Byte]] = {
 
     var lowestKey = if(null == startKey) 0 else startKey.toInt

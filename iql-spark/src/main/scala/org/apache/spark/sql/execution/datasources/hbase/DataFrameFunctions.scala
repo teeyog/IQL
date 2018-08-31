@@ -40,6 +40,7 @@ class DataFrameFunctions(data: DataFrame) extends Logging with Serializable {
         if(!options.contains("hbase.table.family")) log.warn("The hbase.table.family is not set, use the default family is `info`")
         val numReg = options.getOrElse("hbase.table.numReg", -1).toString.toInt
         val rowkeyPrefix = options.getOrElse("hbase.table.rowkey.prefix", null)
+        val regionSplits = options.getOrElse("hbase.table.region.splits", null)
         val startKey = options.getOrElse("hbase.table.startKey", options.getOrElse("hbase.table.startkey", null))
         val endKey = options.getOrElse("hbase.table.endKey", options.getOrElse("hbase.table.endkey", null))
 
@@ -51,7 +52,7 @@ class DataFrameFunctions(data: DataFrame) extends Logging with Serializable {
             val connection = ConnectionFactory.createConnection(hbaseConf)
             val admin = connection.getAdmin
             if (!admin.isTableAvailable(tName)) {
-                HBaseUtils.createTable(connection, tName, family, startKey, endKey, numReg,rowkeyPrefix)
+                HBaseUtils.createTable(connection, tName, family, startKey, endKey, numReg,rowkeyPrefix,regionSplits)
             }
             connection.close()
         }
