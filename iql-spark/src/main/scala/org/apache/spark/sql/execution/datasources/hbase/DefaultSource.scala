@@ -60,7 +60,7 @@ private[sql] case class HBaseRelation(
                                      )(@transient val sqlContext: SQLContext)
     extends BaseRelation with TableScan with Logging {
 
-    def getZkURL: String = parameters.getOrElse("zk", parameters.getOrElse("hbase.zookeeper.quorum", "dsj01:2181"))
+    def getZkURL: String = parameters.getOrElse("hbase.zookeeper.quorum", "localhost:2181")
 
     def getInputTableName: String = parameters.getOrElse("hbase.table.name", sys.error("You must specify parameter hbase.table.name..."))
 
