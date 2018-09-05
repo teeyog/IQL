@@ -1,45 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link th:replace="head::headerFragment('IQL查询')">
     <meta charset="UTF-8"/>
     <title>IQL</title>
-    <!-- 新 Bootstrap 核心 CSS 文件 -->
-    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
-    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
-    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
-    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
-    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/codemirror/lib/codemirror.css"/>
-    <link rel="stylesheet" href="/font-awesome-4.7.0/css/font-awesome.min.css"/>
-    <!-- 自定义 -->
-    <link href="/iql/iql.css" rel="stylesheet"/>
-    <!-- 动画 -->
-    <link href="/iql/animate.css" rel="stylesheet"/>
-
-    <!-- 在线代码编辑 -->
-    <script src="/codemirror/lib/codemirror.js"></script>
-    <script src="/codemirror/mode/sql/sql.js"></script>
-    <script src="/codemirror/addon/display/placeholder.js"></script>
-
-    <!-- 提示 -->
-    <link rel="stylesheet" href="/codemirror/addon/hint/show-hint.css"/>
-    <script src="/codemirror/addon/hint/show-hint.js"></script>
-    <script src="/codemirror/addon/hint/sql-hint.js"></script>
-    <!-- 高亮 -->
-    <script src="/codemirror/addon/selection/active-line.js"></script>
-    <!-- ztree -->
-    <link href="/iql/bootstrap-ztree-style.css" rel="stylesheet"/>
-    <script src="/ztree/js/jquery.ztree.core-3.5.js"></script>
-    <script src="/ztree/js/jquery.ztree.exedit-3.5.js"></script>
-    <!-- 变量 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
-
-    <script src="/bootstrap-table/dist/bootstrap-table.min.js"></script>
-    <link href="/bootstrap-table/dist/bootstrap-table.min.css" rel="stylesheet">
-    <script src="/bootstrap-table/dist/locale/bootstrap-table-zh-CN.min.js"></script>
-    <script src="/iql/dateUtil.js"></script>
-    <script src="/iql/dataUtil.js"></script>
-
     <style type="text/css">
     </style>
 </head>
@@ -54,16 +19,20 @@
             <div>
                 <div class="mybtn db">DataBase</div>
                 <div class="mybtn sj">StreamJob</div>
+                <div class="mybtn js">JobScript</div>
             </div>
         </div>
-        <div class="content_db" style="padding-top: 10px;">
-            <ul id="treeDemo" class="ztree"></ul>
+        <div class="content_db" style="padding-top: 10px;display: none">
+            <ul id="treeHiveDB" class="ztree"></ul>
         </div>
         <div class="content_sj" style="padding-top: 10px;display: none">
             <table id="active-streamjob-table"
                    data-classes="table table-hover table-condensed  table-no-head"
                    data-mobile-responsive="true">
             </table>
+        </div>
+        <div class="content_js" style="padding-top: 10px">
+            <ul id="treeJobScript" class="ztree"></ul>
         </div>
     </div>
     <div id="body_right">
@@ -233,8 +202,205 @@
     </div>
 </div>
 
-<script type="text/javascript">
 
+<SCRIPT LANGUAGE="JavaScript">
+    $(document).ready(function(){
+        $.fn.zTree.init($("#treeJobScript"), js_setting);
+    });
+
+    var js_setting = {
+        view: {
+            addHoverDom: addHoverDom,
+            removeHoverDom: removeHoverDom,
+            selectedMulti: false
+        },
+        check: {
+            enable: true
+        },
+        data: {
+            simpleData: {
+                enable: true,
+                pIdKey: "pid",
+                rootPId: 0
+            }
+        },
+        edit: {
+            enable: true
+        },
+        callback: {
+            beforeRemove: zTreeBeforeRemove,
+            beforeDrop: zTreeBeforeDrop,
+            beforeAsync: zTreeBeforeAsync,
+            beforeRename: zTreeBeforeRename,
+            onExpand: zTreeOnExpand
+        },
+        async: {
+            enable: true,
+            autoParam: ['id', 'type'],
+            url: '/mcdata/sysData/ztree/simple',
+            type: 'get'
+        }
+    };
+
+    function zTreeBeforeAsync(treeId, treeNode) {
+        return true;
+    }
+    function addHoverDom(treeId, treeNode) {
+        var sObj = $("#" + treeNode.tId + "_span");
+        if (treeNode.editNameFlag || $("#addBtn_"+treeNode.tId).length>0) return;
+        var addStr = "<span class='button add' id='addBtn_" + treeNode.tId
+            + "' title='add node' onfocus='this.blur();'></span>";
+        sObj.after(addStr);
+        var btn = $("#addBtn_"+treeNode.tId);
+        if (btn) btn.bind("click", function() {
+            treeNode.isAdd = 1
+            if(treeNode.isParent&&!treeNode.open) {
+                //必须展开, 否则treeNode.children=undefined, addNodes不会返回对象
+                var zTree = $.fn.zTree.getZTreeObj(treeId);
+                zTree.expandNode(treeNode, true, false, true, true)
+            } else {
+                zTreeOnExpand(null, treeId, treeNode)
+            }
+        });
+    };
+    function removeHoverDom(treeId, treeNode) {
+        $("#addBtn_"+treeNode.tId).unbind().remove();
+    };
+    function zTreeBeforeRename(treeId, treeNode, newName, isCancel) {
+        if(newName.trim()=='') return false
+        if(!isCancel) {
+            var data = {
+                id: treeNode.id,
+                name: newName,
+                pid: treeNode.pid,
+                type: treeNode.getParentNode()? treeNode.getParentNode().type:treeNode.type,
+                sort: treeNode.getPreNode()? treeNode.getPreNode().sort+1:1,
+                isParent: treeNode.isParent? 1:0
+            };
+            $.ajax({
+                type: 'POST',
+                url: '/mcdata/sysData/json/update',
+                data: data,
+                dataType: 'json',
+                success: function(data) {
+                    treeNode.id = data.id
+                    treeNode.type = data.type
+                    treeNode.sort = data.sort
+                    toastr.success('Modify successfully!', 'Success')
+                },
+                error: function(err) {
+                    toastr.error('An error has occurred.', 'Error!')
+                }
+            })
+        }
+        return true
+    }
+    function zTreeOnExpand(event, treeId, treeNode) {
+        if(treeNode.isAdd) {
+            delete treeNode.isAdd
+            var zTree = $.fn.zTree.getZTreeObj(treeId);
+            var name = treeNode.children? treeNode.children[treeNode.children.length-1].name:''
+            var newNodes = zTree.addNodes(treeNode, {name: name}, true);
+            zTree.editName(newNodes[0]);
+        }
+    };
+    function zTreeBeforeRemove(treeId, treeNode) {
+        if(treeNode.children&&treeNode.children.length) return false;
+        var isParent = 1
+        if(!treeNode.getNextNode()&&!treeNode.getPreNode()) {
+            isParent = 0
+        }
+        var data = {
+            id: treeNode.id,
+            pid: treeNode.pid,
+            type: treeNode.type,
+            sort: treeNode.sort,
+            isParent: isParent
+        }
+        $.ajax({
+            type: 'POST',
+            url: '/mcdata/sysData/json/remove',
+            data: data,
+            success: function(data) {
+                var zTree = $.fn.zTree.getZTreeObj(treeId);
+                zTree.removeNode(treeNode);
+                toastr.success('Modify successfully!', 'Success')
+            },
+            error: function(err) {
+                toastr.error('An error has occurred.', 'Error!')
+            }
+        })
+        return true
+    }
+    function zTreeBeforeDrop(treeId, treeNodes, targetNode, moveType) {
+        if(targetNode == null || (moveType != "inner" && !targetNode.parentTId)) return false//禁止将节点拖拽成为根节点
+        if(treeNodes[0].type!=targetNode.type) return false//禁止跨节点拖拽
+        if(treeNodes[0].level!=targetNode.level) return false//禁止将节点拖拽成为子节点
+        var data = {
+            id: treeNodes[0].id,
+            pid: treeNodes[0].pid,
+            type: treeNodes[0].type,
+            sort: treeNodes[0].sort,
+            targetSort: targetNode.sort
+        }
+        $.ajax({
+            type: 'POST',
+            url: '/mcdata/sysData/json/drop',
+            data: data,
+            success: function(data) {
+                toastr.success('Modify successfully!', 'Success')
+            },
+            error: function(err) {
+                toastr.error('An error has occurred.', 'Error!')
+            }
+        })
+        return true
+    };
+    $modal.on("hide.bs.modal", function() {
+        $(this).off("show.bs.modal")
+        $("#save").off("click")
+    })
+    function addType() {
+        $modal.on("show.bs.modal", function(e) {
+            $("#save").on("click", function() {
+                var flag = $("#add_form").valid();
+                if(!flag){
+                    return;
+                }
+                $modal.modal("hide");
+                var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+                var nodes = zTree.getNodes();
+                var data = {
+                    name: $("#name").val(),
+                    pid: 0,
+                    sort: nodes? nodes.length:1,
+                    type: $("#type").val(),
+                    isParent: 0
+                }
+                $.ajax({
+                    type: 'POST',
+                    url: '/mcdata/sysData/json/update',
+                    data: data,
+                    dataType: 'json',
+                    success: function(data) {
+                        data.isParent=0
+                        zTree.addNodes(null, data);
+                        toastr.success('Modify successfully!', 'Success')
+                    },
+                    error: function(err) {
+                        toastr.error('An error has occurred.', 'Error!')
+                    }
+                })
+            })
+        })
+        $("#name").val("")
+        $("#type").val("")
+        $modal.modal("show")
+    }
+</SCRIPT>
+
+
+<script type="text/javascript">
     $(function () {
 
         window.operateEvents_stop_streamjob = {
@@ -255,6 +421,7 @@
         $(".db").click(function(){
             $(".db").css("background-color","#e6e6e6");
             $(".sj").css("background-color","#f0f0f0");
+            $(".js").css("background-color","#f0f0f0");
             $(".content_sj").hide();
             $(".content_db").show();
         });
@@ -262,8 +429,18 @@
         $(".sj").click(function(){
             $(".sj").css("background-color","#e6e6e6");
             $(".db").css("background-color","#f0f0f0");
+            $(".js").css("background-color","#f0f0f0");
             $(".content_db").hide();
             $(".content_sj").show();
+            loadActiveStreamJob();
+        });
+
+        $(".js").click(function(){
+            $(".js").css("background-color","#e6e6e6");
+            $(".sj").css("background-color","#f0f0f0");
+            $(".db").css("background-color","#f0f0f0");
+            $(".content_db").hide();
+            $(".content_sj").hide();
             loadActiveStreamJob();
         });
 
@@ -441,7 +618,7 @@
             }
         });
 
-        $.fn.zTree.init($("#treeDemo"), setting);
+        $.fn.zTree.init($("#treeHiveDB"), setting);
     });
 
     // 执行IQL
@@ -770,7 +947,7 @@
     }
 
     function zTreeOnNodeCreated(event, treeId, treeNode) {
-        $('#' + treeNode.tId + '_ico').css("display", "none");
+        // $('#' + treeNode.tId + '_ico').css("display", "none");
     }
 
     var setting = {

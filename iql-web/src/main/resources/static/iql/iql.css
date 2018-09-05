@@ -100,7 +100,7 @@
 
 .mybtn {
     float: left;
-    width: 50%;
+    width: 33.33%;
     text-align:center;
     line-height:60px;
     font-size: 20px;
@@ -111,3 +111,19 @@
 .db {
     background-color: #e6e6e6;
 }
+
+#treeHiveDB .level0 span[id$="_ico"]{
+    background-image: url(./img/db.png);
+    background-position: 0;
+}
+
+#treeHiveDB .level1 span[id$="_ico"]{
+    background-image: url(./img/tb.jpg);
+    background-position: 0;
+}
+
+#treeHiveDB .level2 span[id$="_ico"]{
+    background-image: url(./img/zTreeStandard.png);
+    background-position: -110px -32px;
+}
+

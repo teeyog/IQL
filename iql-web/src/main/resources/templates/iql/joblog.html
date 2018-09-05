@@ -100,7 +100,7 @@
             var logtype = $("#logtype").find("option:selected").text();
             $("#log-container div").empty();
             // 指定websocket路径
-            websocket = new WebSocket("ws://192.168.1.233:8888/log?appname=" + appname + "&amp;executor=" + executor + "&amp;host=" + host + "&amp;logtype=" + logtype);
+            websocket = new WebSocket("ws://192.168.1.40:8888/log?appname=" + appname + "&amp;executor=" + executor + "&amp;host=" + host + "&amp;logtype=" + logtype);
             websocket.onmessage = function (event) {
                 var log = "<span>" + event.data + "</span>";
                 // 接收服务端的实时日志并添加到HTML页面中
