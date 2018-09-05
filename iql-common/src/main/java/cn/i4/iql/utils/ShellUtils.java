@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class ShellUtils {
 
-    private final static String[] HOSTS = {"dsj02","dsj03","dsj04","dsj05","dsj06","dsj07",};
+    private final static String[] HOSTS = {"dsj01"};
 
     /**
      * 运行一个shell命令
