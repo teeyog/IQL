@@ -32,19 +32,23 @@ public class JobScriptAction {
      * 获取script stree
      */
     @PostMapping(value = "/update")
-    public JSONObject update(Integer id, String name, Integer pid, Integer isParent) {
+    public JSONObject update(Integer id, String name, Integer pid, Integer isParent, Integer sort) {
         JSONObject obj = new JSONObject();
+        System.out.println(name);
         if(id == null){
             JobScript jobScript = new JobScript();
             jobScript.setName(name);
             jobScript.setPid(pid);
             jobScript.setIsParent(isParent);
+            jobScript.setSort(sort);
             JobScript script = jobScriptRepository.save(jobScript);
             jobScriptRepository.updateIsParent(1,pid);
             obj.put("id",script.getId());
+            obj.put("sort",script.getSort());
         }else{
-            jobScriptRepository.updateOne(name, pid, isParent, id);
+            jobScriptRepository.updateOne(name, pid, isParent,sort, id);
             obj.put("id",id);
+            obj.put("sort",sort);
         }
         return obj;
     }
@@ -68,8 +72,10 @@ public class JobScriptAction {
      * drag node
      */
     @PostMapping(value = "/drag")
-    public void drag(Integer id,Integer pid,Integer targetPid) {
-        jobScriptRepository.updatePid(targetPid,id);
+    public void drag(Integer id,Integer pid,Integer targetPid, Integer sort, Integer targetSort) {
+        System.out.println(sort + " -- " + targetSort);
+        jobScriptRepository.updateScriptWhereSortGreatThan(targetPid,targetSort + 1);
+        jobScriptRepository.updatePid(targetPid,targetSort + 1,id);
         List<JobScript> byPid = jobScriptRepository.findByPid(pid);
         if(byPid.size() == 0){
             jobScriptRepository.updateIsParent(0,pid);

@@ -19,6 +19,16 @@ public class JobScript {
 	@Column(name="isparent")
 	private Integer isParent;
 
+	private Integer sort;
+
+	public Integer getSort() {
+		return sort;
+	}
+
+	public void setSort(Integer sort) {
+		this.sort = sort;
+	}
+
 	public String getScript() {
 		return script;
 	}

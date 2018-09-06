@@ -207,8 +207,8 @@
 <div id="rMenu" style="display: none">
     <ul>
         <li id="m_add" onclick="addTreeNodeDir();">新建节点</li>
-        <li id="m_check" onclick="renameTreeNode();">重命名</li>
-        <li id="m_unCheck" onclick="removeTreeNode();">删除</li>
+        <li id="m_rename" onclick="renameTreeNode();">重命名</li>
+        <li id="m_del" onclick="removeTreeNode();">删除</li>
     </ul>
 </div>
 
@@ -242,7 +242,8 @@
             beforeDrop: zTreeBeforeDrop,
             beforeAsync: zTreeBeforeAsync,
             beforeRename: zTreeBeforeRename,
-            onExpand: zTreeOnExpand
+            onExpand: zTreeOnExpand,
+            onClick: zTreeOnClickScript
         },
         async: {
             enable: true,
@@ -252,12 +253,31 @@
         }
     };
 
+    function zTreeOnClickScript(event, treeId, treeNode) {
+        if(treeNode.isParent == 0) {
+            var data = {
+                id: treeNode.id
+            }
+            $.ajax({
+                type: 'GET',
+                url: '/jobScript/script',
+                data: data,
+                dataType: 'json',
+                success: function(data) {
+                    window.editor.setValue(data.script);
+                },
+                error: function(err) {
+                }
+            })
+        }
+    };
+
     function zTreeBeforeAsync(treeId, treeNode) {
         return true;
     }
 
     function OnRightClick(event, treeId, treeNode) {
-        if (!treeNode && event.target.tagName.toLowerCase() != "button" && $(event.target).parents("a").length == 0) {
+        if (treeNode.name == "mc") {
             zTree.cancelSelectedNode();
             showRMenu("root", event.clientX, event.clientY);
         } else if (treeNode && !treeNode.noR) {
@@ -271,12 +291,10 @@
         $("#rMenu ul").show();
         if (type=="root") {
             $("#m_del").hide();
-            $("#m_check").hide();
-            $("#m_unCheck").hide();
         } else {
+            $("#m_add").show();
+            $("#m_rename").show();
             $("#m_del").show();
-            $("#m_check").show();
-            $("#m_unCheck").show();
         }
         rMenu.css({"top":y+"px", "left":x+"px", "visibility":"visible"});
 
@@ -295,11 +313,13 @@
     function addTreeNodeDir() {
         hideRMenu();
         var newNode = { name:"增加" + (addCount++)};
+        var newNode_;
         if (zTree.getSelectedNodes()[0]) {
-            zTree.addNodes(zTree.getSelectedNodes()[0], newNode);
+            newNode_ = zTree.addNodes(zTree.getSelectedNodes()[0], newNode);
         } else {
-            zTree.addNodes(null, newNode);
+            newNode_ = zTree.addNodes(zTree.getNodesByParam("name", "mc", null)[0], newNode);
         }
+        zTree.editName(newNode_[0]);
     }
 
     //使节点处于编辑状态
@@ -343,7 +363,7 @@
             url: '/jobScript/remove',
             data: data,
             success: function(data) {
-                var zTree = $.fn.zTree.getZTreeObj(treeId);
+                // var zTree = $.fn.zTree.getZTreeObj(treeId);
                 // zTree.removeNode(treeNode);
                 toastr.success('Modify successfully!', 'Success')
             },
@@ -369,7 +389,8 @@
                 id: treeNode.id,
                 name: newName,
                 pid: treeNode.pid,
-                isParent: treeNode.isParent? 1:0
+                isParent: treeNode.isParent? 1:0,
+                sort: treeNode.getPreNode()? treeNode.getPreNode().sort+1:1
             };
             $.ajax({
                 type: 'POST',
@@ -377,7 +398,8 @@
                 data: data,
                 dataType: 'json',
                 success: function(data) {
-                    treeNode.id = data.id
+                    treeNode.id = data.id;
+                    treeNode.sort = data.sort;
                     toastr.success('Modify successfully!', 'Success')
                 },
                 error: function(err) {
@@ -390,7 +412,7 @@
 
     function zTreeOnExpand(event, treeId, treeNode) {
         if(treeNode.isAdd) {
-            delete treeNode.isAdd
+            delete treeNode.isAdd;
             var zTree = $.fn.zTree.getZTreeObj(treeId);
             var name = treeNode.children? treeNode.children[treeNode.children.length-1].name:''
             var newNodes = zTree.addNodes(treeNode, {name: name}, true);
@@ -405,7 +427,9 @@
         var data = {
             id: treeNodes[0].id,
             pid: treeNodes[0].pid,
-            targetPid: targetNode.pid
+            targetPid: targetNode.pid,
+            sort: treeNodes[0].sort,
+            targetSort: targetNode.sort
         }
         $.ajax({
             type: 'POST',
@@ -981,7 +1005,7 @@
             nameIsHTML: true
         },
         check: {
-            enable: true
+            enable: false
         },
         data: {
             simpleData: {
