@@ -111,11 +111,6 @@ object HBaseUtils extends Logging {
 
     /**
       * 创建HBaseTable
-      *
-      * @param connection
-      * @param tableName
-      * @param hexSplits
-      * @param columnFamilies
       */
     @throws[IOException]
     def createTable(connection: Connection, tableName: TableName, hexSplits: Array[Array[Byte]], columnFamilies: String*): Unit = {
@@ -138,8 +133,6 @@ object HBaseUtils extends Logging {
 
     /**
       * 预分区段（16进制均分）
-      * @param numRegins
-      * @return
       */
     def getHexSplits(start: String, end: String, numRegins: Int): Array[Array[Byte]] = {
         val startKey = if(null == start) "00000000000000000000000000000000" else start
@@ -162,7 +155,6 @@ object HBaseUtils extends Logging {
 
     /**
       * 预分区段（直接指定）
-      * @return
       */
     def getSplitsByStrs(splits: String): Array[Array[Byte]] = {
         val strs = JSON.parseArray(splits)
@@ -178,17 +170,12 @@ object HBaseUtils extends Logging {
 
     /**
       * 预分区段（根据10进制均分）
-      * @param startKey
-      * @param endKey
-      * @param regions
-      * @param rowkeyPrefix
-      * @return
       */
   def getSplitKeys(startKey: String, endKey: String, regions: Int,rowkeyPrefix: String): Array[Array[Byte]] = {
 
-    var lowestKey = if(null == startKey) 0 else startKey.toInt
+    val lowestKey = if(null == startKey) 0 else startKey.toInt
     val highestKey = if(null == endKey) Math.pow(10,rowkeyPrefix.trim.length) - 1 else Math.min(Math.pow(10,rowkeyPrefix.trim.length),endKey.toInt)
-    require(highestKey.toInt > lowestKey.toInt,"hbase.table.startKey must be smaller than hbase.table.endKey!")
+    require(highestKey.toInt > lowestKey,"hbase.table.startKey must be smaller than hbase.table.endKey!")
 
     val range = highestKey - lowestKey + 1
     val numRegins:Int = Math.min(regions,Math.min(Math.pow(10,rowkeyPrefix.trim.length),range)).asInstanceOf[Int]
@@ -227,9 +214,6 @@ object HBaseUtils extends Logging {
 
     /**
       * 获取HBase表Schema
-      *
-      * @param sparkTableSchema
-      * @return
       */
     def registerHbaseTableSchema(sparkTableSchema: String): Array[HBaseTableSchema] = {
         sparkTableSchema.split(",").map(field =>
@@ -242,9 +226,6 @@ object HBaseUtils extends Logging {
 
     /**
       * 获取SparkSQL表Schema
-      *
-      * @param sparkTableSchema
-      * @return
       */
     def registerSparkTableSchema(sparkTableSchema: String): StructType = {
         StructType(
@@ -278,7 +259,7 @@ object HBaseUtils extends Logging {
                     try {
                         Bytes.toLong(result.getValue(hbaseSchema.cm.getBytes, hbaseSchema.cel.getBytes))
                     } catch {
-                        case e:Exception => 0L
+                        case _:Exception => 0L
                     }
             case FloatType =>
                 (result: Result) => Bytes.toFloat(result.getValue(hbaseSchema.cm.getBytes, hbaseSchema.cel.getBytes))

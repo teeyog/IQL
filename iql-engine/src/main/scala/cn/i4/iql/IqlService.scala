@@ -26,12 +26,12 @@ object IqlService extends Logging {
             .config("hive.exec.dynamic.partition.mode", "nonstrict")
             .config("hive.exec.max.dynamic.partitions", 20000)
             //序列化
-            .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+//            .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
             //调度模式
             .config("spark.scheduler.mode", "FAIR")
-            .config("spark.scheduler.allocation.file", "/home/runtime_file/fairscheduler.xml")
+//            .config("spark.scheduler.allocation.file", "/home/runtime_file/fairscheduler.xml")
             .config("spark.executor.memoryOverhead", "512")
-//                                    .master("local[4]")
+                                    .master("local[4]")
             .enableHiveSupport()
             .getOrCreate()
         spark.sparkContext.setLogLevel("WARN")

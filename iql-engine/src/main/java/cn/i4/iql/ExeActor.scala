@@ -177,7 +177,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
             val dbId = num
             val dbObj = new JSONObject()
             dbObj.put("id", dbId)
-            dbObj.put("name",s"""<span class="button ico_close" style="background:url('/iql/img/db.jpg') center center/15px 15px no-repeat"></span>$db""")
+            dbObj.put("name",db)
+//            dbObj.put("name",s<span class="button ico_close" style="background:url('/iql/img/db.jpg') center center/15px 15px no-repeat"></span>$db""")
             dbObj.put("pId", 0)
             hiveArray.add(dbObj)
             SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
@@ -186,7 +187,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
                 val tbObj = new JSONObject()
                 tbObj.put("id", tbId)
                 tbObj.put("pId", dbId)
-                tbObj.put("name",s"""<span class="button ico_close" style="background:url('/iql/img/tb.jpg') center center/15px 15px no-repeat"></span>$tb""")
+                tbObj.put("name",tb)
+//                tbObj.put("name",s"""<span class="button ico_close" style="background:url('/iql/img/tb.jpg') center center/15px 15px no-repeat"></span>$tb""")
                 hiveArray.add(tbObj)
                 SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
                     num += 1

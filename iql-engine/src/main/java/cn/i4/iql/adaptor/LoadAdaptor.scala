@@ -73,7 +73,7 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
           table = sparkSession.read.json(
             table.select("msg").rdd.map(_.getString(0))
 //            table.select("msg").rdd.map(r => {
-//              r match {
+//              r.getString(0) match {
 //                case JSON_REGEX(jsonStr) => jsonStr
 //              }
 //            })
