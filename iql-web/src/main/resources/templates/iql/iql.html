@@ -52,8 +52,7 @@
                         <a class="btn" onclick="execIQL()" title="execute"><i class="fa fa-play"></i></a>
                     </div>
                     <div class="form-group" style="margin-right: 15px;">
-                        <a class="btn" data-toggle="modal" data-target="#myModal" title="save query as..."><i
-                                class="fa fa-save"></i></a>
+                        <a class="btn" onclick="saveScript()" title="save query as..."><i class="fa fa-save"></i></a>
                     </div>
                     <div class="form-group">
                         <a class="btn" onclick="formatIQL()" title="format the current iql query"><i
@@ -113,9 +112,7 @@
                     <ul class="nav nav-tabs" style="margin-left: 20px">
                         <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true">Query History</a>
                         </li>
-                        <li class=""><a data-toggle="tab" href="#tab-2" aria-expanded="false">Saved Queries</a>
-                        </li>
-                        <li class=""><a id="results-tab" data-toggle="tab" href="#tab-3"
+                        <li class=""><a id="results-tab" data-toggle="tab" href="#tab-2"
                                         aria-expanded="false">Results</a>
                         </li>
                     </ul>
@@ -129,13 +126,6 @@
                             </div>
                         </div>
                         <div id="tab-2" class="tab-pane">
-                            <div class="panel-body">
-                                <table id="saved-list-table" data-classes="table table-hover table-condensed"
-                                       data-mobile-responsive="true">
-                                </table>
-                            </div>
-                        </div>
-                        <div id="tab-3" class="tab-pane">
                             <div class="panel-body">
                                 <form role="form" class="form-inline" id="downloadForm" style="display: none;">
                                     <div class="form-group">
@@ -170,40 +160,6 @@
 
 </div>
 
-<div id="myModal" class="modal fade" aria-hidden="true" tabindex="-1" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-sm-12">
-                        <h3 class="m-t-none m-b">Save query as...</h3>
-                        <form role="form" id="saveQueryForm">
-                            <div class="form-group">
-                                <label>Name：</label>
-                                <input type="text" class="form-control" id="queryId" name="queryId" value=""
-                                       style="display: none"/>
-                                <input type="text" class="form-control" id="queryName" name="queryName" value=""
-                                       oninput="enableSave()"/>
-                            </div>
-                            <div class="form-group">
-                                <label>Description：</label>
-                                <input type="text" class="form-control" id="queryDescription" name="queryDescription"
-                                       value=""/>
-                            </div>
-                            <div class="pull-right m-t-n-xs">
-                                <button class="btn btn-sm btn-default" data-dismiss="modal"><strong>Cancel</strong>
-                                </button>
-                                <button class="btn btn-sm btn-success" type="button" onclick="saveIql()" id="saveQuery"
-                                        disabled="disabled"><strong>Save</strong>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <div id="rMenu" style="display: none">
     <ul>
         <li id="m_add" onclick="addTreeNodeDir();">新建节点</li>
@@ -260,11 +216,15 @@
             }
             $.ajax({
                 type: 'GET',
-                url: '/jobScript/script',
+                url: '/jobScript/getScript',
                 data: data,
                 dataType: 'json',
                 success: function(data) {
-                    window.editor.setValue(data.script);
+                    if(data.script != null){
+                        window.editor.setValue(data.script);
+                    }else {
+                        window.editor.setValue("");
+                    }
                 },
                 error: function(err) {
                 }
@@ -444,6 +404,21 @@
         })
         return true
     };
+
+    //保存iql
+    function saveScript() {
+        var node = zTree.getSelectedNodes()[0];
+        $.post('/jobScript/updateSript', {
+            id: node.id,
+            script: window.editor.getValue()
+        }, function (data,status) {
+           if(status == "success"){
+               toastr.success('Modify successfully!', 'Success')
+           }else{
+               toastr.error('An error has occurred.', 'Error!')
+           }
+        })
+    }
 
 </SCRIPT>
 
@@ -940,30 +915,6 @@
         }
         var url = addParamsToUrl('/fileDownload', formParams);
         window.location.href = url
-    }
-
-    function enableSave() {
-        if ($("#queryName").val().trim() == '') {
-            $("#saveQuery").attr("disabled", true)
-        } else {
-            $("#saveQuery").attr("disabled", false)
-        }
-    }
-
-    //保存iql
-    function saveIql() {
-        $.post('/saveiql', {
-            id: $("#queryId").val(),
-            iql: window.editor.getValue(),
-            mode:$(".btn-group").children(".active").children("input").val(),
-            name: $("#queryName").val(),
-            description: $("#queryDescription").val()
-        }, function () {
-            $("#myModal").modal('hide');
-            $("#saveQueryForm")[0].reset();
-            $("#saveQuery").attr("disabled", true);
-            $("#saved-list-table").bootstrapTable("refresh")
-        })
     }
 
     //为行添加加载结果操作

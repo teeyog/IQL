@@ -37,4 +37,10 @@ public interface JobScriptRepository  extends JpaRepository<JobScript,Integer> {
 
     @Query(value="select * from job_script a where a.pid=?1 order by sort",nativeQuery=true)
     List<JobScript> findByPid(Integer pid);
+
+    //原生SQL实现更新方法接口
+    @Query(value = "update job_script set script=?1 where id=?2", nativeQuery = true)
+    @Modifying
+    @Transactional
+    void updateScriptById(String script,Integer id);
 }

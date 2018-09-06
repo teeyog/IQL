@@ -34,7 +34,6 @@ public class JobScriptAction {
     @PostMapping(value = "/update")
     public JSONObject update(Integer id, String name, Integer pid, Integer isParent, Integer sort) {
         JSONObject obj = new JSONObject();
-        System.out.println(name);
         if(id == null){
             JobScript jobScript = new JobScript();
             jobScript.setName(name);
@@ -83,13 +82,21 @@ public class JobScriptAction {
     }
 
     /**
-     * drag node
+     * get script
      */
-    @RequestMapping(value = "/script")
-    public JSONObject script(Integer id) {
+    @RequestMapping(value = "/getScript")
+    public JSONObject getScript(Integer id) {
         JSONObject obj = new JSONObject();
         obj.put("script",jobScriptRepository.getOne(id).getScript());
         return obj;
+    }
+
+    /**
+     * update script
+     */
+    @RequestMapping(value = "/updateSript")
+    public void updateSript(Integer id,String script) {
+        jobScriptRepository.updateScriptById(script,id);
     }
 
 

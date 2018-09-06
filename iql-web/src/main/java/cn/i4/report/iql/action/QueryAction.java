@@ -367,26 +367,6 @@ public class QueryAction {
     }
 
     /**
-     * 跟新一个IQL
-     *
-     * @return
-     */
-    @RequestMapping(value = "/saveiql", method = RequestMethod.POST)
-    @ResponseBody
-    public String updateIql(@RequestParam(value = "id", required = false, defaultValue = "") String id,
-                            @RequestParam(value = "iql", required = false, defaultValue = "") String iql,
-                            @RequestParam(value = "mode", required = false, defaultValue = "") String mode,
-                            @RequestParam(value = "name", required = false, defaultValue = "defaultName") String name,
-                            @RequestParam(value = "description", required = false, defaultValue = "") String description) {
-        if (id.equals("")) {
-            saveIqlRepository.save(new SaveIql(iql, mode, name, description, new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis())));
-        } else {
-            saveIqlRepository.updateOne(iql, mode, name, description, new Timestamp(System.currentTimeMillis()), Integer.valueOf(id));
-        }
-        return "success";
-    }
-
-    /**
      * 删除一个IQL
      *
      * @return
@@ -406,26 +386,6 @@ public class QueryAction {
     @ResponseBody
     public void deleteHistoryIql(@RequestParam(value = "id") String id) {
         iqlExcutionRepository.delete(Long.valueOf(id));
-    }
-
-    /**
-     * 获取所有保存的iql
-     *
-     * @param vo
-     * @return
-     * @throws IOException
-     */
-    @RequestMapping(value = "/iqls", method = RequestMethod.GET)
-    public JSONObject getIqlList(BaseBean vo) throws IOException {
-        JSONObject res = new JSONObject();
-        List<SaveIql> iqls = saveIqlRepository.findAll();
-        JSONArray rows = new JSONArray();
-        for (SaveIql e : iqls) {
-            rows.add(e.toJSON());
-        }
-        res.put("total", rows.size());
-        res.put("rows", DataUtil.pageFormat(rows, vo.getOffset(), vo.getLimit()));
-        return res;
     }
 
     /**
