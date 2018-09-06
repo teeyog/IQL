@@ -83,7 +83,7 @@
                 <textarea id="iql" rows="15" placeholder="Example: SELECT * FROM tablename, or press CTRL + space"
                           style="width: 100%"></textarea>
             </div>
-            <div id="variable">
+            <div id="variable" style="display: none">
                 <ul data-bind="foreach: variables" style="list-style:none">
                     <li>
                         <div class="input-prepend">
@@ -98,8 +98,8 @@
                  style="min-height:10px; max-height:350px;width: 100%;background-color: #f7f7f7;padding-bottom: 20px;padding-left: 30px;padding-right: 30px;overflow:scroll;display: none">
                 <pre style="color:red;"></pre>
             </div>
-            <div class="loading" style="background-color: #f0f0f0; display: none">
-                <div class="sk-spinner sk-spinner-wave">
+            <div class="loading" style="background-color: #f0f0f0; display: none; ">
+                <div class="sk-spinner sk-spinner-wave" style="width: 100px;">
                     <div class="sk-rect1"></div>
                     <div class="sk-rect2"></div>
                     <div class="sk-rect3"></div>
@@ -425,13 +425,11 @@
 
 <script type="text/javascript">
     $(function () {
-
         window.operateEvents_stop_streamjob = {
             //加载历史查询结果
             'click .RoleOfstopStreamJob': function (e, value, row, index) {
                 $.post("/stopStreamJob", {engineInfo: row.engineInfo, name: row.name, uid: row.uid}, function (data) {
                     if (data.isSuccess) {
-
                         loadActiveStreamJob();
                     } else {
                         $("#errorMessage").show();
@@ -509,7 +507,6 @@
 
     });
 
-
     var obj;
     var varis = [];
     ko.applyBindings(new addVariables());
@@ -546,11 +543,18 @@
         });
         obj.variables.removeAll();
         var vSet = {};
+        var hasVariable = false;
         while ((result = r.exec(window.editor.getValue())) != null) {
             if (!vSet[result[1]]) {
+                hasVariable = true;
                 obj.variables.push({name: result[1], value: kvdata[result[1]]});
                 vSet[result[1]] = 'a';
             }
+        }
+        if(hasVariable){
+            $("#variable").show()
+        }else{
+            $("#variable").hide()
         }
     }
 
