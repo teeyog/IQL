@@ -10,12 +10,10 @@ import cn.i4.iql.utils.ShellUtils;
 import cn.i4.iql.utils.ZkUtils;
 import cn.i4.report.bean.BaseBean;
 import cn.i4.report.bean.IqlExcution;
-import cn.i4.report.bean.SaveIql;
 import cn.i4.report.handler.HDFSHandler;
 import cn.i4.report.util.DataUtil;
 import cn.i4.report.util.HdfsUtils;
 import cn.i4.report.iql.service.IqlExcutionRepository;
-import cn.i4.report.iql.service.SaveIqlRepository;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -31,7 +29,6 @@ import scala.concurrent.duration.Duration;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +43,6 @@ public class QueryAction {
     private ZkClient zkClient;
     @Autowired
     private IqlExcutionRepository iqlExcutionRepository;
-    @Autowired
-    private SaveIqlRepository saveIqlRepository;
 
     /**
      * 执行一个IQL
@@ -364,17 +359,6 @@ public class QueryAction {
         res.put("total", rows.size());
         res.put("rows", DataUtil.pageFormat(rows, vo.getOffset(), vo.getLimit()));
         return res;
-    }
-
-    /**
-     * 删除一个IQL
-     *
-     * @return
-     */
-    @RequestMapping(value = "/deleteiql", method = RequestMethod.POST)
-    @ResponseBody
-    public void deleteIql(@RequestParam(value = "id") String id) {
-        saveIqlRepository.delete(Long.valueOf(id));
     }
 
     /**
