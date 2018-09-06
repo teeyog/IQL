@@ -76,6 +76,16 @@ public class JobScriptAction {
         }
     }
 
+    /**
+     * drag node
+     */
+    @RequestMapping(value = "/script")
+    public JSONObject script(Integer id) {
+        JSONObject obj = new JSONObject();
+        obj.put("script",jobScriptRepository.getOne(id).getScript());
+        return obj;
+    }
+
 
     private static void removeByPid(Integer id,JobScriptRepository jobScriptRepository){
         List<JobScript> jobs = jobScriptRepository.findByPid(id);
