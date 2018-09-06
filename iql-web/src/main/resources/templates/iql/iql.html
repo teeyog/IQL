@@ -23,7 +23,9 @@
             </div>
         </div>
         <div class="content_db" style="padding-top: 10px;display: none">
-            <ul id="treeHiveDB" class="ztree"></ul>
+            <div class="zTreeDemoBackground left">
+                <ul id="treeHiveDB" class="ztree"></ul>
+            </div>
         </div>
         <div class="content_sj" style="padding-top: 10px;display: none">
             <table id="active-streamjob-table"
@@ -165,6 +167,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 <div id="myModal" class="modal fade" aria-hidden="true" tabindex="-1" role="dialog">
@@ -201,7 +204,13 @@
         </div>
     </div>
 </div>
-
+<div id="rMenu" style="display: none">
+    <ul>
+        <li id="m_add" onclick="addTreeNodeDir();">新建节点</li>
+        <li id="m_check" onclick="renameTreeNode();">重命名</li>
+        <li id="m_unCheck" onclick="removeTreeNode();">删除</li>
+    </ul>
+</div>
 
 <SCRIPT LANGUAGE="JavaScript">
     $(document).ready(function(){
@@ -210,12 +219,7 @@
 
     var js_setting = {
         view: {
-            addHoverDom: addHoverDom,
-            removeHoverDom: removeHoverDom,
             selectedMulti: false
-        },
-        check: {
-            enable: true
         },
         data: {
             simpleData: {
@@ -224,10 +228,16 @@
                 rootPId: 0
             }
         },
+        check: {
+            enable: false
+        },
         edit: {
-            enable: true
+            enable: true,
+            showRemoveBtn: false,
+            showRenameBtn: false
         },
         callback: {
+            onRightClick: OnRightClick,
             beforeRemove: zTreeBeforeRemove,
             beforeDrop: zTreeBeforeDrop,
             beforeAsync: zTreeBeforeAsync,
@@ -236,8 +246,8 @@
         },
         async: {
             enable: true,
-            autoParam: ['id', 'type'],
-            url: '/mcdata/sysData/ztree/simple',
+            autoParam: ['id'],
+            url: '/jobScript/tree',
             type: 'get'
         }
     };
@@ -245,27 +255,113 @@
     function zTreeBeforeAsync(treeId, treeNode) {
         return true;
     }
-    function addHoverDom(treeId, treeNode) {
-        var sObj = $("#" + treeNode.tId + "_span");
-        if (treeNode.editNameFlag || $("#addBtn_"+treeNode.tId).length>0) return;
-        var addStr = "<span class='button add' id='addBtn_" + treeNode.tId
-            + "' title='add node' onfocus='this.blur();'></span>";
-        sObj.after(addStr);
-        var btn = $("#addBtn_"+treeNode.tId);
-        if (btn) btn.bind("click", function() {
-            treeNode.isAdd = 1
-            if(treeNode.isParent&&!treeNode.open) {
-                //必须展开, 否则treeNode.children=undefined, addNodes不会返回对象
-                var zTree = $.fn.zTree.getZTreeObj(treeId);
-                zTree.expandNode(treeNode, true, false, true, true)
+
+    function OnRightClick(event, treeId, treeNode) {
+        if (!treeNode && event.target.tagName.toLowerCase() != "button" && $(event.target).parents("a").length == 0) {
+            zTree.cancelSelectedNode();
+            showRMenu("root", event.clientX, event.clientY);
+        } else if (treeNode && !treeNode.noR) {
+            zTree.selectNode(treeNode);
+            showRMenu("node", event.clientX, event.clientY);
+        }
+    }
+
+    function showRMenu(type, x, y) {
+        $("#rMenu").show();
+        $("#rMenu ul").show();
+        if (type=="root") {
+            $("#m_del").hide();
+            $("#m_check").hide();
+            $("#m_unCheck").hide();
+        } else {
+            $("#m_del").show();
+            $("#m_check").show();
+            $("#m_unCheck").show();
+        }
+        rMenu.css({"top":y+"px", "left":x+"px", "visibility":"visible"});
+
+        $("body").bind("mousedown", onBodyMouseDown);
+    }
+    function hideRMenu() {
+        if (rMenu) rMenu.css({"visibility": "hidden"});
+        $("body").unbind("mousedown", onBodyMouseDown);
+    }
+    function onBodyMouseDown(event){
+        if (!(event.target.id == "rMenu" || $(event.target).parents("#rMenu").length>0)) {
+            rMenu.css({"visibility" : "hidden"});
+        }
+    }
+    var addCount = 1;
+    function addTreeNodeDir() {
+        hideRMenu();
+        var newNode = { name:"增加" + (addCount++)};
+        if (zTree.getSelectedNodes()[0]) {
+            zTree.addNodes(zTree.getSelectedNodes()[0], newNode);
+        } else {
+            zTree.addNodes(null, newNode);
+        }
+    }
+
+    //使节点处于编辑状态
+    function renameTreeNode() {
+        hideRMenu();
+        zTree.editName(zTree.getSelectedNodes()[0]);
+    }
+
+    //删除节点
+    function removeTreeNode() {
+        hideRMenu();
+        var nodes = zTree.getSelectedNodes();
+        if (nodes && nodes.length>0) {
+            if (nodes[0].children && nodes[0].children.length > 0) {
+                var msg = "要删除的节点是父节点，如果删除将连同子节点一起删掉。\n\n请确认！";
+                if (confirm(msg)==true){
+                    zTreeBeforeRemove(nodes[0].id,nodes[0]);
+                    zTree.removeNode(nodes[0]);
+                }
             } else {
-                zTreeOnExpand(null, treeId, treeNode)
+                zTreeBeforeRemove(nodes[0].id,nodes[0]);
+                zTree.removeNode(nodes[0]);
+            }
+        }
+    }
+
+    //删除节点（与后端交互）
+    function zTreeBeforeRemove(treeId, treeNode) {
+        // if(treeNode.children&&treeNode.children.length) return false;
+        var isParent = 1;
+        if(!treeNode.getNextNode()&&!treeNode.getPreNode()) {
+            isParent = 0
+        }
+        var data = {
+            id: treeNode.id,
+            pid: treeNode.pid,
+            isParent: isParent
+        }
+        $.ajax({
+            type: 'POST',
+            url: '/jobScript/remove',
+            data: data,
+            success: function(data) {
+                var zTree = $.fn.zTree.getZTreeObj(treeId);
+                // zTree.removeNode(treeNode);
+                toastr.success('Modify successfully!', 'Success')
+            },
+            error: function(err) {
+                toastr.error('An error has occurred.', 'Error!')
             }
         });
-    };
-    function removeHoverDom(treeId, treeNode) {
-        $("#addBtn_"+treeNode.tId).unbind().remove();
-    };
+        return true
+    }
+
+    var zTree, rMenu;
+    $(document).ready(function(){
+        $.fn.zTree.init($("#treeJobScript"), js_setting);
+        zTree = $.fn.zTree.getZTreeObj("treeJobScript");
+        rMenu = $("#rMenu");
+    });
+
+    // 跟新/新建节点
     function zTreeBeforeRename(treeId, treeNode, newName, isCancel) {
         if(newName.trim()=='') return false
         if(!isCancel) {
@@ -273,19 +369,15 @@
                 id: treeNode.id,
                 name: newName,
                 pid: treeNode.pid,
-                type: treeNode.getParentNode()? treeNode.getParentNode().type:treeNode.type,
-                sort: treeNode.getPreNode()? treeNode.getPreNode().sort+1:1,
                 isParent: treeNode.isParent? 1:0
             };
             $.ajax({
                 type: 'POST',
-                url: '/mcdata/sysData/json/update',
+                url: '/jobScript/update',
                 data: data,
                 dataType: 'json',
                 success: function(data) {
                     treeNode.id = data.id
-                    treeNode.type = data.type
-                    treeNode.sort = data.sort
                     toastr.success('Modify successfully!', 'Success')
                 },
                 error: function(err) {
@@ -295,6 +387,7 @@
         }
         return true
     }
+
     function zTreeOnExpand(event, treeId, treeNode) {
         if(treeNode.isAdd) {
             delete treeNode.isAdd
@@ -304,34 +397,7 @@
             zTree.editName(newNodes[0]);
         }
     };
-    function zTreeBeforeRemove(treeId, treeNode) {
-        if(treeNode.children&&treeNode.children.length) return false;
-        var isParent = 1
-        if(!treeNode.getNextNode()&&!treeNode.getPreNode()) {
-            isParent = 0
-        }
-        var data = {
-            id: treeNode.id,
-            pid: treeNode.pid,
-            type: treeNode.type,
-            sort: treeNode.sort,
-            isParent: isParent
-        }
-        $.ajax({
-            type: 'POST',
-            url: '/mcdata/sysData/json/remove',
-            data: data,
-            success: function(data) {
-                var zTree = $.fn.zTree.getZTreeObj(treeId);
-                zTree.removeNode(treeNode);
-                toastr.success('Modify successfully!', 'Success')
-            },
-            error: function(err) {
-                toastr.error('An error has occurred.', 'Error!')
-            }
-        })
-        return true
-    }
+
     function zTreeBeforeDrop(treeId, treeNodes, targetNode, moveType) {
         if(targetNode == null || (moveType != "inner" && !targetNode.parentTId)) return false//禁止将节点拖拽成为根节点
         if(treeNodes[0].type!=targetNode.type) return false//禁止跨节点拖拽
@@ -339,13 +405,11 @@
         var data = {
             id: treeNodes[0].id,
             pid: treeNodes[0].pid,
-            type: treeNodes[0].type,
-            sort: treeNodes[0].sort,
-            targetSort: targetNode.sort
+            targetPid: targetNode.pid
         }
         $.ajax({
             type: 'POST',
-            url: '/mcdata/sysData/json/drop',
+            url: '/jobScript/drag',
             data: data,
             success: function(data) {
                 toastr.success('Modify successfully!', 'Success')
@@ -356,47 +420,7 @@
         })
         return true
     };
-    $modal.on("hide.bs.modal", function() {
-        $(this).off("show.bs.modal")
-        $("#save").off("click")
-    })
-    function addType() {
-        $modal.on("show.bs.modal", function(e) {
-            $("#save").on("click", function() {
-                var flag = $("#add_form").valid();
-                if(!flag){
-                    return;
-                }
-                $modal.modal("hide");
-                var zTree = $.fn.zTree.getZTreeObj("treeDemo");
-                var nodes = zTree.getNodes();
-                var data = {
-                    name: $("#name").val(),
-                    pid: 0,
-                    sort: nodes? nodes.length:1,
-                    type: $("#type").val(),
-                    isParent: 0
-                }
-                $.ajax({
-                    type: 'POST',
-                    url: '/mcdata/sysData/json/update',
-                    data: data,
-                    dataType: 'json',
-                    success: function(data) {
-                        data.isParent=0
-                        zTree.addNodes(null, data);
-                        toastr.success('Modify successfully!', 'Success')
-                    },
-                    error: function(err) {
-                        toastr.error('An error has occurred.', 'Error!')
-                    }
-                })
-            })
-        })
-        $("#name").val("")
-        $("#type").val("")
-        $modal.modal("show")
-    }
+
 </SCRIPT>
 
 
@@ -423,6 +447,7 @@
             $(".sj").css("background-color","#f0f0f0");
             $(".js").css("background-color","#f0f0f0");
             $(".content_sj").hide();
+            $(".content_js").hide();
             $(".content_db").show();
         });
 
@@ -431,6 +456,7 @@
             $(".db").css("background-color","#f0f0f0");
             $(".js").css("background-color","#f0f0f0");
             $(".content_db").hide();
+            $(".content_js").hide();
             $(".content_sj").show();
             loadActiveStreamJob();
         });
@@ -439,9 +465,9 @@
             $(".js").css("background-color","#e6e6e6");
             $(".sj").css("background-color","#f0f0f0");
             $(".db").css("background-color","#f0f0f0");
+            $(".content_js").show();
             $(".content_db").hide();
             $(".content_sj").hide();
-            loadActiveStreamJob();
         });
 
         //加载活跃的StreamJob
