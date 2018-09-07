@@ -43,4 +43,13 @@ public interface JobScriptRepository  extends JpaRepository<JobScript,Integer> {
     @Modifying
     @Transactional
     void updateScriptById(String script,Integer id);
+
+    @Query(value="select * from job_script a where a.path=?1",nativeQuery=true)
+    List<JobScript> findByPath(String path);
+
+    //原生SQL实现更新方法接口
+    @Query(value = "update job_script set path=?1 where id=?2", nativeQuery = true)
+    @Modifying
+    @Transactional
+    void updatePathById(String path,Integer id);
 }

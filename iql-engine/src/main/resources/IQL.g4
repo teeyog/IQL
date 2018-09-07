@@ -23,6 +23,7 @@ sql
     | ('register'|'REGISTER') format '.' path 'where'? expression? booleanExpression*
     | ('show'|'SHOW') ~(';')*
     | ('describe'|'DESCRIBE') ~(';')*
+    | ('import'|'IMPORT'|'include'|'INCLUDE') ~(';')*
     |  SIMPLE_COMMENT
     ;
 

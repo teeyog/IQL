@@ -1,5 +1,9 @@
-import com.alibaba.fastjson.JSON
-import org.apache.spark.sql.SparkSession
+import java.util
+import javax.ws.rs.client.{Client, ClientBuilder}
+import javax.ws.rs.core.MediaType
+
+import cn.i4.iql.utils.HttpUtils
+import org.glassfish.jersey.client.ClientProperties
 
 object HackTest {
 
@@ -10,11 +14,10 @@ object HackTest {
 //            .master("local[4]")
 //            .getOrCreate()
 
-        val strs =  JSON.parseArray("""['1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']""")
-        val iters = strs.iterator()
-        while (iters.hasNext){
-            println(iters.next())
-        }
+        val pramsMap = new util.HashMap[String,String]()
+        pramsMap.put("packageName","mc.spark.udf.myupper")
+       val str = HttpUtils.get("http://192.168.1.60:8888/jobScript/getScriptByPath",pramsMap,5000,"utf-8")
+        println(str)
 
 //
 //        val JSON_REGEX = "abc(.*)".r
