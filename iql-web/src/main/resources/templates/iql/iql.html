@@ -921,7 +921,7 @@
 
     function zTreeOnClick(event, treeId, treeNode) {
         var zTree = $.fn.zTree.getZTreeObj(treeId);
-        zTree.expandNode(treeNode, true, false, true);
+        zTree.expandNode(treeNode, null, null, null);
     }
 
     function zTreeOnNodeCreated(event, treeId, treeNode) {
