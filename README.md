@@ -11,6 +11,7 @@
 - 基于spark的动态资源分配，在无任务的情况下不会占用executor资源
 - 基于Structured Streaming实现SQL动态添加流
 - 基于REPL的写代码功能，动态注册UDF函数
+- 高效的script管理，配合import/include语法完成各script的关联
 
 支持的数据源：hdfs、hive、hbase、kafka、mysql、es
 
@@ -21,23 +22,10 @@
 ---
 
 ### [quick-start](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
-
-### Hive
-- 加载数据
-```
-select * from hive_table
-```
-
-- 保存数据
-```
-save tb1 as hive.table
-```
-
+ 
 ### Hbase
  
 ##### 加载数据
-
-
 
 - hbase.zookeeper.quorum：zookeeper地址
 - spark.table.schema：Spark临时表对应的schema  eg: "ID:String,appname:String,age:Int"
@@ -126,6 +114,12 @@ load jsonStr.'
 
 select myupper(name) as newName from tb1;
 ```
+
+### include(import等效)语法，通过路径引入脚本片段
+
+![import语法](https://upload-images.jianshu.io/upload_images/3597066-cf42197b02fbaa5c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
 
 ### 参考
 [StreamingPro之MLSQL](https://github.com/allwefantasy/streamingpro)
