@@ -89,7 +89,7 @@ save tb as formate.`path` partitionBy uid coalesce 2;
 ```
 
 ### Kafka
- - 加载数据
+
  ```$xslt
 
 load kafka.`topicName`
