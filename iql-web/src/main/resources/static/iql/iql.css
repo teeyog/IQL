@@ -141,3 +141,18 @@ div#rMenu ul li{
     list-style: none outside none;
     background-color: #DFDFDF;
 }
+
+.left_tab{
+    padding-top: 15px;
+}
+
+.left_tab_box{
+    padding: 0px 0px 20px;
+}
+
+.left_tab_box .tabs-container .nav-tabs {
+    margin-left: 0px !important;
+    padding-left: 8% !important;
+}
+
+

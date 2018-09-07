@@ -13,25 +13,36 @@
 <div id="body_1">
     <div id="body_left">
         <div class="body_lr_top">
-            <div>
-                <div class="mybtn db">DataBase</div>
-                <div class="mybtn sj">StreamJob</div>
-                <div class="mybtn js">JobScript</div>
+            <div class="ibox-content left_tab_box">
+                <div class="tabs-container" style="margin-top: 20px">
+                    <ul class="nav nav-tabs" style="margin-left: 20px">
+                        <li class="active"><a data-toggle="tab" href="#tab-4" aria-expanded="true">JobScript</a></li>
+                        <li class=""><a data-toggle="tab" href="#tab-5" aria-expanded="false">DataBase</a></li>
+                        <li class=""><a data-toggle="tab" href="#tab-6" aria-expanded="false">StreamJob</a></li>
+                    </ul>
+                    <div class="tab-content" style="margin-left: 20px">
+                        <div id="tab-4" class="tab-pane active">
+                            <div class="left_tab">
+                                <ul id="treeJobScript" class="ztree"></ul>
+                            </div>
+                        </div>
+                        <div id="tab-5" class="tab-pane">
+                            <div class="left_tab">
+                                <ul id="treeHiveDB" class="ztree"></ul>
+                            </div>
+                        </div>
+                        <div id="tab-6" class="tab-pane">
+                            <div class="left_tab">
+                                <table id="active-streamjob-table"
+                                       data-classes="table table-hover table-condensed  table-no-head"
+                                       data-mobile-responsive="true">
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="content_db" style="padding-top: 10px;display: none">
-            <div class="zTreeDemoBackground left">
-                <ul id="treeHiveDB" class="ztree"></ul>
-            </div>
-        </div>
-        <div class="content_sj" style="padding-top: 10px;display: none">
-            <table id="active-streamjob-table"
-                   data-classes="table table-hover table-condensed  table-no-head"
-                   data-mobile-responsive="true">
-            </table>
-        </div>
-        <div class="content_js" style="padding-top: 10px">
-            <ul id="treeJobScript" class="ztree"></ul>
+
         </div>
     </div>
     <div id="body_right">
@@ -108,7 +119,7 @@
                         <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true">Query History</a>
                         </li>
                         <li class=""><a id="results-tab" data-toggle="tab" href="#tab-2"
-                                        aria-expanded="false">Results</a>
+                                        aria-expanded="false">Result</a>
                         </li>
                     </ul>
                     <div class="tab-content" style="margin-left: 20px">
@@ -163,10 +174,6 @@
 </div>
 
 <SCRIPT LANGUAGE="JavaScript">
-    $(document).ready(function(){
-        $.fn.zTree.init($("#treeJobScript"), js_setting);
-    });
-
     var js_setting = {
         view: {
             selectedMulti: false
@@ -193,7 +200,8 @@
             beforeAsync: zTreeBeforeAsync,
             beforeRename: zTreeBeforeRename,
             onExpand: zTreeOnExpand,
-            onClick: zTreeOnClickScript
+            onClick: zTreeOnClickScript,
+            onAsyncSuccess: zTreeOnAsyncSuccess
         },
         async: {
             enable: true,
@@ -203,28 +211,35 @@
         }
     };
 
+    function zTreeOnAsyncSuccess(event, treeId, treeNode, msg) {
+        // $.fn.zTree.getZTreeObj(treeId).expandAll(true);
+    }
+
     function zTreeOnClickScript(event, treeId, treeNode) {
-        if(treeNode.isParent == 0) {
+        if (treeNode.isParent == 0) {
             var data = {
                 id: treeNode.id
-            }
+            };
             $.ajax({
                 type: 'GET',
                 url: '/jobScript/getScript',
                 data: data,
                 dataType: 'json',
-                success: function(data) {
-                    if(data.script != null){
+                success: function (data) {
+                    if (data.script != null) {
                         window.editor.setValue(data.script);
-                    }else {
+                    } else {
                         window.editor.setValue("");
                     }
                 },
-                error: function(err) {
+                error: function (err) {
                 }
             })
+        }else{
+            var zTree = $.fn.zTree.getZTreeObj(treeId);
+            zTree.expandNode(treeNode, null, null, null);
         }
-    };
+    }
 
     function zTreeBeforeAsync(treeId, treeNode) {
         return true;
@@ -243,30 +258,34 @@
     function showRMenu(type, x, y) {
         $("#rMenu").show();
         $("#rMenu ul").show();
-        if (type=="root") {
+        if (type == "root") {
             $("#m_del").hide();
         } else {
             $("#m_add").show();
             $("#m_rename").show();
             $("#m_del").show();
         }
-        rMenu.css({"top":y+"px", "left":x+"px", "visibility":"visible"});
+        rMenu.css({"top": y + "px", "left": x + "px", "visibility": "visible"});
 
         $("body").bind("mousedown", onBodyMouseDown);
     }
+
     function hideRMenu() {
         if (rMenu) rMenu.css({"visibility": "hidden"});
         $("body").unbind("mousedown", onBodyMouseDown);
     }
-    function onBodyMouseDown(event){
-        if (!(event.target.id == "rMenu" || $(event.target).parents("#rMenu").length>0)) {
-            rMenu.css({"visibility" : "hidden"});
+
+    function onBodyMouseDown(event) {
+        if (!(event.target.id == "rMenu" || $(event.target).parents("#rMenu").length > 0)) {
+            rMenu.css({"visibility": "hidden"});
         }
     }
+
     var addCount = 1;
+
     function addTreeNodeDir() {
         hideRMenu();
-        var newNode = { name:"增加" + (addCount++)};
+        var newNode = {name: "增加" + (addCount++)};
         var newNode_;
         if (zTree.getSelectedNodes()[0]) {
             newNode_ = zTree.addNodes(zTree.getSelectedNodes()[0], newNode);
@@ -286,15 +305,15 @@
     function removeTreeNode() {
         hideRMenu();
         var nodes = zTree.getSelectedNodes();
-        if (nodes && nodes.length>0) {
+        if (nodes && nodes.length > 0) {
             if (nodes[0].children && nodes[0].children.length > 0) {
                 var msg = "要删除的节点是父节点，如果删除将连同子节点一起删掉。\n\n请确认！";
-                if (confirm(msg)==true){
-                    zTreeBeforeRemove(nodes[0].id,nodes[0]);
+                if (confirm(msg) == true) {
+                    zTreeBeforeRemove(nodes[0].id, nodes[0]);
                     zTree.removeNode(nodes[0]);
                 }
             } else {
-                zTreeBeforeRemove(nodes[0].id,nodes[0]);
+                zTreeBeforeRemove(nodes[0].id, nodes[0]);
                 zTree.removeNode(nodes[0]);
             }
         }
@@ -304,24 +323,24 @@
     function zTreeBeforeRemove(treeId, treeNode) {
         // if(treeNode.children&&treeNode.children.length) return false;
         var isParent = 1;
-        if(!treeNode.getNextNode()&&!treeNode.getPreNode()) {
+        if (!treeNode.getNextNode() && !treeNode.getPreNode()) {
             isParent = 0
         }
         var data = {
             id: treeNode.id,
             pid: treeNode.pid,
             isParent: isParent
-        }
+        };
         $.ajax({
             type: 'POST',
             url: '/jobScript/remove',
             data: data,
-            success: function(data) {
+            success: function (data) {
                 // var zTree = $.fn.zTree.getZTreeObj(treeId);
                 // zTree.removeNode(treeNode);
                 toastr.success('Modify successfully!', 'Success')
             },
-            error: function(err) {
+            error: function (err) {
                 toastr.error('An error has occurred.', 'Error!')
             }
         });
@@ -329,7 +348,7 @@
     }
 
     var zTree, rMenu;
-    $(document).ready(function(){
+    $(document).ready(function () {
         $.fn.zTree.init($("#treeJobScript"), js_setting);
         zTree = $.fn.zTree.getZTreeObj("treeJobScript");
         rMenu = $("#rMenu");
@@ -337,26 +356,26 @@
 
     // 跟新/新建节点
     function zTreeBeforeRename(treeId, treeNode, newName, isCancel) {
-        if(newName.trim()=='') return false
-        if(!isCancel) {
+        if (newName.trim() == '') return false;
+        if (!isCancel) {
             var data = {
                 id: treeNode.id,
                 name: newName,
                 pid: treeNode.pid,
-                isParent: treeNode.isParent? 1:0,
-                sort: treeNode.getPreNode()? treeNode.getPreNode().sort+1:1
+                isParent: treeNode.isParent ? 1 : 0,
+                sort: treeNode.getPreNode() ? treeNode.getPreNode().sort + 1 : 1
             };
             $.ajax({
                 type: 'POST',
                 url: '/jobScript/update',
                 data: data,
                 dataType: 'json',
-                success: function(data) {
+                success: function (data) {
                     treeNode.id = data.id;
                     treeNode.sort = data.sort;
                     toastr.success('Modify successfully!', 'Success')
                 },
-                error: function(err) {
+                error: function (err) {
                     toastr.error('An error has occurred.', 'Error!')
                 }
             })
@@ -365,17 +384,17 @@
     }
 
     function zTreeOnExpand(event, treeId, treeNode) {
-        if(treeNode.isAdd) {
+        if (treeNode.isAdd) {
             delete treeNode.isAdd;
             var zTree = $.fn.zTree.getZTreeObj(treeId);
-            var name = treeNode.children? treeNode.children[treeNode.children.length-1].name:'';
+            var name = treeNode.children ? treeNode.children[treeNode.children.length - 1].name : '';
             var newNodes = zTree.addNodes(treeNode, {name: name}, true);
             zTree.editName(newNodes[0]);
         }
     }
 
     function zTreeBeforeDrop(treeId, treeNodes, targetNode, moveType) {
-        if(targetNode == null || moveType == "inner") return false; //禁止将节点拖拽成为根节点
+        if (targetNode == null || moveType == "inner") return false; //禁止将节点拖拽成为根节点
         // if(treeNodes[0].type!=targetNode.type) return false; //禁止跨节点拖拽
         // if(treeNodes[0].level!=targetNode.level) return false; //禁止将节点拖拽成为子节点
         var data = {
@@ -390,10 +409,10 @@
             type: 'POST',
             url: '/jobScript/drag',
             data: data,
-            success: function(data) {
+            success: function (data) {
                 toastr.success('Modify successfully!', 'Success')
             },
-            error: function(err) {
+            error: function (err) {
                 toastr.error('An error has occurred.', 'Error!')
             }
         })
@@ -406,12 +425,12 @@
         $.post('/jobScript/updateSript', {
             id: node.id,
             script: window.editor.getValue()
-        }, function (data,status) {
-           if(status == "success"){
-               toastr.success('Modify successfully!', 'Success')
-           }else{
-               toastr.error('An error has occurred.', 'Error!')
-           }
+        }, function (data, status) {
+            if (status == "success") {
+                toastr.success('Modify successfully!', 'Success')
+            } else {
+                toastr.error('An error has occurred.', 'Error!')
+            }
         })
     }
 
@@ -433,34 +452,6 @@
                 })
             }
         };
-
-        $(".db").click(function(){
-            $(".db").css("background-color","#e6e6e6");
-            $(".sj").css("background-color","#f0f0f0");
-            $(".js").css("background-color","#f0f0f0");
-            $(".content_sj").hide();
-            $(".content_js").hide();
-            $(".content_db").show();
-        });
-
-        $(".sj").click(function(){
-            $(".sj").css("background-color","#e6e6e6");
-            $(".db").css("background-color","#f0f0f0");
-            $(".js").css("background-color","#f0f0f0");
-            $(".content_db").hide();
-            $(".content_js").hide();
-            $(".content_sj").show();
-            loadActiveStreamJob();
-        });
-
-        $(".js").click(function(){
-            $(".js").css("background-color","#e6e6e6");
-            $(".sj").css("background-color","#f0f0f0");
-            $(".db").css("background-color","#f0f0f0");
-            $(".content_js").show();
-            $(".content_db").hide();
-            $(".content_sj").hide();
-        });
 
         //加载活跃的StreamJob
         function loadActiveStreamJob() {
@@ -546,9 +537,9 @@
                 vSet[result[1]] = 'a';
             }
         }
-        if(hasVariable){
+        if (hasVariable) {
             $("#variable").show()
-        }else{
+        } else {
             $("#variable").hide()
         }
     }
@@ -565,18 +556,23 @@
             'click .RoleOfloadHistory': function (e, value, row, index) {
                 $("#errorMessage").hide();
                 $("#execForm, .loading").toggle();
-                $.post("/loadresult", {schema: row.tableSchema, hdfsPath: row.resultPath, mode:row.mode,id: row.id}, function (data) {
+                $.post("/loadresult", {
+                    schema: row.tableSchema,
+                    hdfsPath: row.resultPath,
+                    mode: row.mode,
+                    id: row.id
+                }, function (data) {
                     $("#execForm, .loading").toggle();
                     $("#result-content").hide();
                     $("#result-content pre").html("");
                     $("#results-list-table").bootstrapTable("destroy")
                     $("#downloadForm").hide();
                     if (data.isSuccess) {
-                        if(row.mode == "code"){
+                        if (row.mode == "code") {
                             $("#results-tab").tab("show");
                             $("#result-content").show();
                             $("#result-content pre").html(data.content)
-                        }else{
+                        } else {
                             hdfsPath = row.resultPath;
                             schema = row.tableSchema;
                             $("#results-tab").tab("show");
@@ -605,10 +601,10 @@
             $("#queryId").val("");
             $("#queryName").val("");
             $("#queryDescription").val("");
-            if(row.mode == "iql"){
+            if (row.mode == "iql") {
                 $(".btn-group").find("label").eq(0).addClass("active");
                 $(".btn-group").find("label").eq(1).removeClass("active");
-            }else {
+            } else {
                 $(".btn-group").find("label").eq(1).addClass("active");
                 $(".btn-group").find("label").eq(0).removeClass("active");
             }
@@ -622,10 +618,10 @@
             $("#queryId").val(row.id);
             $("#queryName").val(row.name);
             $("#queryDescription").val(row.description);
-            if(row.mode == "iql"){
+            if (row.mode == "iql") {
                 $(".btn-group").find("label").eq(0).addClass("active");
                 $(".btn-group").find("label").eq(1).removeClass("active");
-            }else {
+            } else {
                 $(".btn-group").find("label").eq(1).addClass("active");
                 $(".btn-group").find("label").eq(0).removeClass("active");
             }
@@ -659,7 +655,7 @@
         $("#downloadForm").hide();
         $.post("/query", {
             iql: iqlText,
-            mode:$(".btn-group").children(".active").children("input").val(),
+            mode: $(".btn-group").children(".active").children("input").val(),
             variables: JSON.stringify(varis),
             descrption: $("#queryDescription").val()
         }, function (data) {
@@ -669,11 +665,11 @@
                     $("#execForm, .loading").toggle();
                     if (data.isSuccess) {
                         $("#results-list-table").bootstrapTable("destroy")
-                        if("content" in data){
+                        if ("content" in data) {
                             $("#results-tab").tab("show");
                             $("#result-content").show();
                             $("#result-content pre").html(data.content)
-                        }else {
+                        } else {
                             $("#results-tab").tab("show");
                             hdfsPath = data.hdfsPath;
                             schema = data.schema;
@@ -912,6 +908,7 @@
             '<button type="button" class="RoleOfdeleteHistory btn btn-ms btn-default" style="margin-right:15px;">delete</button>'
         ].join('');
     }
+
     //为行添加结束StreamJob操作
     function operateFormatter_stop_streamjob(value, row, index) {
         return [
