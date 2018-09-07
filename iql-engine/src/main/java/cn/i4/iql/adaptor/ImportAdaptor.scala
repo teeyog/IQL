@@ -10,8 +10,6 @@ import org.antlr.v4.runtime.misc.Interval
 
 class ImportAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
 
-  val sparkSession = scriptSQLExecListener.sparkSession
-
   override def parse(ctx: SqlContext): Unit = {
     val input = ctx.start.getTokenSource.asInstanceOf[IQLLexer]._input
     val start = ctx.start.getStartIndex
