@@ -19,7 +19,6 @@ zkServers=localhost:2181
 ```
 方式一：把hdfs的配置文件往资源目录resource里放一份 core-site.xml
 方式二：获取FileSystem实例的时候指定地址
-
 ```
 
 ### engine端
@@ -37,6 +36,9 @@ zkServers=localhost:2181
 默认配置文件信息在hdfs目录：/data/resource/iql-default.properties，可在PropsUtils类中更改；
 
 默认配置文件配置的都是一些常用的环境信息，比如加载mysql的数据，避免每次都写一遍连接信息
+
+# web服务地址，用于import语法回调SQL代码片段
+iql.server.adress=http://192.168.1.60:8888
 
 jdbc.driver=com.mysql.jdbc.Driver
 jdbc.url=jdbc:mysql://localhost:3306/logweb-pro?user=root&password=123456&useUnicode=true&characterEncoding=UTF8&useSSL=false

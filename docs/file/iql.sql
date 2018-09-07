@@ -30,22 +30,25 @@ CREATE TABLE `iql_excution` (
 
 /*Data for the table `iql_excution` */
 
-/*Table structure for table `save_iql` */
+/*Table structure for table `job_script` */
 
-DROP TABLE IF EXISTS `save_iql`;
+DROP TABLE IF EXISTS `job_script`;
 
-CREATE TABLE `save_iql` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `iql` longtext COLLATE utf8mb4_unicode_ci,
-  `mode` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` varchar(2000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `create_time` datetime NOT NULL,
-  `update_time` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `job_script` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `pid` int(11) NOT NULL,
+  `script` text,
+  `isparent` tinyint(4) NOT NULL,
+  `sort` int(11) DEFAULT NULL,
+  `path` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=MyISAM AUTO_INCREMENT=770 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
-/*Data for the table `save_iql` */
+/*Data for the table `job_script` */
+
+insert  into `job_script`(`id`,`name`,`pid`,`script`,`isparent`,`sort`,`path`) values (1,'mc',0,'',1,1,'mc'),(4,'Update MySQL',724,'select 11 as id, \"test\" as name,22 as age from i4.app limit 1 as tb;\n\nsave update tb as jdbc.user ',0,5,'mc.demo.Update MySQL'),(714,'spark',1,NULL,1,1,'mc.spark'),(715,'udf',714,NULL,1,1,'mc.spark.udf'),(724,'demo',1,NULL,1,5,'mc.demo'),(726,'Read Kafka',724,'load kafka.`i4-sdk` \r\nwhere maxRatePerPartition=\"200\"\r\n   and `group.id`=\"consumer_sdk_offline\" as tb;\r\n   \r\nselect * from tb;   \r\n',0,2,'mc.demo.Read Kafka'),(727,'Write HBase',724,'load json.`/middata/sdk/member.log` as tb;\nselect reverse(CONCAT(\'0\',cast(userid as string))) as userid,time from tb as tb2;\nsave tb2 as hbase.`t_sdk_register_user`\n \n--  写Hbase \n-- hbase.zookeeper.quorum：zookeeper地址\n-- hbase.table.rowkey.field：spark临时表的哪个字段作为hbase的rowkey，默认第一个字段\n-- bulkload.enable：是否启动bulkload，默认不启动，暂时bulkload有bug（排序问题），当要插入的hbase表只有一列rowkey时，必需启动。     \n-- hbase.table.name：Hbase表名  \n-- hbase.table.family：列族名，默认info\n-- hbase.table.region.splits：预分区分区段，以数组字符串方式指定，如 [\'1\',\'2\',\'3\'] (预分区指定分区段优先级最高)\n-- hbase.table.rowkey.prefix: 当rowkey是数字，预分区需要指明前缀的formate形式，如 00，在startKey和endKey都未设置的情况下会生成00-99等100个分区\n-- hbase.table.startKey：预分区开始key，当hbase表不存在时，会自动创建Hbase表，不带一下三个参数则只有一个分区\n-- hbase.table.endKey：预分区开始key\n-- hbase.table.numReg：分区个数\n-- hbase.check_table: 写入hbase表时，是否需要检查表是否存在，默认 false',0,6,'mc.demo.Write HBase'),(729,'Read HBase',724,'load hbase.t_sdk_consume\nwhere `spark.table.schema`=\"userid:String,time:Long\"\n	   and `hbase.table.schema`=\":rowkey,info:time\" \nas tb;\n\nselect * from tb limit 100;\n\n--  读Hbase \n--  hbase.zookeeper.quorum：zookeeper地址,默认是 localhost:2181 \n--  spark.table.schema：Spark临时表对应的schema eg: \"ID:String,appname:String,count:Int\" \n--  hbase.table.schema：Hbase表对应schema eg: \":rowkey,0:APPNAME,0:COUNT\" \n--  hbase.table.name：Hbase表名 \n--  spark.rowkey.view.name：rowkey对应的dataframe创建的tempview名（设置了该值后，只获取rowkey对应的数据） \n  ',0,7,'mc.demo.Read HBase'),(730,'JSON->hive',724,'load json.`/data/sdkscore/score_20180514.log` as tb;\n\nselect userid,number,score,time,from_unixtime(substr(time,0,10),\'yyyyMMdd\') date,source from tb as tb1;\n\nINSERT OVERWRITE TABLE i4.sdk_score PARTITION (date,source)\nSELECT userid,number,score,time,date,source FROM tb1\nDISTRIBUTE BY date,source;',0,8,'mc.demo.JSON->hive'),(731,'Read ES',724,'load es.`i4-monitor/metrics/` \nwhere `es.nodes`=\"192.168.1.232\"\n	and `es.port`=\"9200\" as tb;\n\nselect * from tb limit 10;',0,9,'mc.demo.Read ES'),(732,'Structured Streaming',724,'load kafka.`i4-monitor` \nwhere startingoffsets=\"latest\"\n	and failOnDataLoss=\"false\"\n	and `spark.job.mode`=\"stream\" as tb1;\n	\nselect * from tb1 as table21;	\n	\nsave append table21 as json.`/tmp/abc2` \nwhere mode=\"Append\"\n	and streamName=\"Stream\"\n	and duration=\"10\"\n	and checkpointLocation=\"/tmp/cp/cp12\";',0,10,'mc.demo.Structured Streaming'),(733,'test',1,NULL,1,6,'mc.test'),(735,'myupper',715,'register udf.`myupper`\nwhere func=\n\"\n	def apply(name:String)={\n		name.toUpperCase\n	}\n\";\nregister udf.`mylower`\nwhere func=\n\"\n	def apply(name:String)={\n		name.toLowerCase\n	}\n\"',0,1,'mc.spark.udf.myupper'),(736,'Use UDF',724,'register udf.`myupper`\nwhere func=\n\"\n	def apply(name:String)={\n		name.toUpperCase\n	}\n\";\n\nload jsonStr.\'\n{\"name\":\"ufo\"}\n{\"name\":\"uu\"}\n{\"name\":\"HIN\"}\n\' as tb1;\n\nselect myupper(name) as newName from tb1;',0,11,'mc.demo.Use UDF'),(762,'t2',733,'import mc.spark.udf.myupper;\n\n\nload jsonStr.\'\n{\"name\":\"ufo\"}\n{\"name\":\"uu\"}\n{\"name\":\"HIN\"}\n\' as tb1;\n\nselect myupper(name) as newName from tb1;',0,6,'mc.test.t2');
+
 
 /*Table structure for table `t_menu` */
 
