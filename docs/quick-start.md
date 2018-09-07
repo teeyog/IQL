@@ -38,7 +38,7 @@ zkServers=localhost:2181
 默认配置文件配置的都是一些常用的环境信息，比如加载mysql的数据，避免每次都写一遍连接信息
 
 # web服务地址，用于import语法回调SQL代码片段
-iql.server.adress=http://192.168.1.60:8888
+iql.server.address=http://192.168.1.60:8888
 
 jdbc.driver=com.mysql.jdbc.Driver
 jdbc.url=jdbc:mysql://localhost:3306/logweb-pro?user=root&password=123456&useUnicode=true&characterEncoding=UTF8&useSSL=false

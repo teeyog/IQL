@@ -24,7 +24,7 @@ class ImportAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapto
   def getScriptByPath(originalText:String): String ={
     val pramsMap = new util.HashMap[String,String]()
     pramsMap.put("packageName",originalText)
-    val url = PropsUtils.get("iql.server.adress") + "/jobScript/getScriptByPath"
+    val url = PropsUtils.get("iql.server.address") + "/jobScript/getScriptByPath"
     HttpUtils.get(url,pramsMap,5,"utf-8")
   }
 
