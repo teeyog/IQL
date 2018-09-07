@@ -78,7 +78,6 @@ public class HttpUtils {
 		if (StringUtils.isNotEmpty(paramstr)) {
 			url = url + "?" + paramstr;
 		}
-//		System.out.println(url);
 		String info = "";
 		// 构造HttpClient的实例
 		HttpClient httpClient = new HttpClient();
@@ -176,6 +175,14 @@ public class HttpUtils {
 		return retVal;
 	}
 
+	/**
+	 *
+	 * @param url
+	 * @param json
+	 * @param timeout
+	 * @return
+	 * @throws Exception
+	 */
 	public static String post(String url,String json,int timeout) throws Exception {
 		String info = "";
 		// 构造HttpClient的实例
