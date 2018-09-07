@@ -40,6 +40,7 @@ public class JobScriptAction {
             jobScript.setPid(pid);
             jobScript.setIsParent(isParent);
             jobScript.setSort(sort);
+            jobScript.setPath(jobScriptRepository.findOne(pid).getPath() + "." + name);
             JobScript script = jobScriptRepository.save(jobScript);
             jobScriptRepository.updateIsParent(1,pid);
             obj.put("id",script.getId());
@@ -71,10 +72,12 @@ public class JobScriptAction {
      * drag node
      */
     @PostMapping(value = "/drag")
-    public void drag(Integer id,Integer pid,Integer targetPid, Integer sort, Integer targetSort) {
-        System.out.println(sort + " -- " + targetSort);
-        jobScriptRepository.updateScriptWhereSortGreatThan(targetPid,targetSort + 1);
-        jobScriptRepository.updatePid(targetPid,targetSort + 1,id);
+    public void drag(Integer id,Integer pid,Integer targetPid, Integer sort, Integer targetSort, String name) {
+        System.out.println(pid + " -- " + targetPid);
+        jobScriptRepository.updateScriptWhereSortGreatThan(targetPid,targetSort + 1);//将大于sort的目标节点都往后移一位
+        jobScriptRepository.updatePid(targetPid,targetSort + 1,id);//设置新parent和sort
+        jobScriptRepository.updatePathById(jobScriptRepository.findOne(targetPid).getPath() + "." + name,id);//跟新path
+        updateChildNodesPathById(id,jobScriptRepository);//跟新子节点path
         List<JobScript> byPid = jobScriptRepository.findByPid(pid);
         if(byPid.size() == 0){
             jobScriptRepository.updateIsParent(0,pid);
@@ -89,6 +92,14 @@ public class JobScriptAction {
         JSONObject obj = new JSONObject();
         obj.put("script",jobScriptRepository.getOne(id).getScript());
         return obj;
+    }
+
+    /**
+     * get script
+     */
+    @RequestMapping(value = "/getScriptByPath")
+    public String getScriptByPath(String packageName) {
+        return jobScriptRepository.findByPath(packageName).iterator().next().getScript();
     }
 
     /**
@@ -107,6 +118,14 @@ public class JobScriptAction {
             if(job.getIsParent() == 1){
                 removeByPid(job.getId(),jobScriptRepository);
             }
+        }
+    }
+
+    private static void updateChildNodesPathById(Integer id,JobScriptRepository jobScriptRepository){
+        List<JobScript> childs = jobScriptRepository.findByPid(id);
+        for(JobScript js : childs){
+            jobScriptRepository.updatePathById(jobScriptRepository.findOne(id).getPath() + "." + js.getName(),js.getId());
+            updateChildNodesPathById(js.getId(),jobScriptRepository);
         }
     }
 

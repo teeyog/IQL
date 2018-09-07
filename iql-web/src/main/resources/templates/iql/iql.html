@@ -11,9 +11,6 @@
 <body>
 
 <div id="body_1">
-    <!--<div id="body_top">-->
-    <!--<div style="margin-left: 8%;padding-top:10px;font-size: 30px;height:60px;width:30px;text-align: center;color: white">IQL</div>-->
-    <!--</div>-->
     <div id="body_left">
         <div class="body_lr_top">
             <div>
@@ -42,7 +39,6 @@
             <div class="form-group">
                 <a class="btn" style="margin-left: 10px;margin-top: 10px;font-size:20px" data-toggle="modal"
                    data-target="#myModal" title="add query"><i class="fa fa-plus" aria-hidden="true"></i></a>
-                <!--<a style="float: right;padding-top: 15px" href="http://192.168.1.233:8888/joblog" target="_blank">实时日志</a>-->
             </div>
         </div>
         <div id="body_lr_bot">
@@ -76,7 +72,6 @@
                                 class="fa fa-stop"></i></a>
                         <input id="iqlId" type="hidden" name="field＿name" value=""/>
                     </div>
-                    <!--<h4 class="text-info" style="float: left;margin-left: 30px">execution...</h4>-->
                 </div>
             </div>
             <div id="iql_input">
@@ -157,7 +152,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <div id="rMenu" style="display: none">
@@ -374,22 +368,23 @@
         if(treeNode.isAdd) {
             delete treeNode.isAdd;
             var zTree = $.fn.zTree.getZTreeObj(treeId);
-            var name = treeNode.children? treeNode.children[treeNode.children.length-1].name:''
+            var name = treeNode.children? treeNode.children[treeNode.children.length-1].name:'';
             var newNodes = zTree.addNodes(treeNode, {name: name}, true);
             zTree.editName(newNodes[0]);
         }
-    };
+    }
 
     function zTreeBeforeDrop(treeId, treeNodes, targetNode, moveType) {
-        if(targetNode == null || (moveType != "inner" && !targetNode.parentTId)) return false//禁止将节点拖拽成为根节点
-        if(treeNodes[0].type!=targetNode.type) return false//禁止跨节点拖拽
-        if(treeNodes[0].level!=targetNode.level) return false//禁止将节点拖拽成为子节点
+        if(targetNode == null || moveType == "inner") return false; //禁止将节点拖拽成为根节点
+        // if(treeNodes[0].type!=targetNode.type) return false; //禁止跨节点拖拽
+        // if(treeNodes[0].level!=targetNode.level) return false; //禁止将节点拖拽成为子节点
         var data = {
             id: treeNodes[0].id,
             pid: treeNodes[0].pid,
             targetPid: targetNode.pid,
             sort: treeNodes[0].sort,
-            targetSort: targetNode.sort
+            targetSort: targetNode.sort,
+            name: treeNodes[0].name
         }
         $.ajax({
             type: 'POST',
@@ -565,16 +560,6 @@
     }
 
     $(function () {
-
-        //删除一行保存的iql
-        window.operateEvents = {
-            'click .RoleOfdelete': function (e, value, row, index) {
-                $.post("/deleteiql", {id: row.id}, function (data) {
-                    $("#saved-list-table").bootstrapTable("refresh")
-                })
-            }
-        };
-
         window.operateEvents_loadresult = {
             //加载历史查询结果
             'click .RoleOfloadHistory': function (e, value, row, index) {
@@ -613,7 +598,6 @@
 
         //加载历史iql和保存的iql
         loadHistoryTable();
-        loadSavedTable();
 
         //行点击事件，将对应的iql显示在编辑框内
         $('#history-list-table').on('click-row.bs.table', function (e, row, element) {
@@ -928,14 +912,6 @@
             '<button type="button" class="RoleOfdeleteHistory btn btn-ms btn-default" style="margin-right:15px;">delete</button>'
         ].join('');
     }
-
-    //为行添加删除操作
-    function operateFormatter(value, row, index) {
-        return [
-            '<button type="button" class="RoleOfdelete btn btn-ms btn-default" style="margin-right:15px;">delete</button>'
-        ].join('');
-    }
-
     //为行添加结束StreamJob操作
     function operateFormatter_stop_streamjob(value, row, index) {
         return [
