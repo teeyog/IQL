@@ -52,7 +52,7 @@ booleanExpression
     ;
 
 expression
-    : identifier '=' STRING
+    : identifier '=' NEW_STRING
     ;
 
 ender
@@ -100,6 +100,10 @@ quotedIdentifier
     : BACKQUOTED_IDENTIFIER
     ;
 
+NEW_STRING
+    : STRING
+    | BLOCK_STRING
+    ;
 
 STRING
     : '\'' ( ~('\''|'\\') | ('\\' .) )* '\''
