@@ -9,10 +9,10 @@ trait DslAdaptor extends Logging {
 
 trait DslTool {
     def cleanStr(str: String) = {
-        if (str.startsWith("'") || str.startsWith("\""))
+        if (str.startsWith("```") && str.endsWith("```"))
+            str.substring(3, str.length - 3)
+        else if (str.startsWith("'") || str.startsWith("\""))
             str.substring(1, str.length - 1)
-        else if (str.startsWith("```") && str.endsWith("```"))
-          str.substring(3, str.length - 3)
         else str
     }
 }
