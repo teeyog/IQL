@@ -57,7 +57,6 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
                     val nObject = JSON.parseObject(variblesIters.next().toString)
                     rIql = rIql.replace("${" + nObject.getString("name") + "}", nObject.getString("value"))
                 }
-                warn("\n" + ("*" * 80) + "\n" + rIql + "\n" + ("*" * 80))
                 schedulerMode = !schedulerMode //切换调度池
                 sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
                 resJson = new JSONObject()
@@ -257,6 +256,7 @@ object ExeActor {
 
     // antlr4解析SQL语句
     def parse(input: String, listener: IQLSQLExecListener): Unit = {
+            warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
             val loadLexer = new IQLLexer(new ANTLRInputStream(input))
             val tokens = new CommonTokenStream(loadLexer)
             val parser = new IQLParser(tokens)
