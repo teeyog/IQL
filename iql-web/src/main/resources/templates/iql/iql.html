@@ -18,7 +18,7 @@
                     <ul class="nav nav-tabs" style="margin-left: 20px">
                         <li class="active"><a data-toggle="tab" href="#tab-4" aria-expanded="true">JobScript</a></li>
                         <li class=""><a data-toggle="tab" href="#tab-5" aria-expanded="false">DataBase</a></li>
-                        <li class=""><a data-toggle="tab" href="#tab-6" aria-expanded="false">StreamJob</a></li>
+                        <li class="tab_stream_job"><a data-toggle="tab" href="#tab-6" aria-expanded="false">StreamJob</a></li>
                     </ul>
                     <div class="tab-content" style="margin-left: 20px">
                         <div id="tab-4" class="tab-pane active">
@@ -491,6 +491,12 @@
                 })
             }
         };
+
+
+        $('.tab_stream_job').click(function (e) {
+            loadActiveStreamJob();
+        })
+
         loadActiveStreamJob();
         //加载活跃的StreamJob
         function loadActiveStreamJob() {
@@ -506,6 +512,7 @@
                     {
                         field: 'name',
                         title: 'StreamName',
+                        align: 'center',
                         width: 50
                     },
                     {
