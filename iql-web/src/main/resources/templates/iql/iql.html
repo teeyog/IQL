@@ -211,8 +211,47 @@
         }
     };
 
+    // 默认展开目录树
+    var curStatus = "init", curAsyncCount = 0, asyncForAll = false,treeId="treeJobScript";
+    var goAsync = false;
+    function expandAll() {
+        if (!check()) {
+            return;
+        }
+        var zTree = $.fn.zTree.getZTreeObj(treeId);
+        if (asyncForAll) {
+            zTree.expandAll(true);
+        } else {
+            expandNodes(zTree.getNodes());
+            if (!goAsync) {
+                curStatus = "";
+            }
+        }
+    }
+    function expandNodes(nodes) {
+        if (!nodes) return;
+        curStatus = "expand";
+        var zTree = $.fn.zTree.getZTreeObj(treeId);
+        for (var i=0, l=nodes.length; i<l; i++) {
+            zTree.expandNode(nodes[i], true, false, false);
+            if (nodes[i].isParent && nodes[i].zAsync) {
+                expandNodes(nodes[i].children);
+            } else {
+                goAsync = true;
+            }
+        }
+    }
+
+    function check() {
+        if (curAsyncCount > 0) {
+            return false;
+        }
+        return true;
+    }
+
     function zTreeOnAsyncSuccess(event, treeId, treeNode, msg) {
         // $.fn.zTree.getZTreeObj(treeId).expandAll(true);
+        expandAll()
     }
 
     function zTreeOnClickScript(event, treeId, treeNode) {
