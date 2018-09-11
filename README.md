@@ -19,20 +19,17 @@
 
 在Structured Streaming支持的Sink之外还增加了对Hbase、MySQL、es的支持
 
+
+
+## [Quick-start](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
+
 ---
-
-### [quick-start](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
  
-### Hbase
+## HBase
  
-##### 加载数据
+### 加载数据
 
-| 参数 | 说明 | 默认值 | 
-| ------------- |:-------------:|:-------------:|
-| hbase.zookeeper.quorum | zookeeper地址| localhost:2181|
-| spark.table.schema | Spark临时表对应的schema（eg: "ID:String,appname:String,age:Int"）| 无 |
-| hbase.table.schema| HBase表对应schema（eg: ":rowkey,info:appname,info:age"）| 无 |
-|spark.rowkey.view.name| rowkey对应的dataframe创建的temp view名 ，设置了该值后只获取rowkey对应的数据  |  无 |
+使用方式：
 
 ```
 load hbase.t_mbl_user_version_info 
@@ -42,13 +39,29 @@ where `spark.table.schema`="userid:String,osversion:String,toolversion:String"
 as tb;
 ```
 
-##### 保存数据
-
 | 参数 | 说明 | 默认值 | 
 | ------------- |:-------------:|:-------------:|
 | hbase.zookeeper.quorum | zookeeper地址| localhost:2181|
-| hbase.table.rowkey.field | spark临时表中作为hbase的rowkey的字段名| 第一个字段 |
-| bulkload.enable| 是否启动bulkload| false|
+| spark.table.schema | Spark临时表对应的schema（eg: "ID:String,appname:String,age:Int"）| 无 |
+| hbase.table.schema| HBase表对应schema（eg: ":rowkey,info:appname,info:age"）| 无 |
+|spark.rowkey.view.name| rowkey对应的dataframe创建的temp view名 ，设置了该值后只获取rowkey对应的数据  |  无 |
+
+
+### 保存数据
+
+使用方式：
+
+```
+save tb1 as hbase.tableName 
+where `hbase.zookeeper.quorum`="localhost:2181"
+      and `hbase.table.rowkey.filed`="name"
+```
+
+| 参数 | 说明 | 默认值 | 
+| ------------- |:-------------:|:-------------:|
+|hbase.zookeeper.quorum | zookeeper地址| localhost:2181|
+|hbase.table.rowkey.field | spark临时表中作为hbase的rowkey的字段名| 第一个字段 |
+|bulkload.enable| 是否启动bulkload| false|
 |hbase.table.name | Hbase表名  |  无 |
 |hbase.table.family | 列族名  |  info |
 |hbase.table.region.splits | 预分区分区段，以数组字符串方式指定，如 ['1','2','3']  |  无 |
@@ -58,13 +71,7 @@ as tb;
 |hbase.table.numReg | 分区个数 |  无 |
 |hbase.check_table | 写入hbase表时，是否需要检查表是否存在  |  false |
 
-```
-save tb1 as hbase.tableName 
-where `hbase.zookeeper.quorum`="localhost:2181"
-      and `hbase.table.rowkey.filed`="name"
-```
-
-### MySQL
+## MySQL
 - 加载数据
 ```
 load jdbc.ai_log_count 
@@ -80,7 +87,7 @@ as tb;
 save append tb as jdbc.aatest_delete;
 ```
 
-### 文件操作 (其中formate可为：json、orc、csv、parquet、text)
+## 文件操作 (其中formate可为：json、orc、csv、parquet、text)
  - 加载数据
  ```
 load formate.`path` as tb;
@@ -91,7 +98,7 @@ load formate.`path` as tb;
 save tb as formate.`path` partitionBy uid coalesce 2;
 ```
 
-### Kafka
+## Kafka
 
  ```$xslt
 
@@ -100,7 +107,7 @@ where maxRatePerPartition="200"
 	and `group.id`="consumerGroupId"
 ```
 
-### 动态注册UDF函数
+## 动态注册UDF函数
 ```
 register udf.`myupper`
 where func="
@@ -118,12 +125,12 @@ load jsonStr.'
 select myupper(name) as newName from tb1;
 ```
 
-### include(import等效)语法，通过路径引入脚本片段
+## include(import等效)语法，通过路径引入脚本片段
 
 ![import语法](https://upload-images.jianshu.io/upload_images/3597066-cf42197b02fbaa5c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 
 
-### 参考
+## 参考
 [StreamingPro之MLSQL](https://github.com/allwefantasy/streamingpro)
 
