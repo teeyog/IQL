@@ -4,13 +4,9 @@ grammar IQL;
 package cn.i4.iql.antlr;
 }
 
-//load jdbc.`mysql1.tb_v_user` as mysql_tb_user;
-//save csv_input_result as json.`/tmp/todd/result_json` partitionBy uid;
-// 'show' tableName 'where'? expression? booleanExpression*
 statement
     : (sql ender)*
     ;
-
 
 sql
     : ('load'|'LOAD') format '.'? path 'where'? expression? booleanExpression*  'as' tableName
@@ -18,6 +14,8 @@ sql
     | ('select'|'SELECT') ~(';')* 'as'? tableName
     | ('insert'|'INSERT') ~(';')*
     | ('create'|'CREATE') ~(';')*
+    | ('drop'|'DROP') ~(';')*
+    | ('refresh'|'REFRESH') ~(';')*
     | ('set'|'SET') ~(';')*
     | ('train'|'TRAIN') tableName 'as' format '.' path 'where'? expression? booleanExpression*
     | ('register'|'REGISTER') format '.' path 'where'? expression? booleanExpression*
