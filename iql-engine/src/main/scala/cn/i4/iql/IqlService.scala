@@ -29,7 +29,7 @@ object IqlService extends Logging {
             .config("spark.scheduler.mode", "FAIR")
             .config("spark.scheduler.allocation.file", "/home/runtime_file/fairscheduler.xml")
             .config("spark.executor.memoryOverhead", "512")
-//                                    .master("local[4]")
+            //           .master("local[4]")
             .enableHiveSupport()
             .getOrCreate()
         spark.sparkContext.setLogLevel("WARN")
@@ -37,7 +37,6 @@ object IqlService extends Logging {
     }
 
     def main(args: Array[String]): Unit = {
-
         val interpreter = new SparkInterpreter()
         interpreter.start()
         val actorConf = AkkaUtils.getConfig(ZkUtils.getZkClient(PropsUtils.get("zkServers")))

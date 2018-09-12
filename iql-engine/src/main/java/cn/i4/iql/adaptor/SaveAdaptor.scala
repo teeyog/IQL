@@ -55,6 +55,7 @@ class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
         case _ =>
       }
     }
+    option += ("timestampFormat" ->  "yyyy/MM/dd HH:mm:ss ZZ")
     if (scriptSQLExecListener.env().contains("stream")) {
       new StreamSaveAdaptor(scriptSQLExecListener, option, oldDF, final_path, tableName, format, mode, partitionByCol, numPartition).parse
     } else {
@@ -80,7 +81,7 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
     format match {
       case "json" | "csv" | "orc" | "parquet" | "text" =>
         val tmpPath = "/tmp/iql/tmp/" + System.currentTimeMillis()
-        writer.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("header", "true").format(format).save(tmpPath) //写
+        writer.option("header", "true").format(format).save(tmpPath) //写
         scriptSQLExecListener.sparkSession.read.option("header", "true").option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
           .format(format).load(tmpPath).coalesce(numPartition) //读
           .write.mode(mode).partitionBy(partitionByCol: _*).options(option).option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
@@ -91,7 +92,6 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
         oldDF.coalesce(numPartition).write.format(option.getOrElse("file_format", "parquet")).mode(mode).options(option)
           .insertInto(final_path)
       //        writer.saveAsTable(final_path)
-
       case "kafka8" | "kafka9" =>
         writer.option("topics", final_path).format("com.hortonworks.spark.sql.kafka08").save()
       case "hbase" =>
@@ -146,7 +146,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
           .option("resource", final_path)
       case "hbase" =>
         option += ("implClass" -> "org.apache.spark.sql.hbase.HBaseSourceProvider")
-      case _ => option += ("path" -> tableName)
+      case _ => option += ("path" -> final_path)
     }
 
     writer = writer.format(option.getOrElse("implClass", format)).outputMode(option("outputMode"))
