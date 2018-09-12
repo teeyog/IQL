@@ -129,7 +129,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
 
     require(option.contains("checkpointLocation"), "checkpointLocation is required")
     require(option.contains("duration"), "duration is required")
-    require(option.contains("mode"), "mode is required")
+    require(option.contains("outputMode"), "outputMode is required")
 
     format match {
       case "jdbc" =>
@@ -149,7 +149,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
       case _ => option += ("path" -> tableName)
     }
 
-    writer = writer.format(option.getOrElse("implClass", format)).outputMode(option("mode"))
+    writer = writer.format(option.getOrElse("implClass", format)).outputMode(option("outputMode"))
       .partitionBy(partitionByCol: _*)
       .options(option - "mode" - "duration")
 
