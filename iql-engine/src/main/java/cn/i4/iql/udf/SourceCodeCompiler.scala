@@ -1,12 +1,10 @@
 package cn.i4.iql.udf
 
+import javax.tools._
+
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import org.apache.spark.internal.Logging
 
-
-/**
-  * Created by allwefantasy on 27/8/2018.
-  */
 object SourceCodeCompiler extends Logging {
   private val scriptCache = CacheBuilder.newBuilder()
     .maximumSize(10000)
@@ -54,6 +52,22 @@ object SourceCodeCompiler extends Logging {
 
   def prepareScala(src: String, className: String): String = {
     src + "\n" + s"scala.reflect.classTag[$className].runtimeClass"
+  }
+
+  def compileJava(src: String, className: String): Class[_] = {
+    val compiler = ToolProvider.getSystemJavaCompiler
+    val diagnostics: DiagnosticCollector[JavaFileObject] = new DiagnosticCollector[JavaFileObject]
+    val byteObject: JavaByteObject = new JavaByteObject(className)
+    val standardFileManager: StandardJavaFileManager = compiler.getStandardFileManager(diagnostics, null, null)
+    val fileManager: JavaFileManager = JavaReflect.createFileManager(standardFileManager, byteObject)
+    val task = compiler.getTask(null, fileManager, diagnostics, null, null, JavaReflect.getCompilationUnits(className, src))
+    if (!task.call()) {
+      diagnostics.getDiagnostics.foreach(println)
+    }
+    fileManager.close()
+    val inMemoryClassLoader = JavaReflect.createClassLoader(byteObject)
+    val clazz = inMemoryClassLoader.loadClass(className)
+    clazz
   }
 }
 

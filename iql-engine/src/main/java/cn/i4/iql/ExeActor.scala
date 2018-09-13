@@ -6,7 +6,7 @@ import java.sql.Timestamp
 
 import cn.i4.iql.ExeActor._
 import akka.actor.{Actor, Props}
-import cn.i4.iql.antlr.{IQLLexer, IQLListener, IQLParser}
+import cn.i4.iql.antlr.{IQLLexer, IQLParser}
 import cn.i4.iql.domain.Bean._
 import cn.i4.iql.utils.{BatchSQLRunnerEngine, PropsUtils, ZkUtils}
 import org.antlr.v4.runtime.tree.ParseTreeWalker
