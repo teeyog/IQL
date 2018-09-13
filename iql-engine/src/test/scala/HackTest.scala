@@ -1,23 +1,39 @@
 import java.util
+import java.util.concurrent.TimeUnit
 import javax.ws.rs.client.{Client, ClientBuilder}
 import javax.ws.rs.core.MediaType
 
-import cn.i4.iql.utils.HttpUtils
+import iql.common.utils.HttpUtils
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.streaming.Trigger
 import org.glassfish.jersey.client.ClientProperties
 
 object HackTest {
 
     def main(args: Array[String]): Unit = {
-//        val spark = SparkSession
-//            .builder
-//            .appName("SparkSQL Test")
-//            .master("local[4]")
-//            .getOrCreate()
+        val spark = SparkSession.builder()
+            .appName("测试")
+            .master("local[4]")
+            .enableHiveSupport()
+            .getOrCreate()
 
-        val pramsMap = new util.HashMap[String,String]()
-        pramsMap.put("packageName","mc.spark.udf.myupper")
-       val str = HttpUtils.get("http://192.168.1.60:8888/jobScript/getScriptByPath",pramsMap,5000,"utf-8")
-        println(str)
+        val df = spark
+            .readStream
+            .option("kafka.bootstrap.servers", "192.168.1.61:9092")
+            .option("subscribe", "mc-alermclock")
+            .option("startingoffsets", "latest")
+            .option("failOnDataLoss", "false")
+            .format("kafka")
+            .load()
+
+        val query = df.writeStream
+            .outputMode("append")
+            .option("checkpointLocation", "/tmp/cp/cp2")
+            .trigger(Trigger.ProcessingTime(10, TimeUnit.SECONDS))
+            .format("console")
+            .start()
+
+        query.awaitTermination()
 
 //
 //        val JSON_REGEX = "abc(.*)".r
