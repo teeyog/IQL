@@ -1,6 +1,5 @@
 package cn.i4.report.system.domain;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,13 +14,10 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name="t_user")
-public class User implements UserDetails {
+public class User  {
 	
 	@Id
 	@GeneratedValue
@@ -125,36 +121,6 @@ public class User implements UserDetails {
 
 	public void setRoles(Set<Role> roles) {
 		this.roles = roles;
-	}
-
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		Set<GrantedAuthority> auths = new HashSet<>();
-        Set<Role> roles = this.getRoles();
-        for (Role role : roles) {
-            auths.add(new SimpleGrantedAuthority(role.getRolename()));
-        }
-        return auths;
-	}
-
-	@Override
-	public boolean isAccountNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isAccountNonLocked() {
-		return true;
-	}
-
-	@Override
-	public boolean isCredentialsNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return true;
 	}
 
 }
