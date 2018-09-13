@@ -18,7 +18,6 @@ import scala.concurrent.Await
 
 object AbstractSparkInterpreter {
     private[repl] val KEEP_NEWLINE_REGEX = """(?<=\n)""".r
-    private val MAGIC_REGEX = "^%(\\w+)\\W*(.*)".r
 }
 
 abstract class AbstractSparkInterpreter extends Interpreter with Logging {
@@ -29,20 +28,13 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
 
     protected val outputStream = new ByteArrayOutputStream()
 
-    final def kind: String = "spark"
-
     protected def isStarted(): Boolean
 
     protected def interpret(code: String): Results.Result
 
-    protected def completeCandidates(code: String, cursor: Int): Array[String] = Array()
-
-    protected def valueOfTerm(name: String): Option[Any]
-
     protected def bind(name: String, tpe: String, value: Object, modifier: List[String]): Unit
 
-
-     def sparkCreateContext(conf: SparkConf): Unit = {
+    def sparkCreateContext(conf: SparkConf): Unit = {
         val spark = IqlService.createSpark(conf)
         bind("spark", spark.getClass.getCanonicalName, spark, List("""@transient"""))
         execute("import org.apache.spark.SparkContext._")
@@ -56,41 +48,10 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
     override def execute(code: String): Interpreter.ExecuteResponse =
         restoreContextClassLoader {
             require(isStarted())
-
             executeLines(code.trim.split("\n").toList, Interpreter.ExecuteSuccess(JObject(
                 (TEXT_PLAIN, JString(""))
             )))
         }
-
-    override protected[repl] def complete(code: String, cursor: Int): Array[String] = {
-        completeCandidates(code, cursor)
-    }
-
-    private def executeMagic(magic: String, rest: String): Interpreter.ExecuteResponse = {
-        magic match {
-            case "json" => executeJsonMagic(rest)
-            case "table" => executeTableMagic(rest)
-            case _ =>
-                Interpreter.ExecuteError("UnknownMagic", f"Unknown magic command $magic")
-        }
-    }
-
-    private def executeJsonMagic(name: String): Interpreter.ExecuteResponse = {
-        try {
-            val value = valueOfTerm(name) match {
-                case Some(obj: RDD[_]) => obj.asInstanceOf[RDD[_]].take(10)
-                case Some(obj) => obj
-                case None => return Interpreter.ExecuteError("NameError", f"Value $name does not exist")
-            }
-
-            Interpreter.ExecuteSuccess(JObject(
-                (APPLICATION_JSON, Extraction.decompose(value))
-            ))
-        } catch {
-            case _: Throwable =>
-                Interpreter.ExecuteError("ValueError", "Failed to convert value into a JSON value")
-        }
-    }
 
     private class TypesDoNotMatch extends Exception
 
@@ -126,23 +87,12 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
         }
     }
 
-    private def executeTableMagic(name: String): Interpreter.ExecuteResponse = {
-        val value = valueOfTerm(name) match {
-            case Some(obj: RDD[_]) => obj.asInstanceOf[RDD[_]].take(10)
-            case Some(obj) => obj
-            case None => return Interpreter.ExecuteError("NameError", f"Value $name does not exist")
-        }
-
-        extractTableFromJValue(Extraction.decompose(value))
-    }
-
     private def extractTableFromJValue(value: JValue): Interpreter.ExecuteResponse = {
         // Convert the value into JSON and map it to a table.
         val rows: List[JValue] = value match {
             case JArray(arr) => arr
             case _ => List(value)
         }
-
         try {
             val headers = scala.collection.mutable.Map[String, Map[String, String]]()
 
@@ -156,7 +106,6 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
 
                 cols.map { case (k, v) =>
                     val typeName = convertTableType(v)
-
                     headers.get(k) match {
                         case Some(header) =>
                             if (header.get("type").get != typeName) {
@@ -168,7 +117,6 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
                                 "name" -> k
                             ))
                     }
-
                     v
                 }
             }
@@ -245,22 +193,17 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
     }
 
     private def executeLine(code: String): Interpreter.ExecuteResponse = {
-        code match {
-            case MAGIC_REGEX(magic, rest) =>
-                executeMagic(magic, rest)
-            case _ =>
-                scala.Console.withOut(outputStream) {
-                    interpret(code) match {
-                        case Results.Success =>
-                            Interpreter.ExecuteSuccess(
-                                TEXT_PLAIN -> readStdout()
-                            )
-                        case Results.Incomplete => Interpreter.ExecuteIncomplete()
-                        case Results.Error =>
-                            val (ename, traceback) = parseError(readStdout())
-                            Interpreter.ExecuteError("Error", ename, traceback)
-                    }
-                }
+        scala.Console.withOut(outputStream) {
+            interpret(code) match {
+                case Results.Success =>
+                    Interpreter.ExecuteSuccess(
+                        TEXT_PLAIN -> readStdout()
+                    )
+                case Results.Incomplete => Interpreter.ExecuteIncomplete()
+                case Results.Error =>
+                    val (ename, traceback) = parseError(readStdout())
+                    Interpreter.ExecuteError("Error", ename, traceback)
+            }
         }
     }
 
@@ -276,7 +219,6 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
         //   ... 32 elided
 
         // Return the first line as ename. Lines following as traceback.
-
         val lines = KEEP_NEWLINE_REGEX.split(stdout)
         val ename = lines.headOption.map(_.trim).getOrElse("unknown error")
         val traceback = lines.tail
@@ -296,7 +238,6 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
     private def readStdout() = {
         val output = outputStream.toString("UTF-8")
         outputStream.reset()
-
         output
     }
 }

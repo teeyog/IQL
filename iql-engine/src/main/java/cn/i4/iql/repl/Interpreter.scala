@@ -17,8 +17,6 @@ object Interpreter {
 trait Interpreter {
   import Interpreter._
 
-  def kind: String
-
   /**
     * Start the Interpreter.
     */
@@ -29,9 +27,6 @@ trait Interpreter {
     * take some time to execute.
     */
   protected[repl] def execute(code: String): ExecuteResponse
-
-  protected[repl] def complete(code: String, cursor: Int): Array[String]
-  = Array()
 
   /** Shut down the interpreter. */
   def close(): Unit

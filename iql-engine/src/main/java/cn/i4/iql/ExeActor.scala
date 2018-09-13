@@ -3,8 +3,8 @@ package cn.i4.iql
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.lang.reflect.Modifier
 import java.sql.Timestamp
-import cn.i4.iql.ExeActor._
 
+import cn.i4.iql.ExeActor._
 import akka.actor.{Actor, Props}
 import cn.i4.iql.antlr.{IQLLexer, IQLListener, IQLParser}
 import cn.i4.iql.domain.Bean._
@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.{ANTLRInputStream, CommonTokenStream}
 import org.apache.spark.sql.SparkSession
 import cn.i4.iql.repl.SparkInterpreter
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
-import cn.i4.iql.IqlService._
+import cn.i4.iql.IqlService.{warn, _}
 import cn.i4.iql.repl.Interpreter._
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.bridge.SparkBridge
@@ -77,6 +77,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
                         resJson.put("mode", "iql")
                         parseSQL(rIql, new IQLSQLExecListener(sparkSession, iqlSession))
                     case "code" =>
+                        warn("\n" + ("*" * 80) + "\n" + rIql + "\n" + ("*" * 80))
                         resJson.put("mode", "code")
                         rIql = rIql.replaceAll("'", "\"").replaceAll("\n", " ")
                         val response = interpreter.execute(rIql)

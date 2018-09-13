@@ -16,13 +16,7 @@ class SparkInterpreter extends AbstractSparkInterpreter {
 
     private var sparkILoop: SparkILoop = _
     private var sparkHttpServer: Object = _
-
     private var hasErrors = false
-
-    private def scalaOptionError(msg: String): Unit = {
-        hasErrors = true
-        Console.err.println(msg)
-    }
 
     override def start(): Unit = {
         require(sparkILoop == null)
@@ -61,11 +55,9 @@ class SparkInterpreter extends AbstractSparkInterpreter {
         sparkILoop.settings = settings
         sparkILoop.createInterpreter()
         sparkILoop.initializeSynchronous()
-        println("settings.outputDirs().getSingleOutput().get() : " + settings.outputDirs.getSingleOutput.get)
 
         restoreContextClassLoader {
             sparkILoop.setContextClassLoader()
-
             var classLoader = Thread.currentThread().getContextClassLoader
             while (classLoader != null) {
                 if (classLoader.getClass.getCanonicalName ==
@@ -73,13 +65,10 @@ class SparkInterpreter extends AbstractSparkInterpreter {
                     val extraJarPath = classLoader.asInstanceOf[URLClassLoader].getURLs()
                         // Check if the file exists. Otherwise an exception will be thrown.
                         .filter { u => u.getProtocol == "file" && new File(u.getPath).isFile }
-                        // Livy rsc and repl are also in the extra jars list. Filter them out.
-                        .filterNot { u => Paths.get(u.toURI).getFileName.toString.startsWith("livy-") }
                         // Some bad spark packages depend on the wrong version of scala-reflect. Blacklist it.
                         .filterNot { u =>
                         Paths.get(u.toURI).getFileName.toString.contains("org.scala-lang_scala-reflect")
                     }
-
                     extraJarPath.foreach { p => debug(s"Adding $p to Scala interpreter's class path...") }
                     sparkILoop.addUrlsToClassPath(extraJarPath: _*)
                     classLoader = null
@@ -116,24 +105,6 @@ class SparkInterpreter extends AbstractSparkInterpreter {
         sparkILoop.interpret(code)
     }
 
-    override protected def completeCandidates(code: String, cursor: Int): Array[String] = {
-        val completer: ScalaCompleter = {
-            try {
-                val cls = Class.forName("scala.tools.nsc.interpreter.PresentationCompilerCompleter")
-                cls.getDeclaredConstructor(classOf[IMain]).newInstance(sparkILoop.intp)
-                    .asInstanceOf[ScalaCompleter]
-            } catch {
-                case e: ClassNotFoundException => new JLineCompletion(sparkILoop.intp).completer
-            }
-        }
-        completer.complete(code, cursor).candidates.toArray
-    }
-
-    override protected def valueOfTerm(name: String): Option[Any] = {
-        // IMain#valueOfTerm will always return None, so use other way instead.
-        Option(sparkILoop.lastRequest.lineRep.call("$result"))
-    }
-
     override protected def bind(name: String,
                                 tpe: String,
                                 value: Object,
@@ -142,6 +113,5 @@ class SparkInterpreter extends AbstractSparkInterpreter {
             sparkILoop.bind(name, tpe, value, modifier)
         }
     }
-
 }
 
