@@ -103,6 +103,14 @@ class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
                         tableName: String,
                         format: String
                        ) {
+
+  def withWaterMark(table: DataFrame, option: Map[String, String]) = {
+    if (option.contains("eventTimeCol")) {
+      table.withWatermark(option("eventTimeCol"), option("delayThreshold"))
+    } else {
+      table
+    }
+  }
   def parse = {
     var table: DataFrame = null
     val reader = scriptSQLExecListener.sparkSession.readStream
@@ -114,6 +122,7 @@ class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
             .selectExpr("CAST(key AS STRING)","CAST(value AS STRING)","topic","partition","offset","timestamp","timestampType")
       case _ =>
     }
+    table = withWaterMark(table, option)
     table.createOrReplaceTempView(tableName)
   }
 }
