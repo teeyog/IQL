@@ -61,11 +61,11 @@ CREATE TABLE `t_menu` (
   `icon` varchar(255) DEFAULT '',
   `reorder` int(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=152 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=153 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 /*Data for the table `t_menu` */
 
-insert  into `t_menu`(`id`,`name`,`pid`,`url`,`icon`,`reorder`) values (8,'系统管理',-1,'#','fa fa-gears',99),(35,'修改密码',8,'system/changepw','',1009),(36,'用户管理',8,'system/user','',1),(37,'角色管理',8,'system/role','',10),(38,'功能管理',8,'system/menu','',20),(114,'Swagger',8,'http://localhost:8888/swagger-ui.html#/','',600),(147,'开发平台',-1,'#','fa fa-desktop',1),(148,'IQL查询',147,'iql/iql','',1),(149,'实时日志',147,'iql/joblog','',2),(150,'监控',-1,'#','fa fa-video-camera',199),(151,'druid监控',150,'http://localhost:8888/druid/index.html','',1);
+insert  into `t_menu`(`id`,`name`,`pid`,`url`,`icon`,`reorder`) values (8,'系统管理',-1,'#','fa fa-gears',99),(35,'修改密码',8,'system/changepw','',1009),(36,'用户管理',8,'system/user','',1),(37,'角色管理',8,'system/role','',10),(38,'功能管理',8,'system/menu','',20),(114,'Swagger',8,'http://192.168.1.40:8888/swagger-ui.html#/','',600),(147,'开发平台',-1,'#','fa fa-desktop',1),(148,'IQL查询',147,'iql/iql','',1),(149,'实时日志',147,'iql/joblog','',2),(150,'监控',-1,'#','fa fa-video-camera',199),(151,'druid监控',150,'http://192.168.1.40:8888/druid/index.html','',1),(152,'Profile',8,'system/profile','',601);
 
 /*Table structure for table `t_role` */
 
@@ -111,13 +111,14 @@ CREATE TABLE `t_user` (
   `status` tinyint(4) NOT NULL DEFAULT '0',
   `type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0,非商务人员1,商务人员',
   `isfirstlogin` int(4) unsigned zerofill DEFAULT '0000',
+  `token` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `INDEX_username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8;
 
 /*Data for the table `t_user` */
 
-insert  into `t_user`(`id`,`username`,`password`,`real_name`,`phone`,`create_time`,`status`,`type`,`isfirstlogin`) values (1,'admin','e10adc3949ba59abbe56e057f20f883e','开发者账号','111111111111','2016-10-18 11:44:32',0,0,0001);
+insert  into `t_user`(`id`,`username`,`password`,`real_name`,`phone`,`create_time`,`status`,`type`,`isfirstlogin`,`token`) values (1,'admin','e10adc3949ba59abbe56e057f20f883e','开发者账号','111111111111','2016-10-18 11:44:32',0,0,0001,'5c756d55972c86909d4f07bce7660c8a');
 
 /*Table structure for table `t_user_role` */
 
