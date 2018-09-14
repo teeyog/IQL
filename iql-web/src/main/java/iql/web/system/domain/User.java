@@ -38,10 +38,20 @@ public class User  {
 	private int type;
 	
 	private int isfirstlogin;
-	
-	@ManyToMany(cascade=CascadeType.REFRESH, fetch=FetchType.EAGER)
-	@JoinTable(name="t_user_role", inverseJoinColumns=@JoinColumn(name="roleid"), joinColumns=@JoinColumn(name="userid"))
-	private Set<Role> roles = new HashSet<>();
+
+	private String token;
+
+	public void setReal_name(String real_name) {
+		this.real_name = real_name;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
+	}
 
 	public Integer getId() {
 		return id;
@@ -113,14 +123,6 @@ public class User  {
 
 	public void setIsfirstlogin(int isfirstlogin) {
 		this.isfirstlogin = isfirstlogin;
-	}
-
-	public Set<Role> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(Set<Role> roles) {
-		this.roles = roles;
 	}
 
 }

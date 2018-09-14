@@ -882,64 +882,6 @@
         });
     }
 
-    //加载保存的iql
-    function loadSavedTable() {
-        $("#saved-list-table").bootstrapTable({
-            method: 'get',
-            cache: false,
-            striped: true, //是否显示行间隔色
-            pageList: [10, 20, 50, 100],
-            pageSize: 20,
-            showRefresh: true,
-            pagination: true,
-            sidePagination: 'server',
-            dataType: 'json',
-            url: '/iqls',
-            onLoadSuccess: function (data) {
-                console.log(data)
-            },
-            columns: [
-                {
-                    field: 'name',
-                    title: 'Name'
-                },
-                {
-                    field: 'iql',
-                    title: 'iql',
-                    visible: false
-                },
-                {
-                    field: 'id',
-                    title: 'id',
-                    visible: false
-                },
-                {
-                    field: 'description',
-                    title: 'Description'
-                },
-                {
-                    field: 'updateTime',
-                    title: 'Last Modified',
-                    formatter: function (value, row, index) {
-                        return '<span title="' + timestampToTime(value) + '">' + timestampToTime(value) + '</span>'
-                    }
-                },
-                {
-                    field: 'mode',
-                    title: 'mode',
-                    visible: false
-                }, {
-                    field: 'id',
-                    title: '操作',
-                    align: 'center',
-                    width: 100,
-                    events: operateEvents,
-                    formatter: operateFormatter
-                }
-            ]
-        });
-    }
-
     //下载结果文件
     function downloadFile(fileType) {
         var formParams = {

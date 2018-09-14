@@ -27,6 +27,7 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
@@ -127,16 +128,18 @@ public class QueryAction {
     }
 
     @PostMapping(value = "/query2")
-    public JSONObject execution(String iql, int timeout) throws Exception {
+    public JSONObject execution(HttpServletRequest request, String iql, int timeout) throws Exception {
         Map pramMap = new HashMap<String, String>();
         pramMap.put("iql", iql);
         pramMap.put("variables", "[]");
         pramMap.put("mode", "iql");
+        pramMap.put("token",request.getParameter("token"));
         String postResult = HttpUtils.post("http://localhost:8888/query", pramMap, 6000, "utf-8");
         JSONObject jsonObject = JSON.parseObject(postResult);
         if (jsonObject.getBoolean("isSuccess")) {
             Map pramMap2 = new HashMap<String, String>();
             pramMap2.put("engineInfoAndGroupId", jsonObject.getString("engineInfoAndGroupId"));
+            pramMap.put("token",request.getParameter("token"));
             String postResult2 = HttpUtils.post("http://localhost:8888/getresult", pramMap2, timeout, "utf-8");
             return JSON.parseObject(postResult2);
         } else {
