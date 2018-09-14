@@ -6,6 +6,8 @@ import iql.web.system.service.UserService;
 import iql.web.util.MD5Util;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -17,13 +19,12 @@ import javax.servlet.http.HttpSession;
 /**
  * Created by admin on 2017/7/18.
  */
-@Controller
 public class MCInterceptor implements HandlerInterceptor {
-
-    public static Logger logger = Logger.getLogger("IQL");
 
     @Autowired
     private UserService userService;
+
+    public static Logger logger = Logger.getLogger("IQL");
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -31,16 +32,16 @@ public class MCInterceptor implements HandlerInterceptor {
         request.setAttribute("startTime", startTime);
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
+
         if (user != null) {
             return true;
         }
-//        EntityUser newUser = new EntityUser();
-//        newUser.setUsername(request.getParameter("user"));
-//        System.out.println(userService);
-//        User u = userService.findByUsername(newUser);
-//        if(u!=null&& MD5Util.getMD5String(request.getParameter("password")).equals(u.getPassword())){
-//           return true;
-//        }
+        EntityUser newUser = new EntityUser();
+        newUser.setUsername(request.getParameter("user"));
+        User u = userService.findByUsername(newUser);
+        if(u!=null&& MD5Util.getMD5String(request.getParameter("password")).equals(u.getPassword())){
+           return true;
+        }
         response.sendRedirect("/page/login");
         return false;
     }
