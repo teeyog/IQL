@@ -31,7 +31,7 @@ public class MCInterceptor implements HandlerInterceptor {
         if (user != null) {
             return true;
         }
-        if(!"".equals(request.getParameter("token")) && null != userService.findUserByToken(request.getParameter("token").trim())){
+        if(null != request.getParameter("token") && !"".equals(request.getParameter("token")) && null != userService.findUserByToken(request.getParameter("token").trim())){
             return true;
         }
         response.sendRedirect("/page/login");
