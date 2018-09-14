@@ -2,7 +2,7 @@ package iql.web.system.service.impl;
 
 import iql.web.util.DataUtil;
 import iql.web.bean.BaseBean;
-import iql.web.system.domain.EntityUser;
+import iql.web.system.domain.User;
 
 import iql.web.system.domain.User;
 import iql.web.util.MD5Util;
@@ -37,12 +37,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public JSONObject findUserById(EntityUser user) {
+	public JSONObject findUserById(User user) {
 		return JSON.parseObject(JSON.toJSONString(userDao.findUserById(user)));
 	}
 
 	@Override
-	public User findByUsername(EntityUser user) {
+	public User findByUsername(User user) {
 		if(user==null||user.getUsername()==null){
 			return null;
 		}
@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public Integer addUser(EntityUser user,String roles) {
+	public Integer addUser(User user,String roles) {
 		user.setPassword(MD5Util.getMD5String(user.getPassword()));
 		user.setIsfirstlogin(0);
 		user.setCreate_time(new Date());
@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public Integer updateUser(EntityUser user,String roles) {
+	public Integer updateUser(User user,String roles) {
 		if(!"@#$1-2-3-i4-5-6-7$#@".equals(user.getPassword().trim())){
 			user.setPassword(MD5Util.getMD5String(user.getPassword()));
 		}
@@ -72,36 +72,36 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public Integer delUser(EntityUser user) {
+	public Integer delUser(User user) {
 		userDao.delUser(user);
 		userDao.delUserRole(user);
 		return 1;
 	}
 
 	@Override
-	public Integer changePassWord(EntityUser user) {
-		EntityUser us = userDao.findUserById(user);
+	public Integer changePassWord(User user) {
+		User us = userDao.findUserById(user);
 		us.setPassword(MD5Util.getMD5String(user.getPassword().trim()));
 		return userDao.updateUser(us);
 	}
 
 	@Override
-	public Integer changeFirstLoginFlag(EntityUser user) {
-		EntityUser us = userDao.findUserById(user);
+	public Integer changeFirstLoginFlag(User user) {
+		User us = userDao.findUserById(user);
 		us.setIsfirstlogin(user.getIsfirstlogin());
 		return userDao.updateUser(us);
 	}
 
 	@Override
-	public Integer changeFirstLoginAndPassWord(EntityUser user) {
-		EntityUser us = userDao.findUserById(user);
+	public Integer changeFirstLoginAndPassWord(User user) {
+		User us = userDao.findUserById(user);
 		us.setIsfirstlogin(user.getIsfirstlogin());
 		us.setPassword(MD5Util.getMD5String(user.getPassword().trim()));
 		return userDao.updateUser(us);
 	}
 
 	@Override
-	public JSONObject findUserSelect(EntityUser user) {
+	public JSONObject findUserSelect(User user) {
 		JSONObject res = new JSONObject();
 		JSONArray options = new JSONArray();
 		List<Map> list = userDao.findAllUser(user);
@@ -115,5 +115,15 @@ public class UserServiceImpl implements UserService {
 		}
 		res.put("options", options);
 		return res;
+	}
+
+	@Override
+	public Integer updateToken(User user,String token) {
+		return userDao.updateToken(user,token);
+	}
+
+	@Override
+	public User findUserByToken(String token){
+		return userDao.findUserByToken(token);
 	}
 }

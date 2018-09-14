@@ -1,7 +1,6 @@
 package iql.web.system.service;
 
 import iql.web.bean.BaseBean;
-import iql.web.system.domain.EntityUser;
 import iql.web.system.domain.User;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,27 +8,32 @@ import org.springframework.transaction.annotation.Transactional;
 public interface UserService {
 
 
-    public JSONObject findUserList(BaseBean base);
+    JSONObject findUserList(BaseBean base);
 
-    public JSONObject findUserById(EntityUser user);
+    JSONObject findUserById(User user);
 
-    public User findByUsername(EntityUser user);
-
-    @Transactional
-    public Integer addUser(EntityUser user,String roles);
+    User findByUsername(User user);
 
     @Transactional
-    public Integer updateUser(EntityUser user,String roles);
+    Integer addUser(User user, String roles);
 
     @Transactional
-    public Integer delUser(EntityUser user);
+    Integer updateUser(User user, String roles);
 
-    public Integer changePassWord(EntityUser user);
+    @Transactional
+    Integer delUser(User user);
 
-    public Integer changeFirstLoginAndPassWord(EntityUser user);
+    Integer changePassWord(User user);
 
-    public Integer changeFirstLoginFlag(EntityUser user);
+    Integer changeFirstLoginAndPassWord(User user);
 
-    public JSONObject findUserSelect(EntityUser user);
-	
+    Integer changeFirstLoginFlag(User user);
+
+    JSONObject findUserSelect(User user);
+
+    @Transactional
+    Integer updateToken(User user, String token);
+
+    User findUserByToken(String token);
+
 }

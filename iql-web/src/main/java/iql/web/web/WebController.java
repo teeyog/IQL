@@ -4,9 +4,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import iql.web.util.TreeBuilder;
-import iql.web.system.domain.EntityUser;
-import iql.web.system.domain.Menu;
 import iql.web.system.domain.User;
+import iql.web.system.domain.Menu;
 import iql.web.system.service.UserService;
 import iql.web.util.MD5Util;
 import com.alibaba.fastjson.JSON;
@@ -54,7 +53,7 @@ public class WebController {
     public ModelAndView login(HttpServletRequest request,String username,String password) {
 		HttpSession session = request.getSession();
 		ModelAndView mv = new ModelAndView();
-		EntityUser user = new EntityUser();
+		User user = new User();
 		user.setUsername(username);
 		User u = userService.findByUsername(user);
 
@@ -85,7 +84,7 @@ public class WebController {
 
 	@RequestMapping("/changepw")
 	@Transactional
-	public ModelAndView changePassWord(HttpServletRequest request,EntityUser user,String npassword){
+	public ModelAndView changePassWord(HttpServletRequest request,User user,String npassword){
 		HttpSession session = request.getSession();
 		ModelAndView mv = new ModelAndView();
 		User u = userService.findByUsername(user);

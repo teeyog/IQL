@@ -1,7 +1,7 @@
 package iql.web.system.dao;
 
 import iql.web.bean.BaseBean;
-import iql.web.system.domain.EntityUser;
+import iql.web.system.domain.User;
 import iql.web.system.domain.User;
 
 import java.util.List;
@@ -15,20 +15,24 @@ public interface UserDao {
 
 	public List<Map> findUserList(BaseBean base);
 
-	public EntityUser findUserById(EntityUser user);
+	public User findUserById(User user);
 
-	public List<Map> findUserRole(EntityUser user);
+	public List<Map> findUserRole(User user);
 
-	public Integer addUser(EntityUser user);
+	public Integer addUser(User user);
 
-	public Integer updateUser(EntityUser user);
+	public Integer updateUser(User user);
 
-	public Integer delUser(EntityUser user);
+	public Integer delUser(User user);
 
-	public Integer addUserRole(EntityUser user,String roles);
+	public Integer addUserRole(User user,String roles);
 
-	public Integer delUserRole(EntityUser user);
+	public Integer delUserRole(User user);
 
-	public List<Map> findAllUser(EntityUser user);
+	public List<Map> findAllUser(User user);
+
+	public Integer updateToken(User user,String token);
+
+	public User findUserByToken(String token);
 	
 }

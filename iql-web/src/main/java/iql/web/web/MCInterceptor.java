@@ -1,14 +1,10 @@
 package iql.web.web;
 
-import iql.web.system.domain.EntityUser;
 import iql.web.system.domain.User;
 import iql.web.system.service.UserService;
 import iql.web.util.MD5Util;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
+import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -32,15 +28,11 @@ public class MCInterceptor implements HandlerInterceptor {
         request.setAttribute("startTime", startTime);
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-
         if (user != null) {
             return true;
         }
-        EntityUser newUser = new EntityUser();
-        newUser.setUsername(request.getParameter("user"));
-        User u = userService.findByUsername(newUser);
-        if(u!=null&& MD5Util.getMD5String(request.getParameter("password")).equals(u.getPassword())){
-           return true;
+        if(!"".equals(request.getParameter("token")) && null != userService.findUserByToken(request.getParameter("token").trim())){
+            return true;
         }
         response.sendRedirect("/page/login");
         return false;

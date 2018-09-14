@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:replace="head::headerFragment('Profile')">
+    <meta charset="UTF-8"/>
+    <title>Profile</title>
+    <style type="text/css">
+    </style>
+</head>
+<body>
+
+<div>
+    <div class="col-sm-12" style="margin-top: 50px">
+        <h3>
+            API Token
+        </h3>
+        <div class="user-api-token">
+            <span class="token" style="display: inline"><code id="token"></code></span>
+            <span style="display: inline;cursor:pointer" onclick="deleteToken()"><u> Delete</u></span>
+        </div>
+        <div id="Generate" onclick="GenerateToken()" style="cursor:pointer">
+            <u>Generate New Token</u>
+        </div>
+
+        <div style="margin-top: 50px">
+            说明：此Token可在发送Rest请求时使用，只需在请求中带上token参数即可。
+        </div>
+    </div>
+
+
+</div>
+
+<script type="text/javascript">
+    $(function () {
+       showToken()
+    });
+
+    function showToken() {
+        $.ajax({
+            url: '/mcdata/user/system/token',
+            type: 'GET',
+            success: function( data ) {
+                if(data.token){
+                    $("#token").html(data.token);
+                    $(".user-api-token").show();
+                    $("#Generate").hide();
+                }else{
+                    $("#Generate").show();
+                    $(".user-api-token").hide();
+                }
+
+            },
+            error: function( error ) {
+                layer.msg('删除失败：'+error.status, {icon: 2});
+            }
+        });
+    }
+
+    function deleteToken() {
+        $.ajax({
+            url: '/mcdata/user/system/deleteToken',
+            type: 'Post',
+            success: function( data ) {
+                showToken()
+            },
+            error: function( error ) {
+                layer.msg('删除失败：'+error.status, {icon: 2});
+            }
+        });
+    }
+
+    function GenerateToken() {
+        $.ajax({
+            url: '/mcdata/user/system/generateToken',
+            type: 'Get',
+            success: function( data ) {
+                showToken()
+            },
+            error: function( error ) {
+                layer.msg('删除失败：'+error.status, {icon: 2});
+            }
+        });
+    }
+
+
+</script>
+
+
+</body>
+</html>
