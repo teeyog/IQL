@@ -3,6 +3,7 @@ package iql.engine.main
 import akka.actor.ActorSystem
 import iql.common.Logging
 import iql.common.utils.{AkkaUtils, ZkUtils}
+import iql.engine.auth.CheckAuth
 import iql.engine.{ExeActor, IQLSession}
 import iql.engine.repl.SparkInterpreter
 import iql.engine.utils.PropsUtils
@@ -30,10 +31,12 @@ object IqlMain extends Logging {
             .config("hive.exec.max.dynamic.partitions", 20000)
             //调度模式
             .config("spark.scheduler.mode", "FAIR")
-            .config("spark.scheduler.allocation.file", "/home/runtime_file/fairscheduler.xml")
             .config("spark.executor.memoryOverhead", "512")
 //                       .master("local[4]")
             .enableHiveSupport()
+//            .withExtensions { extensions =>
+//               extensions.injectCheckRule(CheckAuth.checkRule)
+//            }
             .getOrCreate()
         spark.sparkContext.setLogLevel("WARN")
         spark
@@ -41,10 +44,10 @@ object IqlMain extends Logging {
 
     def main(args: Array[String]): Unit = {
         val interpreter = new SparkInterpreter()
-        interpreter.start()
+        val sparkConf = interpreter.start()
         val actorConf = AkkaUtils.getConfig(ZkUtils.getZkClient(PropsUtils.get("zkServers")))
         val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
         val actorSystem = ActorSystem("iqlSystem", actorConf)
-        (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession), name = s"actor${id}"))
+        (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession, sparkConf), name = s"actor${id}"))
     }
 }
