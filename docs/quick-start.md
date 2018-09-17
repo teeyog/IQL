@@ -17,7 +17,7 @@ zkServers=localhost:2181
 
 [iql.sql](https://github.com/teeyog/IQL/blob/master/docs/file/iql.sql)
 
-> 打jar包， java -jar ...
+> 打jar包，运行 java -jar iql.jar
  
 ## Engine端
 

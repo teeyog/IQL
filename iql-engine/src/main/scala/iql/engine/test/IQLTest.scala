@@ -1,35 +1,27 @@
 package iql.engine.test
 
-import java.util.Random
+import iql.engine.auth.CheckAuth
+import org.apache.spark.sql.SparkSession
 
 object IQLTest {
 
-  case class GoodLuck(time: Int)
-
-
-
   def main(args: Array[String]): Unit = {
 
-    val array = Array("大","小")
 
-//    val spark = SparkSession
-//      .builder
-//      .appName("iql")
-//      .master("local[4]")
-//      .enableHiveSupport()
-//      .getOrCreate()
-//
-//    import spark.implicits._
-//
-//    spark.sparkContext.textFile("/tmp/recover_activation/nohup.out")
-//      .filter(r => r.contains("第") && r.contains("期"))
-//      .map(r => (r.split("：")(1).substring(0, 1),array((new util.Random).nextInt(2))))
-//        .map(r => if(r._1 != r._2) "---" else "")
-//      .foreach(println)
+    val spark = SparkSession
+        .builder
+        .appName("IQL")
+        .master("local[4]")
+        .enableHiveSupport()
+        .getOrCreate()
+    spark.sparkContext.setLogLevel("WARN")
 
 
-    val random = new Random()
-    (0 to 20).foreach(r => println(random.nextInt(2)))
+    val df = spark.sql(
+      """
+select idfa,uuid from mc.mbl where date='20180912' limit 10
+        """.stripMargin)
+    println(df.queryExecution.analyzed)
 
 
     // Subscribe to 1 topic
