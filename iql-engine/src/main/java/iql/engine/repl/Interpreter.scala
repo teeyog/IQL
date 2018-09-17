@@ -1,5 +1,7 @@
 package iql.engine.repl
 
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
 import org.json4s.JObject
 
 
@@ -20,7 +22,7 @@ trait Interpreter {
   /**
     * Start the Interpreter.
     */
-  def start(): Unit
+  def start(): SparkConf
 
   /**
     * Execute the code and return the result, it may

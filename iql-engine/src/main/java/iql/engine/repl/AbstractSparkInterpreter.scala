@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream
 import iql.common.Logging
 import iql.engine.main.IqlMain
 import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST._
 import org.json4s.JsonDSL._
@@ -30,13 +31,14 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
 
     protected def bind(name: String, tpe: String, value: Object, modifier: List[String]): Unit
 
-    def sparkCreateContext(conf: SparkConf): Unit = {
+    def sparkCreateContext(conf: SparkConf): SparkConf = {
         val spark = IqlMain.createSpark(conf)
         bind("spark", spark.getClass.getCanonicalName, spark, List("""@transient"""))
         execute("import org.apache.spark.SparkContext._")
         execute("import spark.implicits._")
         execute("import spark.sql")
         execute("import org.apache.spark.sql.functions._")
+        spark.sparkContext.getConf
     }
 
     override def close(): Unit = {}

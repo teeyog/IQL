@@ -5,6 +5,7 @@ import java.net.URLClassLoader
 import java.nio.file.{Files, Paths}
 
 import org.apache.spark.repl.SparkILoop
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkUtils}
 
 import scala.tools.nsc.Settings
@@ -15,9 +16,9 @@ class SparkInterpreter extends AbstractSparkInterpreter {
 
     private var sparkILoop: SparkILoop = _
     private var sparkHttpServer: Object = _
-    private var hasErrors = false
+    private var sparkConf: SparkConf = _
 
-    override def start(): Unit = {
+    override def start(): SparkConf = {
         require(sparkILoop == null)
         val conf = new SparkConf()
 
@@ -75,8 +76,9 @@ class SparkInterpreter extends AbstractSparkInterpreter {
                     classLoader = classLoader.getParent
                 }
             }
-            sparkCreateContext(conf)
+            sparkConf = sparkCreateContext(conf)
         }
+        sparkConf
     }
 
 
