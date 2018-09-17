@@ -1,11 +1,14 @@
 
 # Quick-start
-### web端
+## WEB端
 - 配置application.properties，mysql连接信息和zookeeper地址
 ```
 spring.datasource.druid.url=jdbc:mysql://localhost:3306/iql?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
 spring.datasource.druid.username=root
 spring.datasource.druid.password=123456
+
+...
+
 # 通过zk发现引擎地址
 zkServers=localhost:2181
 ```
@@ -13,8 +16,10 @@ zkServers=localhost:2181
 - 导入SQL表
 
 [iql.sql](https://github.com/teeyog/IQL/blob/master/docs/file/iql.sql)
+
+> 打jar包， java -jar ...
  
-### engine端
+## Engine端
 
 - FAIR 公平调度
 
@@ -51,4 +56,20 @@ zkServers=dsj01:2181
 
 # 用于结果下载
 hdfs.url=hdfs://dsj01:8020
+```
+
+- 启动示例
+
+```
+sudo -u hdfs spark2-submit \
+	--name IQL \
+	--master yarn \
+	--deploy-mode client \
+	--conf spark.executor.extraJavaOptions="-Xms1024m  -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m" \
+	--files /home/runtime_file/fairscheduler.xml \
+	--num-executors 1 \
+	--driver-memory 3G \ 
+	--executor-memory 1g \   
+	--class iql.engine.main.IqlMain \
+	/home/run/jobJar/iql-engine.jar
 ```
