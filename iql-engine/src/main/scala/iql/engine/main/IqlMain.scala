@@ -32,7 +32,7 @@ object IqlMain extends Logging {
             //调度模式
             .config("spark.scheduler.mode", "FAIR")
             .config("spark.executor.memoryOverhead", "512")
-//                       .master("local[4]")
+//          .master("local[4]")
             .enableHiveSupport()
 //            .withExtensions { extensions =>
 //               extensions.injectCheckRule(CheckAuth.checkRule)

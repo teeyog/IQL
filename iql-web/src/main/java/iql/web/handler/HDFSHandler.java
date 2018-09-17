@@ -26,26 +26,6 @@ public class HDFSHandler {
      * @param response
      */
     public static void downloadJSON(String hdfsPath, HttpServletResponse response) {
-//        String jsons = HdfsUtils.readFile(hdfsPath);
-//        //设置文件路径
-//        response.setContentType("application/force-download");// 设置强制下载不打开
-//        response.addHeader("Content-Disposition", "attachment;fileName=iql_query_" + System.currentTimeMillis() + ".json");// 设置文件名
-//        OutputStream os = null;
-//        try {
-//             os = response.getOutputStream();
-//            os.write(jsons.getBytes("GBK"));
-//            os.flush();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                if(os != null){
-//                    os.close();
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
         //设置文件路径
         response.setContentType("application/force-download");// 设置强制下载不打开
         response.addHeader("Content-Disposition", "attachment;fileName=iql_query_" + System.currentTimeMillis() + ".json");// 设置文件名
@@ -88,13 +68,6 @@ public class HDFSHandler {
      * @param response
      */
     public static void downloadCSV(String hdfsPath,String schema,HttpServletResponse response) {
-//        List<String> jsons = HdfsUtils.readFileToList(hdfsPath);
-//        try(final OutputStream os = response.getOutputStream()) {
-//            ExportUtil.responseSetProperties(response);
-//            ExportUtil.doExport(jsons,schema,os);
-//        }catch(Exception e) {
-//            System.out.println(e);
-//        }
             FileSystem fileSystem = null;
             OutputStream os = null;
             String[] colNamesArr =  schema.split(",");

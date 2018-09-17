@@ -2,12 +2,14 @@ package iql.web.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import iql.common.utils.PropsUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.IOUtils;
 
 import java.io.*;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -304,7 +306,7 @@ public class HdfsUtils {
                 Configuration conf = new Configuration();
                 conf.setBoolean("fs.hdfs.impl.disable.cache", true);
                 conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-                fileSystem = FileSystem.get(conf);
+                fileSystem = FileSystem.get(URI.create(PropsUtils.confMap().get("hdfs.url").get()),conf);
             } catch (IOException e) {
                 e.printStackTrace();
             }

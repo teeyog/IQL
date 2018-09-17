@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Mon Sep 17 17:40:08 CST 2018:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.12.1.1 - (1704137): instance a816c00e-0165-e6e6-c571-00001bd16948 
+on database directory D:\DevInstall\git\Git\cloud\github\IQL\metastore_db with class loader org.apache.spark.sql.hive.client.IsolatedClientLoader$$anon$1@5095759b 
+Loaded from file:/D:/DevRepository/maven/org/apache/derby/derby/10.12.1.1/derby-10.12.1.1.jar
+java.vendor=Oracle Corporation
+java.runtime.version=1.8.0_112-b15
+user.dir=D:\DevInstall\git\Git\cloud\github\IQL
+os.name=Windows 7
+os.arch=amd64
+os.version=6.1
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''
