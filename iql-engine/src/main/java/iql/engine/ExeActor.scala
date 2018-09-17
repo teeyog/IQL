@@ -21,21 +21,28 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.bridge.SparkBridge
 import iql.engine.ExeActor._
+import iql.engine.config._
+import org.I0Itec.zkclient.ZkClient
 
 
-class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends Actor with Logging {
+class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf:SparkConf) extends Actor with Logging {
 
     var sparkSession: SparkSession = _
     var interpreter: SparkInterpreter = _
+    var zkClient:ZkClient = _
+
     var resJson = new JSONObject()
     val zkValidActorPath = ZkUtils.validEnginePath + "/" + iqlSession.engineInfo + "_" + context.self.path.name
+    val initHiveCatalog = conf.getBoolean(INIT_HIVE_CATALOG.key, INIT_HIVE_CATALOG.defaultValue.get)
+    val autoComplete = conf.getBoolean(HIVE_CATALOG_AUTO_COMPLETE.key, HIVE_CATALOG_AUTO_COMPLETE.defaultValue.get)
 
     override def preStart(): Unit = {
         warn("Actor Start ...")
+        zkClient = ZkUtils.getZkClient(PropsUtils.get("zkServers"))
         interpreter = _interpreter
-        sparkSession = IqlMain.createSpark(new SparkConf()).newSession()
-        registerUDF("iql.engine.utils.SparkUDF")
-        ZkUtils.registerActorInEngine(ZkUtils.getZkClient(PropsUtils.get("zkServers")), zkValidActorPath, "", 6000, -1)
+        sparkSession = IqlMain.createSpark(conf).newSession()
+        registerUDF("iql.engine.utils.SparkUDF") //注册常用UDF
+        ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
     }
 
     override def postStop(): Unit = {
@@ -47,10 +54,18 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
     override def receive: Receive = {
 
         case HiveCatalog() =>
-            sender() ! getHiveCatalog
+            val catalog = initHiveCatalog match {
+                case true => getHiveCatalog
+                case false => "{}"
+            }
+            sender() ! catalog
 
         case HiveCatalogWithAutoComplete() =>
-            sender() ! getHiveCatalogWithAutoComplete
+            val catalog = autoComplete match {
+                case true => getHiveCatalogWithAutoComplete
+                case false => "{}"
+            }
+            sender() ! catalog
 
         case Iql(mode, iql, variables) =>
             actorWapper() { () => {
@@ -153,7 +168,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
 
     // 执行前从zk中删除当前对应节点（标记不可用），执行后往zk中写入可用节点（标记可用）
     def actorWapper()(f: () => Unit) {
-        ZkUtils.deletePath(ZkUtils.getZkClient(PropsUtils.get("zkServers")), zkValidActorPath)
+        ZkUtils.deletePath(zkClient, zkValidActorPath)
         try {
             f()
         } catch {
@@ -164,7 +179,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
                 resJson.put("errorMessage", new String(out.toByteArray))
                 sender() ! resJson.toJSONString
         }
-        ZkUtils.registerActorInEngine(ZkUtils.getZkClient(PropsUtils.get("zkServers")), zkValidActorPath, "", 6000, -1)
+        ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
     }
 
     // 获取hive元数据信息
@@ -256,7 +271,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession) extends A
 
 object ExeActor {
 
-    def props(interpreter: SparkInterpreter, iqlSession: IQLSession): Props = Props(new ExeActor(interpreter, iqlSession))
+    def props(interpreter: SparkInterpreter, iqlSession: IQLSession, sparkConf:SparkConf): Props = Props(new ExeActor(interpreter, iqlSession, sparkConf))
 
     // antlr4解析SQL语句
     def parse(input: String, listener: IQLSQLExecListener): Unit = {
