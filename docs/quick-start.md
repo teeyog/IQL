@@ -25,7 +25,8 @@ zkServers=localhost:2181
 
 [fairscheduler.xml](https://github.com/teeyog/IQL/blob/master/docs/file/fairscheduler.xml)
 ``` 
-由于spark引擎只能以client模式启动，需将自定义的调度池文件存放在启动spark的那台节点上即可，可在启动参数中配置 --flies /path/fairscheduler.xml，也可直接在程序中配置好。
+可在spark-submit启动参数中配置 --flies /path/fairscheduler.xml；
+也可直接在SparkConf中指定参数：spark.scheduler.allocation.file
 ```
 
 - 默认配置文件 iql.properties

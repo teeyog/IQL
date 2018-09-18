@@ -9,6 +9,7 @@
 - 多session模式实现并行查询
 - 采用spark的FAIR调度
 - 基于spark的动态资源分配，在无任务的情况下不会占用executor资源
+- 支持Cluster和Client模式启动
 - 基于Structured Streaming实现SQL动态添加流
 - 基于REPL的写代码功能，动态注册UDF函数
 - 高效的script管理，配合import/include语法完成各script的关联
