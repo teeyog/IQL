@@ -7,3 +7,4 @@ target/
 */src/main/resources/*.xml
 iql-web/src/main/resources/static/swagger-ui/package.json
 metastore_db/
+derby.log
