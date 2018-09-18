@@ -1,6 +1,7 @@
 package iql.engine
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 import org.apache.spark.sql.streaming.StreamingQuery
 
@@ -15,6 +16,34 @@ class IQLSession(_engineInfo:String) {
 
   // 保存stream任务engineInfo和StreamingQuery的映射（查看某个stream的状态或者stop某个stream）
   val streamJob = new ConcurrentHashMap[String, StreamingQuery]().asScala
+
+
+  private val lock = new ReentrantLock()
+  private val condition = lock.newCondition()
+  private var stopped: Boolean = false
+  private var error: Throwable = null
+
+  def awaitTermination(timeout: Long = -1): Boolean = {
+    lock.lock()
+    try {
+      if (timeout < 0) {
+        while (!stopped && error == null) {
+          condition.await()
+        }
+      } else {
+        var nanos = TimeUnit.MILLISECONDS.toNanos(timeout)
+        while (!stopped && error == null && nanos > 0) {
+          nanos = condition.awaitNanos(nanos)
+        }
+      }
+      // If already had error, then throw it
+      if (error != null) throw error
+      // already stopped or timeout
+      stopped
+    } finally {
+      lock.unlock()
+    }
+  }
 
 }
 

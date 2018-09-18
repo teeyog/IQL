@@ -3,7 +3,6 @@ package iql.engine.main
 import akka.actor.ActorSystem
 import iql.common.Logging
 import iql.common.utils.{AkkaUtils, ZkUtils}
-import iql.engine.auth.CheckAuth
 import iql.engine.{ExeActor, IQLSession}
 import iql.engine.repl.SparkInterpreter
 import iql.engine.utils.PropsUtils
@@ -32,11 +31,8 @@ object IqlMain extends Logging {
             //调度模式
             .config("spark.scheduler.mode", "FAIR")
             .config("spark.executor.memoryOverhead", "512")
-           // .master("local[4]")
+//            .master("local[4]")
             .enableHiveSupport()
-            //.withExtensions { extensions =>
-             //  extensions.injectCheckRule(CheckAuth.checkRule)
-            //}
             .getOrCreate()
         spark.sparkContext.setLogLevel("WARN")
         spark
@@ -49,5 +45,6 @@ object IqlMain extends Logging {
         val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
         val actorSystem = ActorSystem("iqlSystem", actorConf)
         (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession, sparkConf), name = s"actor${id}"))
+        iqlSession.awaitTermination()
     }
 }

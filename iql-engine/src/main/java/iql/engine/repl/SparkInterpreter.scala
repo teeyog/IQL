@@ -58,24 +58,6 @@ class SparkInterpreter extends AbstractSparkInterpreter {
 
         restoreContextClassLoader {
             sparkILoop.setContextClassLoader()
-            var classLoader = Thread.currentThread().getContextClassLoader
-            while (classLoader != null) {
-                if (classLoader.getClass.getCanonicalName ==
-                    "org.apache.spark.util.MutableURLClassLoader") {
-                    val extraJarPath = classLoader.asInstanceOf[URLClassLoader].getURLs()
-                        // Check if the file exists. Otherwise an exception will be thrown.
-                        .filter { u => u.getProtocol == "file" && new File(u.getPath).isFile }
-                        // Some bad spark packages depend on the wrong version of scala-reflect. Blacklist it.
-                        .filterNot { u =>
-                        Paths.get(u.toURI).getFileName.toString.contains("org.scala-lang_scala-reflect")
-                    }
-                    extraJarPath.foreach { p => debug(s"Adding $p to Scala interpreter's class path...") }
-                    sparkILoop.addUrlsToClassPath(extraJarPath: _*)
-                    classLoader = null
-                } else {
-                    classLoader = classLoader.getParent
-                }
-            }
             sparkConf = sparkCreateContext(conf)
         }
         sparkConf
