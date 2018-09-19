@@ -25,7 +25,7 @@ public class HDFSHandler {
      * @param hdfsPath
      * @param response
      */
-    public static void downloadJSON(String hdfsPath, HttpServletResponse response) {
+    public static void downloadJSON(String hdfsPath, HttpServletResponse response, String hdfsUri) {
         //设置文件路径
         response.setContentType("application/force-download");// 设置强制下载不打开
         response.addHeader("Content-Disposition", "attachment;fileName=iql_query_" + System.currentTimeMillis() + ".json");// 设置文件名
@@ -33,7 +33,7 @@ public class HDFSHandler {
         FileSystem fileSystem = null;
         try {
             os = response.getOutputStream();
-            fileSystem = HdfsUtils.getFS();
+            fileSystem = HdfsUtils.getFS(hdfsUri);
             FileStatus[] fstats = fileSystem.listStatus(new Path(hdfsPath));
             for ( FileStatus item : fstats ) {
                 // ignoring files like _SUCCESS
@@ -67,7 +67,7 @@ public class HDFSHandler {
      * @param schema
      * @param response
      */
-    public static void downloadCSV(String hdfsPath,String schema,HttpServletResponse response) {
+    public static void downloadCSV(String hdfsPath,String schema,HttpServletResponse response, String hdfsUri) {
             FileSystem fileSystem = null;
             OutputStream os = null;
             String[] colNamesArr =  schema.split(",");
@@ -75,7 +75,7 @@ public class HDFSHandler {
             try {
                 ExportUtil.responseSetProperties(response);
                 os = response.getOutputStream();
-                fileSystem = HdfsUtils.getFS();
+                fileSystem = HdfsUtils.getFS(hdfsUri);
                 os = response.getOutputStream();
                 // 完成数据csv文件的封装
                 // 输出列头
@@ -139,10 +139,10 @@ public class HDFSHandler {
      * @param response
      * @throws Exception
      */
-    public static void downloadExcel(String hdfsPath,String schema,HttpServletResponse response) throws Exception{
+    public static void downloadExcel(String hdfsPath,String schema,HttpServletResponse response, String hdfsUri) throws Exception{
         {  //我这是根据前端传来的起始时间来查询数据库里的数据，如果没有输入变量要求，保留前两个就行
             String[] headers = schema.split(",");//导出的Excel头部，这个要根据自己项目改一下
-            List<String> dataset = HdfsUtils.readFileToList(hdfsPath);
+            List<String> dataset = HdfsUtils.readFileToList(hdfsPath,hdfsUri);
             //下面的完全不动就行了（Excel数据中不包含图片）
             // 声明一个工作薄
             HSSFWorkbook workbook = new HSSFWorkbook();

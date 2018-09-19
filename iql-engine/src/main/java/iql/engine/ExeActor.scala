@@ -9,7 +9,7 @@ import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import iql.common.Logging
 import iql.common.domain.Bean._
 import iql.common.utils.ZkUtils
-import iql.engine.antlr.{IQLLexer, IQLParser}
+import iql.engine.antlr.{IQLBaseListener, IQLLexer, IQLParser}
 import iql.engine.main.IqlMain
 import iql.engine.main.IqlMain.{warn, _}
 import iql.engine.repl.Interpreter._
@@ -21,20 +21,22 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.bridge.SparkBridge
 import iql.engine.ExeActor._
+import iql.engine.auth.IQLAuthListener
 import iql.engine.config._
 import org.I0Itec.zkclient.ZkClient
 
 
-class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf:SparkConf) extends Actor with Logging {
+class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: SparkConf) extends Actor with Logging {
 
     var sparkSession: SparkSession = _
     var interpreter: SparkInterpreter = _
-    var zkClient:ZkClient = _
+    var zkClient: ZkClient = _
 
     var resJson = new JSONObject()
     val zkValidActorPath = ZkUtils.validEnginePath + "/" + iqlSession.engineInfo + "_" + context.self.path.name
     val initHiveCatalog = conf.getBoolean(INIT_HIVE_CATALOG.key, INIT_HIVE_CATALOG.defaultValue.get)
     val autoComplete = conf.getBoolean(HIVE_CATALOG_AUTO_COMPLETE.key, HIVE_CATALOG_AUTO_COMPLETE.defaultValue.get)
+    val authEnable = conf.getBoolean(IQL_AUTH_ENABLE.key, IQL_AUTH_ENABLE.defaultValue.get)
 
     override def preStart(): Unit = {
         warn("Actor Start ...")
@@ -146,7 +148,10 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf:Spar
     // antlr4解析SQL语句
     def parseSQL(input: String, listener: IQLSQLExecListener): Unit = {
         try {
-            parse(input,listener)
+            val authListener = if(authEnable) {
+                Some(new IQLAuthListener(listener.sparkSession))
+            }else None
+            parse(input, listener, authListener)
             val endTime = System.currentTimeMillis()
             val take = (endTime - resJson.getTimestamp("startTime").getTime) / 1000
             resJson.put("hdfsPath", listener.getResult("hdfsPath"))
@@ -191,7 +196,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf:Spar
             val dbId = num
             val dbObj = new JSONObject()
             dbObj.put("id", dbId)
-            dbObj.put("name",db)
+            dbObj.put("name", db)
             dbObj.put("pId", 0)
             hiveArray.add(dbObj)
             SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
@@ -200,7 +205,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf:Spar
                 val tbObj = new JSONObject()
                 tbObj.put("id", tbId)
                 tbObj.put("pId", dbId)
-                tbObj.put("name",tb)
+                tbObj.put("name", tb)
                 hiveArray.add(tbObj)
                 SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
                     num += 1
@@ -256,14 +261,14 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf:Spar
         }
     }
 
-    def registerUDF(clazz: String) = {
+    def registerUDF(clazz: String):Unit = {
         Class.forName(clazz).getMethods.foreach { f =>
             try {
                 if (Modifier.isStatic(f.getModifiers)) {
                     f.invoke(null, sparkSession)
                 }
             } catch {
-                case e:Exception => e.printStackTrace()
+                case e: Exception => e.printStackTrace()
             }
         }
     }
@@ -271,17 +276,22 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf:Spar
 
 object ExeActor {
 
-    def props(interpreter: SparkInterpreter, iqlSession: IQLSession, sparkConf:SparkConf): Props = Props(new ExeActor(interpreter, iqlSession, sparkConf))
+    def props(interpreter: SparkInterpreter, iqlSession: IQLSession, sparkConf: SparkConf): Props = Props(new ExeActor(interpreter, iqlSession, sparkConf))
 
     // antlr4解析SQL语句
-    def parse(input: String, listener: IQLSQLExecListener): Unit = {
-            warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
-            val loadLexer = new IQLLexer(new ANTLRInputStream(input))
-            val tokens = new CommonTokenStream(loadLexer)
-            val parser = new IQLParser(tokens)
-            val stat = parser.statement()
-            ParseTreeWalker.DEFAULT.walk(listener, stat)
+    def parse(input: String, listener: IQLBaseListener): Unit = {
+        warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
+        val loadLexer = new IQLLexer(new ANTLRInputStream(input))
+        val tokens = new CommonTokenStream(loadLexer)
+        val parser = new IQLParser(tokens)
+        val stat = parser.statement()
+        ParseTreeWalker.DEFAULT.walk(listener, stat)
     }
 
+    // 加入权限验证
+    def parse(input: String, execListener: IQLBaseListener, authListener: Option[IQLBaseListener]):Unit = {
+        authListener.foreach(parse(input,_))
+        parse(input,execListener)
+    }
 
 }

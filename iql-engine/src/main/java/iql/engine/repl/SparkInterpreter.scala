@@ -15,7 +15,6 @@ import scala.tools.nsc.interpreter.Results.Result
 class SparkInterpreter extends AbstractSparkInterpreter {
 
     private var sparkILoop: SparkILoop = _
-    private var sparkHttpServer: Object = _
     private var sparkConf: SparkConf = _
 
     override def start(): SparkConf = {
@@ -66,17 +65,9 @@ class SparkInterpreter extends AbstractSparkInterpreter {
 
     override def close(): Unit = synchronized {
         super.close()
-
         if (sparkILoop != null) {
             sparkILoop.closeInterpreter()
             sparkILoop = null
-        }
-
-        if (sparkHttpServer != null) {
-            val method = sparkHttpServer.getClass.getMethod("stop")
-            method.setAccessible(true)
-            method.invoke(sparkHttpServer)
-            sparkHttpServer = null
         }
     }
 

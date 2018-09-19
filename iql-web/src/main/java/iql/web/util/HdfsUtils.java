@@ -2,7 +2,6 @@ package iql.web.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import iql.common.utils.PropsUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
@@ -20,10 +19,10 @@ public class HdfsUtils {
     /**
      * ls
      */
-    public static void listFiles(String specialPath) {
+    public static void listFiles(String specialPath, String hdfsUri) {
         FileSystem fileSystem = null;
         try {
-            fileSystem = getFS();
+            fileSystem = getFS(hdfsUri);
             FileStatus[] fstats = fileSystem.listStatus(new Path(specialPath));
             for (FileStatus fstat : fstats) {
                 System.out.println(fstat.isDirectory() ? "directory" : "file");
@@ -56,10 +55,10 @@ public class HdfsUtils {
      *
      * @param hdfsFilePath
      */
-    public static void cat(String hdfsFilePath) {
+    public static void cat(String hdfsFilePath, String hdfsUri) {
         FileSystem fileSystem = null;
         try {
-            fileSystem = getFS();
+            fileSystem = getFS(hdfsUri);
             FileStatus[] fstats = fileSystem.listStatus(new Path(hdfsFilePath));
             for ( FileStatus item : fstats ) {
                 // ignoring files like _SUCCESS
@@ -81,12 +80,12 @@ public class HdfsUtils {
      *
      * @param hdfsFilePath
      */
-    public static String readFileToString(String hdfsFilePath) {
+    public static String readFileToString(String hdfsFilePath, String hdfsUri) {
         FileSystem fileSystem = null;
         JSONArray results = new JSONArray();
         int returnLines = 1000;
         try {
-            fileSystem = getFS();
+            fileSystem = getFS(hdfsUri);
             FileStatus[] fstats = fileSystem.listStatus(new Path(hdfsFilePath));
             for ( FileStatus item : fstats ) {
                 // ignoring files like _SUCCESS
@@ -117,11 +116,11 @@ public class HdfsUtils {
      *
      * @param hdfsFilePath
      */
-    public static  List<String> readFileToList(String hdfsFilePath) {
+    public static  List<String> readFileToList(String hdfsFilePath, String hdfsUri) {
         FileSystem fileSystem = null;
         List<String> results = new ArrayList<String>();
         try {
-            fileSystem = getFS();
+            fileSystem = getFS(hdfsUri);
             FileStatus[] fstats = fileSystem.listStatus(new Path(hdfsFilePath));
             for ( FileStatus item : fstats ) {
                 // ignoring files like _SUCCESS
@@ -149,11 +148,11 @@ public class HdfsUtils {
      *
      * @param hdfsFilePath
      */
-    public static String readFile(String hdfsFilePath) {
+    public static String readFile(String hdfsFilePath, String hdfsUri) {
         FileSystem fileSystem = null;
         StringBuilder results = new StringBuilder();
         try {
-            fileSystem = getFS();
+            fileSystem = getFS(hdfsUri);
             FileStatus[] fstats = fileSystem.listStatus(new Path(hdfsFilePath));
             for ( FileStatus item : fstats ) {
                 // ignoring files like _SUCCESS
@@ -178,8 +177,8 @@ public class HdfsUtils {
      *
      * @param hdfsFilePath
      */
-    public static void mkdir(String hdfsFilePath) {
-        FileSystem fileSystem = getFS();
+    public static void mkdir(String hdfsFilePath, String hdfsUri) {
+        FileSystem fileSystem = getFS(hdfsUri);
         try {
             boolean success = fileSystem.mkdirs(new Path(hdfsFilePath));
             if (success) {
@@ -202,8 +201,8 @@ public class HdfsUtils {
      * @param hdfsFilePath
      * @param recursive    递归
      */
-    public static void rm(String hdfsFilePath, boolean recursive) {
-        FileSystem fileSystem = getFS();
+    public static void rm(String hdfsFilePath, boolean recursive, String hdfsUri) {
+        FileSystem fileSystem = getFS(hdfsUri);
         try {
             boolean success = fileSystem.delete(new Path(hdfsFilePath), recursive);
             if (success) {
@@ -224,8 +223,8 @@ public class HdfsUtils {
      * @param localFilePath
      * @param hdfsFilePath
      */
-    public static void put(String localFilePath, String hdfsFilePath) {
-        FileSystem fileSystem = getFS();
+    public static void put(String localFilePath, String hdfsFilePath, String hdfsUri) {
+        FileSystem fileSystem = getFS(hdfsUri);
         try {
             FSDataOutputStream fdos = fileSystem.create(new Path(hdfsFilePath));
             FileInputStream fis = new FileInputStream(new File(localFilePath));
@@ -239,9 +238,9 @@ public class HdfsUtils {
         }
     }
 
-    public static void read(String fileName) throws Exception {
+    public static void read(String fileName, String hdfsUri) throws Exception {
         // get filesystem
-        FileSystem fileSystem = getFS();
+        FileSystem fileSystem = getFS(hdfsUri);
         Path readPath = new Path(fileName);
         // open file
         FSDataInputStream inStream = fileSystem.open(readPath);
@@ -261,8 +260,8 @@ public class HdfsUtils {
      * @param localFilePath
      * @param hdfsFilePath
      */
-    public static void get(String localFilePath, String hdfsFilePath) {
-        FileSystem fileSystem = getFS();
+    public static void get(String localFilePath, String hdfsFilePath, String hdfsUri) {
+        FileSystem fileSystem = getFS(hdfsUri);
         try {
             FSDataInputStream fsis = fileSystem.open(new Path(hdfsFilePath));
             FileOutputStream fos = new FileOutputStream(new File(localFilePath));
@@ -276,11 +275,11 @@ public class HdfsUtils {
         }
     }
 
-    public void write(String localPath, String hdfspath) throws Exception {
+    public void write(String localPath, String hdfspath, String hdfsUri) throws Exception {
         FileInputStream inStream = new FileInputStream(
                 new File(localPath)
         );
-        FileSystem fileSystem = this.getFS();
+        FileSystem fileSystem = getFS(hdfsUri);
         Path writePath = new Path(hdfspath);
         // Output Stream
         FSDataOutputStream outStream = fileSystem.create(writePath);
@@ -300,13 +299,13 @@ public class HdfsUtils {
      *
      * @return
      */
-    public static synchronized  FileSystem getFS() {
+    public static synchronized  FileSystem getFS(String hdfsUri) {
         if(fileSystem == null){
             try {
                 Configuration conf = new Configuration();
                 conf.setBoolean("fs.hdfs.impl.disable.cache", true);
                 conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-                fileSystem = FileSystem.get(URI.create(PropsUtils.confMap().get("hdfs.url").get()),conf);
+                fileSystem = FileSystem.get(URI.create(hdfsUri),conf);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -331,9 +330,6 @@ public class HdfsUtils {
 
 
     public static void main(String[] args) {
-
-        String strings = readFile("/tmp/iql/result/iql_query_result_1521699325228");
-        System.out.println(strings);
 
 
     }

@@ -1,5 +1,6 @@
 package iql.engine.utils
 
+import java.net.URI
 import java.util.Properties
 
 import org.apache.hadoop.conf.Configuration
@@ -22,7 +23,7 @@ object PropsUtils {
     def getPropertiesFromHDFSFile(path: String): Map[String, String] = {
         val pt = new Path(path)
         try {
-            val fs = FileSystem.get(new Configuration())
+            val fs = FileSystem.get(URI.create(confMap("hdfs.url")), new Configuration())
             val currencyInputStream = fs.open(pt)
             val properties = new Properties()
             properties.load(currencyInputStream)

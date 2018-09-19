@@ -2,9 +2,15 @@ package iql.engine.adaptor
 
 import iql.engine.antlr.IQLParser.SqlContext
 import iql.common.Logging
+import iql.engine.auth.TableAuthResult
 
 trait DslAdaptor extends Logging {
     def parse(ctx: SqlContext): Unit
+}
+
+
+trait IQLAuth {
+    def auth(_ctx: SqlContext): Unit
 }
 
 trait DslTool {

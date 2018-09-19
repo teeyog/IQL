@@ -182,7 +182,6 @@
             <version>4.2.5</version>
             <scope>${i4scope}</scope>
         </dependency>
-
     </dependencies>
 
 

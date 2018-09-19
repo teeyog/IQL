@@ -6,10 +6,14 @@ import iql.common.utils.HttpUtils
 import iql.engine.{ExeActor, IQLSQLExecListener}
 import iql.engine.antlr.IQLLexer
 import iql.engine.antlr.IQLParser.SqlContext
+import iql.engine.auth.IQLAuthListener
+import iql.engine.config.IQL_AUTH_ENABLE
 import iql.engine.utils.PropsUtils
 import org.antlr.v4.runtime.misc.Interval
 
 class ImportAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor {
+
+  val authEnable = scriptSQLExecListener.sparkSession.sparkContext.getConf.getBoolean(IQL_AUTH_ENABLE.key, IQL_AUTH_ENABLE.defaultValue.get)
 
   override def parse(ctx: SqlContext): Unit = {
     val input = ctx.start.getTokenSource.asInstanceOf[IQLLexer]._input
@@ -19,7 +23,10 @@ class ImportAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapto
     val originalText = input.getText(interval)
     val path = originalText.replace("import","").replace("IMPORT","").replace("include","").replace("INCLUDE","").trim
     val script = getScriptByPath(path)
-    ExeActor.parse(script,scriptSQLExecListener)
+    val authListener = if(authEnable) {
+      Some(new IQLAuthListener(scriptSQLExecListener.sparkSession))
+    }else None
+    ExeActor.parse(script, scriptSQLExecListener, authListener)
   }
 
   def getScriptByPath(originalText:String): String ={

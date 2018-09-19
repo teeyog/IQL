@@ -12,5 +12,10 @@ package object config {
 		.booleanConf
 		.createWithDefault(true)
 
+	val IQL_AUTH_ENABLE = ConfigBuilder("iql.auth.enable")
+		.doc("是否开启权限验证")
+		.booleanConf
+		.createWithDefault(false)
+
 
 }

@@ -1,7 +1,11 @@
 package iql.engine.test
 
-import iql.engine.auth.CheckAuth
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.catalyst.TableIdentifier
+import org.apache.spark.sql.catalyst.analysis.UnresolvedRelation
+import org.apache.spark.sql.catalyst.catalog.HiveTableRelation
+import org.apache.spark.sql.catalyst.plans.logical.{Aggregate, Project}
+import org.apache.spark.sql.execution.datasources.LogicalRelation
 
 object IQLTest {
 
@@ -17,11 +21,56 @@ object IQLTest {
     spark.sparkContext.setLogLevel("WARN")
 
 
-    val df = spark.sql(
+     spark.sql(
       """
 select idfa,uuid from mc.mbl where date='20180912' limit 10
+        """.stripMargin).createOrReplaceTempView("ttt")
+
+//    val df = spark.sql(
+//      """
+//          drop table mc.test
+//        """.stripMargin)
+
+    val plan = spark.sessionState.sqlParser.parsePlan(
+      """
+drop table mc.test
         """.stripMargin)
-    println(df.queryExecution.analyzed)
+
+    println(plan)
+    plan
+
+    .transformUp{
+      case i@UnresolvedRelation(tableIdentifier) =>
+        println(tableIdentifier.table + " -- " + tableIdentifier.database.getOrElse("None"))
+        i
+    }
+
+//    df.queryExecution.logical
+//    df.queryExecution.analyzed
+//        .foreach {
+//      case Project(projectList, child) =>
+//        attributeSet.append(projectList.map(_.references): _*)
+//      case aggregate: Aggregate =>
+//        attributeSet.append(aggregate.aggregateExpressions.map(_.references): _*)
+//        attributeSet.append(aggregate.groupingExpressions.map(_.references): _*)
+
+//      case HiveTableRelation(tableMeta,dataCols,partitionCols) =>
+//        dataCols.foreach(a => println( "--" +  a.name))
+//      case LogicalRelation(relation,output,catalogTable, _) =>
+//        if(catalogTable.nonEmpty){
+//          val identifier = catalogTable.get.identifier
+//          println(identifier.database.get + " -- " + identifier.table)
+//        }else{
+//          relation.schema.fields.map(s => println(s.name))
+//        }
+//      case UnresolvedRelation(tableIdentifier) =>  println(tableIdentifier.table + " -- " + tableIdentifier.database.getOrElse("None"))
+
+//      case other =>
+//    }
+
+//    println(df.queryExecution.analyzed)
+
+
 
 
     // Subscribe to 1 topic

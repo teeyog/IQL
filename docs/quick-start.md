@@ -11,6 +11,9 @@ spring.datasource.druid.password=123456
 
 # 通过zk发现引擎地址
 zkServers=localhost:2181
+
+# 用于结果下载
+hdfs.uri=hdfs://dsj01:8020
 ```
 
 - 导入SQL表
@@ -54,9 +57,6 @@ hbase.zookeeper.quorum=dsj01:2181
 
 # 引擎启动向zk注册地址
 zkServers=dsj01:2181
-
-# 用于结果下载
-hdfs.url=hdfs://dsj01:8020
 ```
 
 - 启动示例

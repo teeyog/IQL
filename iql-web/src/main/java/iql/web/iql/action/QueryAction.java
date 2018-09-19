@@ -20,6 +20,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.I0Itec.zkclient.ZkClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
@@ -44,6 +45,8 @@ public class QueryAction {
     private ZkClient zkClient;
     @Autowired
     private IqlExcutionRepository iqlExcutionRepository;
+    @Autowired
+    private Environment env;
 
     /**
      * 执行一个IQL
@@ -112,7 +115,7 @@ public class QueryAction {
                         resultObj.getOrDefault("hdfsPath", "").toString(), "", resultObj.getOrDefault("errorMessage", "").toString(),
                         resultObj.getOrDefault("content", "").toString(),resultObj.getOrDefault("schema", "").toString(), resultObj.getString("variables")));
                 if (resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0) {
-                    resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString()));
+                    resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString(),env.getProperty("hdfs.uri")));
                     resultObj.put("schema", resultObj.getOrDefault("schema", "").toString());
                 }
                 return resultObj;
@@ -241,7 +244,7 @@ public class QueryAction {
     public JSONObject loadResult(String hdfsPath, String schema, String mode, Long id) {
         JSONObject resultObj = new JSONObject();
         try {
-            if(mode.equals("iql")) resultObj.put("data", HdfsUtils.readFileToString(hdfsPath));
+            if(mode.equals("iql")) resultObj.put("data", HdfsUtils.readFileToString(hdfsPath,env.getProperty("hdfs.uri")));
             else resultObj.put("content",iqlExcutionRepository.findOne(id).getContent());
             resultObj.put("schema", schema);
             resultObj.put("isSuccess", true);
@@ -286,11 +289,11 @@ public class QueryAction {
     @RequestMapping(value = "/fileDownload", method = RequestMethod.GET)
     public void fileDownload(HttpServletResponse response, String hdfsPath, String schema, String sql, String fileType) throws Exception {
         if ("json".equals(fileType)) {
-            HDFSHandler.downloadJSON(hdfsPath, response);
+            HDFSHandler.downloadJSON(hdfsPath, response,env.getProperty("hdfs.uri"));
         } else if ("csv".equals(fileType)) {
-            HDFSHandler.downloadCSV(hdfsPath, schema, response);
+            HDFSHandler.downloadCSV(hdfsPath, schema, response,env.getProperty("hdfs.uri"));
         } else {
-            HDFSHandler.downloadExcel(hdfsPath, schema, response);
+            HDFSHandler.downloadExcel(hdfsPath, schema, response,env.getProperty("hdfs.uri"));
         }
     }
 
