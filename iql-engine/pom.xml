@@ -93,40 +93,12 @@
 
 
     <build>
-        <sourceDirectory>src/main/java</sourceDirectory>
+
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>scala-compile</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <recompileMode>incremental</recompileMode>
-                    <args>
-                        <arg>-target:jvm-1.7</arg>
-                        <arg>-encoding</arg>
-                        <arg>UTF-8</arg>
-                    </args>
-                    <javacArgs>
-                        <javacArg>-source</javacArg>
-                        <javacArg>1.7</javacArg>
-                        <javacArg>-target</javacArg>
-                        <javacArg>1.7</javacArg>
-                    </javacArgs>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -151,27 +123,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2-beta-5</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
         <resources>
