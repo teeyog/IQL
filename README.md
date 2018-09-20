@@ -91,7 +91,7 @@ save append tb as jdbc.aatest_delete;
 ## 文件操作 (其中formate可为：json、orc、csv、parquet、text)
  - 加载数据
  ```
-load formate.`path` as tb;
+load format.`path` as tb;
 ```
 
  - 保存数据
