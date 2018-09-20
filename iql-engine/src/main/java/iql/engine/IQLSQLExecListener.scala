@@ -6,12 +6,20 @@ import iql.common.Logging
 import iql.engine.adaptor._
 import iql.engine.antlr.IQLBaseListener
 import iql.engine.antlr.IQLParser._
+import iql.engine.auth.IQLAuthListener
 import org.apache.spark.sql.SparkSession
 
 class IQLSQLExecListener(var _sparkSession: SparkSession,_iqlSession:IQLSession) extends IQLBaseListener  with Logging {
 
   private val _env = new scala.collection.mutable.HashMap[String, String]
   private val _result = new ConcurrentHashMap[String, String]
+  private var _authListener:Option[IQLAuthListener] = _
+
+  def authListener() = _authListener
+
+  def addAuthListener(listener:Option[IQLAuthListener]) = {
+    _authListener = listener
+  }
 
   def addEnv(k: String, v: String) = {
     _env(k) = v

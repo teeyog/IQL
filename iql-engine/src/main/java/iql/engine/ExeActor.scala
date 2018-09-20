@@ -95,7 +95,11 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 mode match {
                     case "iql" =>
                         resJson.put("mode", "iql")
-                        parseSQL(rIql, new IQLSQLExecListener(sparkSession, iqlSession))
+                        val execListener = new IQLSQLExecListener(sparkSession, iqlSession)
+                        execListener.addAuthListener(if(authEnable) {
+                            Some(new IQLAuthListener(sparkSession))
+                        }else None)
+                        parseSQL(rIql, execListener)
                     case "code" =>
                         warn("\n" + ("*" * 80) + "\n" + rIql + "\n" + ("*" * 80))
                         resJson.put("mode", "code")
@@ -148,10 +152,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     // antlr4解析SQL语句
     def parseSQL(input: String, listener: IQLSQLExecListener): Unit = {
         try {
-            val authListener = if(authEnable) {
-                Some(new IQLAuthListener(listener.sparkSession))
-            }else None
-            parse(input, listener, authListener)
+            parse(input, listener)
             val endTime = System.currentTimeMillis()
             val take = (endTime - resJson.getTimestamp("startTime").getTime) / 1000
             resJson.put("hdfsPath", listener.getResult("hdfsPath"))
@@ -279,8 +280,7 @@ object ExeActor {
     def props(interpreter: SparkInterpreter, iqlSession: IQLSession, sparkConf: SparkConf): Props = Props(new ExeActor(interpreter, iqlSession, sparkConf))
 
     // antlr4解析SQL语句
-    def parse(input: String, listener: IQLBaseListener): Unit = {
-        warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
+    def parseStr(input: String, listener: IQLBaseListener): Unit = {
         val loadLexer = new IQLLexer(new ANTLRInputStream(input))
         val tokens = new CommonTokenStream(loadLexer)
         val parser = new IQLParser(tokens)
@@ -289,9 +289,14 @@ object ExeActor {
     }
 
     // 加入权限验证
-    def parse(input: String, execListener: IQLBaseListener, authListener: Option[IQLBaseListener]):Unit = {
-        authListener.foreach(parse(input,_))
-        parse(input,execListener)
+    def parse(input: String, execListener: IQLBaseListener):Unit = {
+        warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
+        val listener = execListener.asInstanceOf[IQLSQLExecListener]
+        listener.authListener().foreach(parseStr(input,_))
+        listener.authListener().foreach(al =>
+            al.tables().tables.foreach(t => println(t.tableType.name + " -- " + t.db.getOrElse("") + " -- " + t.table.getOrElse("")))
+        )
+        parseStr(input,listener)
     }
 
 }

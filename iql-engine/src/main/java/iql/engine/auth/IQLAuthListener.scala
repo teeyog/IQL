@@ -47,6 +47,8 @@ class IQLAuthListener(var _sparkSession: SparkSession) extends IQLBaseListener  
 
       case "drop" =>
         new DropAuth(this).auth(ctx)
+
+      case _ =>
     }
   }
 

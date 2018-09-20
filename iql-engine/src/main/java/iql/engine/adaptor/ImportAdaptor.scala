@@ -23,15 +23,13 @@ class ImportAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapto
     val originalText = input.getText(interval)
     val path = originalText.replace("import","").replace("IMPORT","").replace("include","").replace("INCLUDE","").trim
     val script = getScriptByPath(path)
-    val authListener = if(authEnable) {
-      Some(new IQLAuthListener(scriptSQLExecListener.sparkSession))
-    }else None
-    ExeActor.parse(script, scriptSQLExecListener, authListener)
+    ExeActor.parse(script, scriptSQLExecListener)
   }
 
   def getScriptByPath(originalText:String): String ={
     val pramsMap = new util.HashMap[String,String]()
     pramsMap.put("packageName",originalText)
+    pramsMap.put("token","fa39e32c09332d47f6f38d9c946cfa25")
     val url = PropsUtils.get("iql.server.address") + "/jobScript/getScriptByPath"
     HttpUtils.get(url,pramsMap,5,"utf-8")
   }
