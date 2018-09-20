@@ -18,7 +18,7 @@ object TableType {
     val HIVE = TableTypeMeta("hive", Set("hive"))
     val HBASE = TableTypeMeta("hbase", Set("hbase"))
     val HDFS = TableTypeMeta("hdfs", Set("parquet", "json", "csv"))
-    val HTTP = TableTypeMeta("hdfs", Set("http"))
+    val HTTP = TableTypeMeta("http", Set("http"))
     val JDBC = TableTypeMeta("jdbc", Set("jdbc"))
     val ES = TableTypeMeta("es", Set("es"))
     val TEMP = TableTypeMeta("temp", Set("temp"))
