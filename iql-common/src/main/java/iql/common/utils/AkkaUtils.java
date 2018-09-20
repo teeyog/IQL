@@ -16,16 +16,6 @@ import com.typesafe.config.ConfigFactory;
 
 public class AkkaUtils {
 
-
-//    private static ActorSystem actorSystem;
-//
-//    public static ActorSystem getActorSystem(){
-//        if(actorSystem == null){
-//                actorSystem = ActorSystem.create("iqlSystem", getConfig());
-//        }
-//        return actorSystem;
-//    }
-
     public static Config getConfig(ZkClient zkClient) {
         Map<String, Object> map = new HashMap<String, Object>();
 //        map.put("akka.loglevel", "ERROR");

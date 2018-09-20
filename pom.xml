@@ -8,6 +8,9 @@
     <artifactId>iql</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+
+    <url>https://github.com/teeyog/IQL</url>
+
     <modules>
         <module>iql-engine</module>
         <module>iql-common</module>
@@ -16,6 +19,17 @@
     </modules>
 
     <repositories>
+        <repository>
+            <id>aliyun</id>
+            <name>Nexus Release Repository</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>scala-tools.org1</id>
             <name>Scala-Tools Maven2 Repository</name>
@@ -34,7 +48,14 @@
     </repositories>
 
     <properties>
-        <scala.version>2.11</scala.version>
+        <spark.version>2.3.1</spark.version>
+        <hbase.version>1.2.0</hbase.version><!--1.2.0-cdh5.13.1-->
+        <hadoop.version>2.6.0</hadoop.version>
+        <elasticsearch.version>5.6.1</elasticsearch.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scala.version>2.11.8</scala.version>
+        <scala.library>2.11</scala.library>
+        <java.version>1.8</java.version>
         <log4j.version>1.2.17</log4j.version>
         <mysql.version>5.1.32</mysql.version>
         <lamma.version>2.2.2</lamma.version>
@@ -44,21 +65,71 @@
         <iqlscope>compile</iqlscope>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!--Spark相关-->
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-core_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql-kafka-0-10_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-hive_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-repl_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.elasticsearch</groupId>
+                <artifactId>elasticsearch-spark-20_2.11</artifactId>
+                <version>${elasticsearch.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+
+            <!--hadoop相关-->
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-common</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+
+            <!--hbase相关-->
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-server</artifactId>
+                <version>${hbase.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>2.6.0</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-            <version>2.6.0</version>
-            <scope>${i4scope}</scope>
-        </dependency>
 
         <dependency>
             <groupId>mysql</groupId>
@@ -67,18 +138,10 @@
             <scope>${i4scope}</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/javax.mail/mail -->
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
             <version>1.4.7</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>9.3.6.v20151106</version>
             <scope>${i4scope}</scope>
         </dependency>
 
@@ -104,54 +167,12 @@
         </dependency>
 
         <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>org.json</artifactId>
-            <version>2.0</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.lamma</groupId>
-            <artifactId>lamma_${scala.version}</artifactId>
-            <version>2.2.2</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.avro/avro -->
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <version>1.8.2</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.twitter</groupId>
-            <artifactId>bijection-avro_2.10</artifactId>
-            <version>0.9.2</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-
-
-        <!-- https://mvnrepository.com/artifact/com.typesafe.akka/akka-remote -->
-        <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-remote_2.11</artifactId>
             <version>2.5.9</version>
             <scope>${iqlscope}</scope>
         </dependency>
 
-
-        <!-- https://mvnrepository.com/artifact/net.liftweb/lift-json -->
-        <dependency>
-            <groupId>net.liftweb</groupId>
-            <artifactId>lift-json_2.11</artifactId>
-            <version>3.2.0</version>
-            <scope>${i4scope}</scope>
-        </dependency>
-
-
-        <!-- https://mvnrepository.com/artifact/com.101tec/zkclient -->
         <dependency>
             <groupId>com.101tec</groupId>
             <artifactId>zkclient</artifactId>
@@ -159,7 +180,6 @@
             <scope>${i4scope}</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -167,7 +187,6 @@
             <scope>${i4scope}</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/commons-httpclient/commons-httpclient -->
         <dependency>
             <groupId>commons-httpclient</groupId>
             <artifactId>commons-httpclient</artifactId>
@@ -175,7 +194,6 @@
             <scope>${i4scope}</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
@@ -184,5 +202,113 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>3.2.2</version>
+                    <configuration>
+                        <scalaVersion>${scala.version}</scalaVersion>
+                        <scalaCompatVersion>${scala.library}</scalaCompatVersion>
+                        <recompileMode>incremental</recompileMode>
+                        <useZincServer>false</useZincServer>
+                        <args>
+                            <arg>-unchecked</arg>
+                            <arg>-deprecation:false</arg>
+                            <arg>-feature</arg>
+                        </args>
+                        <jvmArgs>
+                            <!--<jvmArg>-Xss2m</jvmArg>-->
+                            <jvmArg>-Xms512M</jvmArg>
+                            <jvmArg>-Xmx2048M</jvmArg>
+                            <jvmArg>-XX:MaxPermSize=2048M</jvmArg>
+                            <jvmArg>-XX:+CMSClassUnloadingEnabled</jvmArg>
+                        </jvmArgs>
+                        <javacArgs>
+                            <javacArg>-source</javacArg>
+                            <javacArg>${java.version}</javacArg>
+                            <javacArg>-target</javacArg>
+                            <javacArg>${java.version}</javacArg>
+                            <javacArg>-Xlint:all,-serial,-path</javacArg>
+                        </javacArgs>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>scala-compile-first</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>add-source</goal>
+                                <goal>compile</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <!-- The Compiler Plugin is used to compile the sources of your project -->
+                    <version>3.5.1</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <compilerVersion>${java.version}</compilerVersion>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                        <optimize>true</optimize>
+                        <maxmem>1024m</maxmem>
+                        <fork>true</fork>
+                        <compilerArgs>
+                            <arg>-Xlint:all,-serial,-path</arg>
+                        </compilerArgs>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>compile</phase>
+                            <goals>
+                                <goal>compile</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-source</goal>
+                            </goals>
+                            <configuration>
+                                <sources>
+                                    <sourceDirectory>src/main/scala</sourceDirectory>
+                                    <sourceDirectory>src/main/java</sourceDirectory>
+                                </sources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>2.4.1</version>
+                    <configuration>
+                        <descriptorRefs>
+                            <descriptorRef>jar-with-dependencies</descriptorRef>
+                        </descriptorRefs>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>single</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>
