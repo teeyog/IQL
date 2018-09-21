@@ -623,8 +623,8 @@
                             $("#result-content").show();
                             $("#result-content pre").html(data.content)
                         } else {
-                            hdfsPath = row.resultPath;
-                            schema = row.tableSchema;
+                            hdfsPath = row.hdfsPath;
+                            schema = row.schema;
                             $("#results-tab").tab("show");
                             loadResultsTable(data.schema, JSON.parse(data.data))
                         }
