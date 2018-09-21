@@ -3,11 +3,12 @@ package iql.web.bean;
 import com.alibaba.fastjson.JSONObject;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "iql_excution")
-public class IqlExcution {
+public class IqlExcution implements Serializable{
 
     @Id
     @GeneratedValue
@@ -21,34 +22,34 @@ public class IqlExcution {
     @Column(nullable = true,name = "take_time")
     private Long takeTime;
     @Column(nullable = false,name = "is_success")
-    private Boolean isSuccess;
+    private Boolean success;
     @Column(nullable = true,name = "result_path")
-    private String resultPath;
-    @Column(nullable = true,name = "description")
-    private String description;
+    private String hdfsPath;
+    @Column(nullable = true,name = "user")
+    private String user;
     @Column(nullable = true,name = "error_message")
     private String errorMessage;
     @Column(nullable = true,name = "content")
     private String content;
     @Column(nullable = true,name = "table_schema")
-    private String tableSchema;
+    private String schema;
     @Column(nullable = true,name = "variables")
     private String variables;
 
     public IqlExcution() {
     }
 
-    public IqlExcution(String iql, String mode, Timestamp startTime, Long takeTime, Boolean isSuccess, String resultPath, String description, String errorMessage, String content, String tableSchema, String variables) {
+    public IqlExcution(String iql, String mode, Timestamp startTime, Long takeTime, Boolean success, String hdfsPath, String user, String errorMessage, String content, String schema, String variables) {
         this.iql = iql;
         this.mode = mode;
         this.startTime = startTime;
         this.takeTime = takeTime;
-        this.isSuccess = isSuccess;
-        this.resultPath = resultPath;
-        this.description = description;
+        this.success = success;
+        this.hdfsPath = hdfsPath;
+        this.user = user;
         this.errorMessage = errorMessage;
         this.content = content;
-        this.tableSchema = tableSchema;
+        this.schema = schema;
         this.variables = variables;
     }
 
@@ -68,12 +69,12 @@ public class IqlExcution {
         this.variables = variables;
     }
 
-    public String getTableSchema() {
-        return tableSchema;
+    public String getSchema() {
+        return schema;
     }
 
-    public void setTableSchema(String tableSchema) {
-        this.tableSchema = tableSchema;
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
     public String getErrorMessage() {
@@ -125,27 +126,27 @@ public class IqlExcution {
     }
 
     public Boolean getSuccess() {
-        return isSuccess;
+        return success;
     }
 
     public void setSuccess(Boolean success) {
-        isSuccess = success;
+        this.success = success;
     }
 
-    public String getResultPath() {
-        return resultPath;
+    public String getHdfsPath() {
+        return hdfsPath;
     }
 
-    public void setResultPath(String resultPath) {
-        this.resultPath = resultPath;
+    public void setHdfsPath(String hdfsPath) {
+        this.hdfsPath = hdfsPath;
     }
 
-    public String getDescription() {
-        return description;
+    public String getUser() {
+        return user;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public JSONObject toJSON() {
@@ -155,10 +156,10 @@ public class IqlExcution {
         object.put("mode",mode);
         object.put("startTime",startTime);
         object.put("takeTime",takeTime);
-        object.put("isSuccess",isSuccess);
-        object.put("resultPath",resultPath);
-        object.put("description",description);
-        object.put("tableSchema",tableSchema);
+        object.put("isSuccess",success);
+        object.put("hdfsPath",hdfsPath);
+        object.put("user",user);
+        object.put("schema",schema);
         object.put("variables",variables);
         return object;
     }

@@ -607,8 +607,8 @@
                 $("#errorMessage").hide();
                 $("#execForm, .loading").toggle();
                 $.post("/loadresult", {
-                    schema: row.tableSchema,
-                    hdfsPath: row.resultPath,
+                    schema: row.schema,
+                    hdfsPath: row.hdfsPath,
                     mode: row.mode,
                     id: row.id
                 }, function (data) {
@@ -836,38 +836,28 @@
                     }
                 },
                 {
-                    field: 'description',
-                    title: '描述',
-                    width: 100
-                },
-                {
                     field: 'iql',
                     title: '执行操作',
                     width: 600
                 },
                 {
-                    field: 'resultPath',
-                    title: 'resultPath',
+                    field: 'hdfsPath',
                     visible: false
                 },
                 {
                     field: 'tableSchema',
-                    title: 'tableSchema',
                     visible: false
                 },
                 {
                     field: 'variables',
-                    title: 'variables',
                     visible: false
                 },
                 {
                     field: 'mode',
-                    title: 'mode',
                     visible: false
                 },
                 {
                     field: 'id',
-                    title: 'id',
                     visible: false
                 },
                 {

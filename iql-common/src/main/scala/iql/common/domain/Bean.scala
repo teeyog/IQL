@@ -1,6 +1,10 @@
 package iql.common.domain
 
+import java.sql.Timestamp
+
 object Bean {
+
+  case class IQLExcution(iql: String, mode: String, startTime: Timestamp, takeTime: Long, isSuccess: Boolean, resultPath: String, description: String, errorMessage: String, content: String, tableSchema: String, variables: String)
 
   case class IQLEngine(engineId:Int,engineInfo:String)
 

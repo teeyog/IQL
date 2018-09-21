@@ -11,6 +11,8 @@ import iql.common.utils.ZkUtils;
 import iql.web.bean.BaseBean;
 import iql.web.bean.IqlExcution;
 import iql.web.handler.HDFSHandler;
+import iql.web.system.domain.User;
+import iql.web.system.service.UserService;
 import iql.web.util.DataUtil;
 import iql.web.util.HdfsUtils;
 import iql.web.iql.service.IqlExcutionRepository;
@@ -47,19 +49,14 @@ public class QueryAction {
     private IqlExcutionRepository iqlExcutionRepository;
     @Autowired
     private Environment env;
+    @Autowired
+    private UserService userService;
 
     /**
      * 执行一个IQL
-     *
-     * @param iql
-     * @param descrption
-     * @return
      */
     @PostMapping(value = "/query")
-    public JSONObject execution(@RequestParam("iql") String iql,
-                                @RequestParam("mode") String mode,
-                                @RequestParam(value = "variables") String variables,
-                                @RequestParam(value = "descrption", required = false, defaultValue = "") String descrption) {
+    public JSONObject execution(String iql, String mode, String variables) {
         JSONObject resultObj = new JSONObject();
         resultObj.put("isSuccess", false);
         if (iql.trim().equals("")) {
@@ -68,10 +65,9 @@ public class QueryAction {
         }
         Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath());
         if (validEngines.size() == 0) {
-            resultObj.put("errorMessage", "当前未有可用的执行引擎...");
+            resultObj.put("errorMessage", "There is no available execution engine....");
             return resultObj;
         } else {
-            System.out.println("Query:" + validEngines.head());
             String[] engineInfoAndActorname = validEngines.head().split("_");
             ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
             try {
@@ -91,7 +87,7 @@ public class QueryAction {
      * 获取结果
      */
     @PostMapping(value = "/getresult")
-    public JSONObject getResult(@RequestParam("engineInfoAndGroupId") String engineInfoAndGroupId) {
+    public JSONObject getResult(HttpServletRequest request,String engineInfoAndGroupId) {
         JSONObject resultObj = new JSONObject();
         String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfoAndGroupId.split("_")[0]);
         if (validEngineByEngineInfo == null) {
@@ -110,10 +106,16 @@ public class QueryAction {
                 resultObj.put("errorMessage", e.getMessage());
             }
             if (!resultObj.getString("status").equals("RUNNING")) {
-                iqlExcutionRepository.save(new IqlExcution(resultObj.getString("iql"), resultObj.getString("mode"), resultObj.getTimestamp("startTime"),
-                        Long.valueOf(resultObj.getOrDefault("takeTime", "0").toString()), resultObj.getBoolean("isSuccess"),
-                        resultObj.getOrDefault("hdfsPath", "").toString(), "", resultObj.getOrDefault("errorMessage", "").toString(),
-                        resultObj.getOrDefault("content", "").toString(),resultObj.getOrDefault("schema", "").toString(), resultObj.getString("variables")));
+                User user = (User)request.getSession().getAttribute("user");
+                String userName;
+                if(null != user){
+                    userName = user.getUsername();
+                }else{
+                    userName = userService.findUserByToken(request.getSession().getAttribute("token").toString()).getUsername();
+                }
+                resultObj.put("success",resultObj.getBooleanValue("isSuccess"));
+                resultObj.put("user",userName);
+                iqlExcutionRepository.save(JSONObject.toJavaObject(resultObj, IqlExcution.class));
                 if (resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0) {
                     resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString(),env.getProperty("hdfs.uri")));
                     resultObj.put("schema", resultObj.getOrDefault("schema", "").toString());
@@ -125,7 +127,7 @@ public class QueryAction {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return getResult(engineInfoAndGroupId);
+                return getResult(request,engineInfoAndGroupId);
             }
         }
     }
@@ -142,7 +144,7 @@ public class QueryAction {
         if (jsonObject.getBoolean("isSuccess")) {
             Map pramMap2 = new HashMap<String, String>();
             pramMap2.put("engineInfoAndGroupId", jsonObject.getString("engineInfoAndGroupId"));
-            pramMap.put("token",request.getParameter("token"));
+            pramMap2.put("token",request.getParameter("token"));
             String postResult2 = HttpUtils.post("http://localhost:8888/getresult", pramMap2, timeout, "utf-8");
             return JSON.parseObject(postResult2);
         } else {
@@ -374,7 +376,7 @@ public class QueryAction {
      */
     @RequestMapping(value = "/deletehistoryiql", method = RequestMethod.POST)
     @ResponseBody
-    public void deleteHistoryIql(@RequestParam(value = "id") String id) {
+    public void deleteHistoryIql(String id) {
         iqlExcutionRepository.delete(Long.valueOf(id));
     }
 

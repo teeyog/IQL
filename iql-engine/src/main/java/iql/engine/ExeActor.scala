@@ -21,7 +21,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.bridge.SparkBridge
 import iql.engine.ExeActor._
-import iql.engine.auth.IQLAuthListener
+import iql.engine.auth.{DataAuth, IQLAuthListener}
 import iql.engine.config._
 import org.I0Itec.zkclient.ZkClient
 
@@ -298,10 +298,7 @@ object ExeActor {
         warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
         if(fromImport){
             checkAuth(input,execListener.authListener())
-            execListener.authListener().foreach(al =>
-                al.tables().tables.foreach(t => println(t.tableType.name + " -- " + t.db.getOrElse("") + " -- " + t.table.getOrElse("")))
-            )
-            println("----------------------------------------------------")
+            execListener.authListener().foreach(listener => {DataAuth.auth(listener.tables().tables.toList)})
         }
         parseStr(input, execListener)
     }
