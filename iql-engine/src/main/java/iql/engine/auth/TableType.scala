@@ -17,13 +17,14 @@ object TableAuthResult {
 object TableType {
     val HIVE = TableTypeMeta("hive", Set("hive"))
     val HBASE = TableTypeMeta("hbase", Set("hbase"))
-    val HDFS = TableTypeMeta("hdfs", Set("parquet", "json", "csv"))
-    val HTTP = TableTypeMeta("hdfs", Set("http"))
+    val HDFS = TableTypeMeta("hdfs", Set("parquet", "json", "csv", "orc", "text"))
+    val KAFKA = TableTypeMeta("kafka", Set("kafka"))
     val JDBC = TableTypeMeta("jdbc", Set("jdbc"))
     val ES = TableTypeMeta("es", Set("es"))
-    val TEMP = TableTypeMeta("temp", Set("temp"))
+    val TEMP = TableTypeMeta("temp", Set("temp","jsonStr"))
 
     def from(str: String) = {
-        List(HIVE, HBASE, HDFS, HTTP, JDBC, ES, TEMP).filter(f => f.includes.contains(str)).headOption
+        List(HIVE, HBASE, HDFS, KAFKA, JDBC, ES, TEMP).find(f => f.includes.contains(str))
     }
+
 }
