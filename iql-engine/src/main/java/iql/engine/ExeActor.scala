@@ -100,6 +100,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                             Some(new IQLAuthListener(sparkSession))
                         }else None)
                         parseSQL(rIql, execListener)
+                        execListener.refreshTableAndView()
                     case "code" =>
                         warn("\n" + ("*" * 80) + "\n" + rIql + "\n" + ("*" * 80))
                         resJson.put("mode", "code")
@@ -289,14 +290,13 @@ object ExeActor {
     }
 
     // 加入权限验证
-    def parse(input: String, execListener: IQLBaseListener):Unit = {
+    def parse(input: String, execListener: IQLSQLExecListener):Unit = {
         warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
-        val listener = execListener.asInstanceOf[IQLSQLExecListener]
-        listener.authListener().foreach(parseStr(input,_))
-        listener.authListener().foreach(al =>
+        execListener.authListener().foreach(parseStr(input,_))
+        execListener.authListener().foreach(al =>
             al.tables().tables.foreach(t => println(t.tableType.name + " -- " + t.db.getOrElse("") + " -- " + t.table.getOrElse("")))
         )
-        parseStr(input,listener)
+        parseStr(input,execListener)
     }
 
 }

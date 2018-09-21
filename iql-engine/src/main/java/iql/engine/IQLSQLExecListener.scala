@@ -80,12 +80,12 @@ class IQLSQLExecListener(var _sparkSession: SparkSession,_iqlSession:IQLSession)
     }
   }
 
-  override def exitStatement(ctx: StatementContext): Unit = {
-    sparkSession.catalog.listTables().collect().foreach(r => sparkSession.catalog.dropTempView(r.name))
-    sparkSession.catalog.listDatabases().rdd.map(_.name).collect().foreach(d =>
-      sparkSession.catalog.listTables(d).rdd.map(_.name).collect().foreach(t =>
-        sparkSession.catalog.refreshTable(d + "." + t))
-    )
-  }
+   def refreshTableAndView(): Unit ={
+     sparkSession.catalog.listTables().collect().foreach(r => sparkSession.catalog.dropTempView(r.name))
+     sparkSession.catalog.listDatabases().rdd.map(_.name).collect().foreach(d =>
+       sparkSession.catalog.listTables(d).rdd.map(_.name).collect().foreach(t =>
+         sparkSession.catalog.refreshTable(d + "." + t))
+     )
+   }
 
 }
