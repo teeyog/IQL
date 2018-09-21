@@ -23,7 +23,7 @@ class ImportAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapto
     val originalText = input.getText(interval)
     val path = originalText.replace("import","").replace("IMPORT","").replace("include","").replace("INCLUDE","").trim
     val script = getScriptByPath(path)
-    ExeActor.parse(script, scriptSQLExecListener)
+    ExeActor.parse(script, scriptSQLExecListener, true)
   }
 
   def getScriptByPath(originalText:String): String ={

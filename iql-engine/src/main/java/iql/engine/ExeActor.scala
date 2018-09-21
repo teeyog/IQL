@@ -96,9 +96,9 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                     case "iql" =>
                         resJson.put("mode", "iql")
                         val execListener = new IQLSQLExecListener(sparkSession, iqlSession)
-                        execListener.addAuthListener(if(authEnable) {
+                        execListener.addAuthListener(if (authEnable) {
                             Some(new IQLAuthListener(sparkSession))
-                        }else None)
+                        } else None)
                         parseSQL(rIql, execListener)
                         execListener.refreshTableAndView()
                     case "code" =>
@@ -263,7 +263,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         }
     }
 
-    def registerUDF(clazz: String):Unit = {
+    def registerUDF(clazz: String): Unit = {
         Class.forName(clazz).getMethods.foreach { f =>
             try {
                 if (Modifier.isStatic(f.getModifiers)) {
@@ -289,14 +289,21 @@ object ExeActor {
         ParseTreeWalker.DEFAULT.walk(listener, stat)
     }
 
-    // 加入权限验证
-    def parse(input: String, execListener: IQLSQLExecListener):Unit = {
+    // 权限验证
+    def checkAuth(input: String,authListener: Option[IQLAuthListener]) = {
+        authListener.foreach(parseStr(input, _))
+    }
+
+    def parse(input: String, execListener: IQLSQLExecListener, fromImport:Boolean = false): Unit = {
         warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
-        execListener.authListener().foreach(parseStr(input,_))
-        execListener.authListener().foreach(al =>
-            al.tables().tables.foreach(t => println(t.tableType.name + " -- " + t.db.getOrElse("") + " -- " + t.table.getOrElse("")))
-        )
-        parseStr(input,execListener)
+        if(fromImport){
+            checkAuth(input,execListener.authListener())
+            execListener.authListener().foreach(al =>
+                al.tables().tables.foreach(t => println(t.tableType.name + " -- " + t.db.getOrElse("") + " -- " + t.table.getOrElse("")))
+            )
+            println("----------------------------------------------------")
+        }
+        parseStr(input, execListener)
     }
 
 }
