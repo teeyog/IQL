@@ -461,7 +461,7 @@
     //保存iql
     function saveScript() {
         var node = zTree.getSelectedNodes()[0];
-        if(node == null) {
+        if(node == null || node.isParent) {
             toastr.error('请先选择一个文件再保存！', 'Alarm!')
             return false;
         }
