@@ -714,7 +714,7 @@
                 $.post("/getresult", {engineInfoAndGroupId: data.engineInfoAndGroupId}, function (data) {
                     $("#execForm, .loading").toggle();
                     if (data.isSuccess) {
-                        $("#results-list-table").bootstrapTable("destroy")
+                        $("#results-list-table").bootstrapTable("destroy");
                         if ("content" in data) {
                             $("#results-tab").tab("show");
                             $("#result-content").show();

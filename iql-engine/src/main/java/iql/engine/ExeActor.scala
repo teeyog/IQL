@@ -2,12 +2,12 @@ package iql.engine
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.lang.reflect.Modifier
-import java.sql.Timestamp
 
 import akka.actor.{Actor, Props}
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import iql.common.Logging
 import iql.common.domain.Bean._
+import iql.common.domain.{JobStatus, SQLMode}
 import iql.common.utils.ZkUtils
 import iql.engine.antlr.{IQLBaseListener, IQLLexer, IQLParser}
 import iql.engine.main.IqlMain
@@ -31,8 +31,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     var sparkSession: SparkSession = _
     var interpreter: SparkInterpreter = _
     var zkClient: ZkClient = _
-
-    var resJson = new JSONObject()
+    var iqlExcution: IQLExcution = _
     val zkValidActorPath = ZkUtils.validEnginePath + "/" + iqlSession.engineInfo + "_" + context.self.path.name
     val initHiveCatalog = conf.getBoolean(INIT_HIVE_CATALOG.key, INIT_HIVE_CATALOG.defaultValue.get)
     val autoComplete = conf.getBoolean(HIVE_CATALOG_AUTO_COMPLETE.key, HIVE_CATALOG_AUTO_COMPLETE.defaultValue.get)
@@ -79,31 +78,27 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 }
                 schedulerMode = !schedulerMode //切换调度池
                 sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
-                resJson = new JSONObject()
-                resJson.put("startTime", new Timestamp(System.currentTimeMillis))
-                resJson.put("iql", iql)
-                resJson.put("variables", variables)
+                iqlExcution = IQLExcution(iql = iql, variables = variables)
                 //为当前iql设置groupId
                 val groupId = BatchSQLRunnerEngine.getGroupId
-                resJson.put("engineInfoAndGroupId", iqlSession.engineInfo + "_" + groupId)
+                iqlExcution.engineInfoAndGroupId = iqlSession.engineInfo + "_" + groupId
                 sparkSession.sparkContext.clearJobGroup()
                 sparkSession.sparkContext.setJobDescription("iql:" + rIql)
                 sparkSession.sparkContext.setJobGroup("iqlid:" + groupId, "iql:" + rIql)
                 //将该iql任务的唯一标识返回
-                sender() ! resJson.toJSONString
+                sender() ! iqlExcution
 
                 mode match {
-                    case "iql" =>
-                        resJson.put("mode", "iql")
+                    case SQLMode.IQL=>
                         val execListener = new IQLSQLExecListener(sparkSession, iqlSession)
                         execListener.addAuthListener(if (authEnable) {
                             Some(new IQLAuthListener(sparkSession))
                         } else None)
                         parseSQL(rIql, execListener)
                         execListener.refreshTableAndView()
-                    case "code" =>
+                    case SQLMode.CODE =>
                         warn("\n" + ("*" * 80) + "\n" + rIql + "\n" + ("*" * 80))
-                        resJson.put("mode", "code")
+                        iqlExcution.mode = SQLMode.CODE
                         rIql = rIql.replaceAll("'", "\"").replaceAll("\n", " ")
                         val response = interpreter.execute(rIql)
                         getExecuteState(response)
@@ -117,7 +112,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 sender() ! iqlSession.batchJob.get(engineInfoAndGroupId)
                 iqlSession.batchJob.remove(engineInfoAndGroupId)
             } else {
-                sender() ! "{'status':'RUNNING'}"
+                sender() ! IQLExcution()
             }
 
         case GetActiveStream() =>
@@ -155,22 +150,21 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         try {
             parse(input, listener)
             val endTime = System.currentTimeMillis()
-            val take = (endTime - resJson.getTimestamp("startTime").getTime) / 1000
-            resJson.put("hdfsPath", listener.getResult("hdfsPath"))
-            resJson.put("schema", listener.getResult("schema"))
-            resJson.put("takeTime", take)
-            resJson.put("isSuccess", true)
+            val take = (endTime - iqlExcution.startTime.getTime) / 1000
+            iqlExcution.hdfsPath = listener.getResult("hdfsPath")
+            iqlExcution.schema = listener.getResult("schema")
+            iqlExcution.takeTime = take
+            iqlExcution.success = true
         } catch {
             case e: Exception =>
                 e.printStackTrace()
-                resJson.put("isSuccess", false)
                 val out = new ByteArrayOutputStream()
                 e.printStackTrace(new PrintStream(out))
-                resJson.put("errorMessage", new String(out.toByteArray))
+                iqlExcution.errorMessage = new String(out.toByteArray)
                 out.close()
         }
-        resJson.put("status", "FINISH")
-        iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+        iqlExcution.status = JobStatus.FINISH
+        iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
     }
 
     // 执行前从zk中删除当前对应节点（标记不可用），执行后往zk中写入可用节点（标记可用）
@@ -180,11 +174,10 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
             f()
         } catch {
             case e: Exception =>
-                resJson.put("isSuccess", false)
                 val out = new ByteArrayOutputStream()
                 e.printStackTrace(new PrintStream(out))
-                resJson.put("errorMessage", new String(out.toByteArray))
-                sender() ! resJson.toJSONString
+                iqlExcution.errorMessage = new String(out.toByteArray)
+                sender() ! iqlExcution
         }
         ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
     }
@@ -243,22 +236,20 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         response match {
             case _: ExecuteIncomplete => getExecuteState(response)
             case e: ExecuteSuccess =>
-                val take = (System.currentTimeMillis() - resJson.getTimestamp("startTime").getTime) / 1000
-                resJson.put("takeTime", take)
-                resJson.put("isSuccess", true)
-                resJson.put("content", e.content.values.values.mkString("\n"))
-                resJson.put("status", "FINISH")
-                iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+                val take = (System.currentTimeMillis() - iqlExcution.startTime.getTime) / 1000
+                iqlExcution.takeTime = take
+                iqlExcution.success = true
+                iqlExcution.content = e.content.values.values.mkString("\n")
+                iqlExcution.status = JobStatus.FINISH
+                iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteError =>
-                resJson.put("isSuccess", false)
-                resJson.put("errorMessage", e.evalue)
-                resJson.put("status", "FINISH")
-                iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+                iqlExcution.status = JobStatus.FINISH
+                iqlExcution.errorMessage = e.evalue
+                iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteAborted =>
-                resJson.put("isSuccess", false)
-                resJson.put("errorMessage", e.message)
-                resJson.put("status", "FINISH")
-                iqlSession.batchJob.put(resJson.getString("engineInfoAndGroupId"), resJson.toJSONString)
+                iqlExcution.status = JobStatus.FINISH
+                iqlExcution.errorMessage = e.message
+                iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case _ =>
         }
     }
@@ -290,15 +281,17 @@ object ExeActor {
     }
 
     // 权限验证
-    def checkAuth(input: String,authListener: Option[IQLAuthListener]) = {
+    def checkAuth(input: String, authListener: Option[IQLAuthListener]) = {
         authListener.foreach(parseStr(input, _))
     }
 
-    def parse(input: String, execListener: IQLSQLExecListener, fromImport:Boolean = false): Unit = {
+    def parse(input: String, execListener: IQLSQLExecListener, fromImport: Boolean = false): Unit = {
         warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
-        if(fromImport){
-            checkAuth(input,execListener.authListener())
-            execListener.authListener().foreach(listener => {DataAuth.auth(listener.tables().tables.toList)})
+        if (fromImport) {
+            checkAuth(input, execListener.authListener())
+            execListener.authListener().foreach(listener => {
+                DataAuth.auth(listener.tables().tables.toList)
+            })
         }
         parseStr(input, execListener)
     }

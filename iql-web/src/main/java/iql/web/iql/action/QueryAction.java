@@ -73,8 +73,8 @@ public class QueryAction {
             try {
                 Timeout timeout = new Timeout(Duration.create(2, "s"));
                 Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(mode, iql, variables), timeout);
-                String result1 = Await.result(future1, timeout.duration()).toString();
-                resultObj = JSON.parseObject(result1);
+                Bean.IQLExcution result1 = (Bean.IQLExcution) Await.result(future1, timeout.duration());
+                resultObj = result1.toJSONObjet();
                 resultObj.put("isSuccess", true);
             } catch (Exception e) {
                 resultObj.put("errorMessage", e.getMessage());
@@ -87,7 +87,7 @@ public class QueryAction {
      * 获取结果
      */
     @PostMapping(value = "/getresult")
-    public JSONObject getResult(HttpServletRequest request,String engineInfoAndGroupId) {
+    public JSONObject getResult(HttpServletRequest request, String engineInfoAndGroupId) {
         JSONObject resultObj = new JSONObject();
         String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfoAndGroupId.split("_")[0]);
         if (validEngineByEngineInfo == null) {
@@ -100,25 +100,26 @@ public class QueryAction {
             try {
                 Timeout timeout = new Timeout(Duration.create(2, "s"));
                 Future<Object> future1 = Patterns.ask(selection, new Bean.GetBatchResult(engineInfoAndGroupId), timeout);
-                String result1 = Await.result(future1, timeout.duration()).toString();
-                resultObj = JSON.parseObject(result1);
+                Bean.IQLExcution result1 = (Bean.IQLExcution) Await.result(future1, timeout.duration());
+                resultObj = result1.toJSONObjet();
             } catch (Exception e) {
                 resultObj.put("errorMessage", e.getMessage());
             }
             if (!resultObj.getString("status").equals("RUNNING")) {
-                User user = (User)request.getSession().getAttribute("user");
+                User user = (User) request.getSession().getAttribute("user");
                 String userName;
-                if(null != user){
+                if (null != user) {
                     userName = user.getUsername();
-                }else{
+                } else {
                     userName = userService.findUserByToken(request.getSession().getAttribute("token").toString()).getUsername();
                 }
+                resultObj.put("user", userName);
                 resultObj.put("success",resultObj.getBooleanValue("isSuccess"));
-                resultObj.put("user",userName);
                 iqlExcutionRepository.save(JSONObject.toJavaObject(resultObj, IqlExcution.class));
                 if (resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0) {
-                    resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString(),env.getProperty("hdfs.uri")));
+                    resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString(), env.getProperty("hdfs.uri")));
                     resultObj.put("schema", resultObj.getOrDefault("schema", "").toString());
+                    resultObj.remove("content");
                 }
                 return resultObj;
             } else {
@@ -127,7 +128,7 @@ public class QueryAction {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return getResult(request,engineInfoAndGroupId);
+                return getResult(request, engineInfoAndGroupId);
             }
         }
     }
@@ -138,13 +139,13 @@ public class QueryAction {
         pramMap.put("iql", iql);
         pramMap.put("variables", "[]");
         pramMap.put("mode", "iql");
-        pramMap.put("token",request.getParameter("token"));
+        pramMap.put("token", request.getParameter("token"));
         String postResult = HttpUtils.post("http://localhost:8888/query", pramMap, 6000, "utf-8");
         JSONObject jsonObject = JSON.parseObject(postResult);
         if (jsonObject.getBoolean("isSuccess")) {
             Map pramMap2 = new HashMap<String, String>();
             pramMap2.put("engineInfoAndGroupId", jsonObject.getString("engineInfoAndGroupId"));
-            pramMap2.put("token",request.getParameter("token"));
+            pramMap2.put("token", request.getParameter("token"));
             String postResult2 = HttpUtils.post("http://localhost:8888/getresult", pramMap2, timeout, "utf-8");
             return JSON.parseObject(postResult2);
         } else {
@@ -202,7 +203,7 @@ public class QueryAction {
                 Timeout timeout = new Timeout(Duration.create(2, "s"));
                 Future<Object> future = Patterns.ask(selection, new Bean.StreamJobStatus(engineInfo + "_" + name + "_" + uid), timeout);
                 String resultStr = Await.result(future, timeout.duration()).toString();
-                resultObj.put("data",resultStr);
+                resultObj.put("data", resultStr);
             } catch (Exception e) {
                 resultObj.put("errorMessage", e.getMessage());
                 resultObj.put("isSuccess", false);
@@ -246,8 +247,9 @@ public class QueryAction {
     public JSONObject loadResult(String hdfsPath, String schema, String mode, Long id) {
         JSONObject resultObj = new JSONObject();
         try {
-            if(mode.equals("iql")) resultObj.put("data", HdfsUtils.readFileToString(hdfsPath,env.getProperty("hdfs.uri")));
-            else resultObj.put("content",iqlExcutionRepository.findOne(id).getContent());
+            if (mode.equals("iql"))
+                resultObj.put("data", HdfsUtils.readFileToString(hdfsPath, env.getProperty("hdfs.uri")));
+            else resultObj.put("content", iqlExcutionRepository.findOne(id).getContent());
             resultObj.put("schema", schema);
             resultObj.put("isSuccess", true);
         } catch (Exception e) {
@@ -291,11 +293,11 @@ public class QueryAction {
     @RequestMapping(value = "/fileDownload", method = RequestMethod.GET)
     public void fileDownload(HttpServletResponse response, String hdfsPath, String schema, String sql, String fileType) throws Exception {
         if ("json".equals(fileType)) {
-            HDFSHandler.downloadJSON(hdfsPath, response,env.getProperty("hdfs.uri"));
+            HDFSHandler.downloadJSON(hdfsPath, response, env.getProperty("hdfs.uri"));
         } else if ("csv".equals(fileType)) {
-            HDFSHandler.downloadCSV(hdfsPath, schema, response,env.getProperty("hdfs.uri"));
+            HDFSHandler.downloadCSV(hdfsPath, schema, response, env.getProperty("hdfs.uri"));
         } else {
-            HDFSHandler.downloadExcel(hdfsPath, schema, response,env.getProperty("hdfs.uri"));
+            HDFSHandler.downloadExcel(hdfsPath, schema, response, env.getProperty("hdfs.uri"));
         }
     }
 

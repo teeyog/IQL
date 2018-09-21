@@ -17,5 +17,10 @@ package object config {
 		.booleanConf
 		.createWithDefault(false)
 
+	val IQL_PARALLELISM = ConfigBuilder("iql.parallelism ")
+		.doc("iql并行度")
+		.intConf
+		.createWithDefault(3)
+
 
 }

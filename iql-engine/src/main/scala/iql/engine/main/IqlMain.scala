@@ -3,6 +3,7 @@ package iql.engine.main
 import akka.actor.ActorSystem
 import iql.common.Logging
 import iql.common.utils.{AkkaUtils, ZkUtils}
+import iql.engine.config.IQL_PARALLELISM
 import iql.engine.{ExeActor, IQLSession}
 import iql.engine.repl.SparkInterpreter
 import iql.engine.utils.PropsUtils
@@ -44,7 +45,8 @@ object IqlMain extends Logging {
         val actorConf = AkkaUtils.getConfig(ZkUtils.getZkClient(PropsUtils.get("zkServers")))
         val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
         val actorSystem = ActorSystem("iqlSystem", actorConf)
-        (1 to numActor).foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession, sparkConf), name = s"actor${id}"))
+        (1 to sparkConf.getInt(IQL_PARALLELISM.key, IQL_PARALLELISM.defaultValue.get))
+            .foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession, sparkConf), name = s"actor$id"))
         iqlSession.awaitTermination()
     }
 }
