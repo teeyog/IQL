@@ -2,7 +2,7 @@ package iql.common.domain
 
 import java.sql.Timestamp
 
-import com.alibaba.fastjson.{JSON, JSONObject}
+import com.alibaba.fastjson.JSONObject
 
 
 object Bean {
@@ -62,6 +62,10 @@ object Bean {
     case class HiveCatalog()
 
     case class HiveCatalogWithAutoComplete()
+
+    case class HbaseTables(zk:String)
+
+    case class HiveTables()
 
 }
 

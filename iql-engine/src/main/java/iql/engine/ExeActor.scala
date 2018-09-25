@@ -8,7 +8,7 @@ import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import iql.common.Logging
 import iql.common.domain.Bean._
 import iql.common.domain.{JobStatus, SQLMode}
-import iql.common.utils.ZkUtils
+import iql.common.utils.{HttpUtils, ObjGenerator, ZkUtils}
 import iql.engine.antlr.{IQLBaseListener, IQLLexer, IQLParser}
 import iql.engine.main.IqlMain
 import iql.engine.main.IqlMain.{warn, _}
@@ -24,6 +24,8 @@ import iql.engine.ExeActor._
 import iql.engine.auth.{DataAuth, IQLAuthListener}
 import iql.engine.config._
 import org.I0Itec.zkclient.ZkClient
+import org.apache.hadoop.hbase.HBaseConfiguration
+import org.apache.hadoop.hbase.client.ConnectionFactory
 
 
 class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: SparkConf) extends Actor with Logging {
@@ -53,20 +55,6 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     }
 
     override def receive: Receive = {
-
-        case HiveCatalog() =>
-            val catalog = initHiveCatalog match {
-                case true => getHiveCatalog
-                case false => "{}"
-            }
-            sender() ! catalog
-
-        case HiveCatalogWithAutoComplete() =>
-            val catalog = autoComplete match {
-                case true => getHiveCatalogWithAutoComplete
-                case false => "{}"
-            }
-            sender() ! catalog
 
         case Iql(mode, iql, variables) =>
             actorWapper() { () => {
@@ -106,6 +94,24 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 }
             }
             }
+
+        case HiveCatalog() =>
+            val catalog = initHiveCatalog match {
+                case true => getHiveCatalog
+                case false => "{}"
+            }
+            sender() ! catalog
+
+        case HiveCatalogWithAutoComplete() =>
+            val catalog = autoComplete match {
+                case true => getHiveCatalogWithAutoComplete
+                case false => "{}"
+            }
+            sender() ! catalog
+
+        case HbaseTables(zookeeper) => sender() ! hbaseTables(zookeeper)
+
+        case HiveTables() => sender() ! hiveTables(sparkSession)
 
         case GetBatchResult(engineInfoAndGroupId) =>
             if (iqlSession.batchJob.keySet().contains(engineInfoAndGroupId)) {
@@ -287,13 +293,44 @@ object ExeActor {
 
     def parse(input: String, execListener: IQLSQLExecListener, fromImport: Boolean = false): Unit = {
         warn("\n" + ("*" * 80) + "\n" + input + "\n" + ("*" * 80))
-        if (fromImport) {
+        if (!fromImport) {
             checkAuth(input, execListener.authListener())
             execListener.authListener().foreach(listener => {
-                DataAuth.auth(listener.tables().tables.toList)
+                val authResults = DataAuth.auth(listener.tables().tables.toList).filter(!_.granted)
+                if(authResults.nonEmpty){
+                    throw new Exception(authResults.map(_.msg).mkString("\n"))
+                }
             })
         }
         parseStr(input, execListener)
+    }
+
+    /**
+      *  get hbase tables
+      */
+    def hbaseTables(zookeeper:String) = {
+        val hc = HBaseConfiguration.create()
+        hc.set("hbase.zookeeper.quorum", zookeeper)
+        val connection = ConnectionFactory.createConnection(hc)
+        val tableArray = new JSONArray()
+        connection.getAdmin.listTableNames().foreach(t => {
+            tableArray.add(ObjGenerator.newJSON(Seq(("type","hbase"),("db",""),("table",t.getNameAsString)):_*))
+        })
+        connection.close()
+        tableArray.toJSONString
+    }
+
+    /**
+      *  get hive tables
+      */
+    def hiveTables(spark:SparkSession) = {
+        val tableArray = new JSONArray()
+        SparkBridge.getHiveCatalg(spark).client.listDatabases("*").foreach(db => {
+            SparkBridge.getHiveCatalg(spark).client.listTables(db).foreach(tb => {
+                tableArray.add(ObjGenerator.newJSON(Seq(("type","hive"),("db",db),("table",tb)):_*))
+            })
+        })
+        tableArray.toJSONString
     }
 
 }
