@@ -1,7 +1,6 @@
 package iql.engine.auth
 
 import iql.common.Logging
-import iql.engine.IQLSQLExecListener
 import iql.engine.adaptor.auth._
 import iql.engine.antlr.IQLBaseListener
 import iql.engine.antlr.IQLParser._

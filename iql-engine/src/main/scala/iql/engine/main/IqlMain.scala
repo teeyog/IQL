@@ -13,7 +13,6 @@ import org.apache.spark.sql.SparkSession
 object IqlMain extends Logging {
 
     var schedulerMode: Boolean = true
-    val numActor: Int = 3
 
     def createSpark(sparkConf: SparkConf) = {
         val spark = SparkSession
