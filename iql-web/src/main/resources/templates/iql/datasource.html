@@ -43,6 +43,7 @@
             beforeDrop: zTreeBeforeDrop,
             beforeAsync: zTreeBeforeAsync,
             beforeRename: zTreeBeforeRename,
+            onClick: zTreeOnClick,
             onExpand: zTreeOnExpand
         },
         async: {
@@ -194,6 +195,13 @@
             })
         }
         return true
+    }
+
+    function zTreeOnClick(event, treeId, treeNode) {
+        if (treeNode.isParent == 1) {
+            var zTree = $.fn.zTree.getZTreeObj(treeId);
+            zTree.expandNode(treeNode, null, null, null);
+        }
     }
 
     function zTreeOnExpand(event, treeId, treeNode) {
