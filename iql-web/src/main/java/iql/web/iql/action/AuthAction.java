@@ -9,6 +9,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import iql.common.domain.Bean;
 import iql.common.utils.ZkUtils;
+import iql.web.bean.DataSource;
+import iql.web.iql.service.DataSourceRepository;
+import iql.web.system.domain.User;
 import org.I0Itec.zkclient.ZkClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +21,10 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.Iterator;
-
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -30,17 +35,31 @@ public class AuthAction {
     @Autowired
     private ZkClient zkClient;
 
+    @Autowired
+    private DataSourceRepository dataSourceRepository;
+
     @RequestMapping(value = "/checkAuth")
-    public String checkAuth(String data) {
-        System.out.println(data);
+    public String checkAuth(HttpServletRequest request, String data) {
+        User user = (User) request.getSession().getAttribute("user");
+        List<DataSource> roleDataSourceByUserId = dataSourceRepository.findRoleDataSourceByUserId(user.getId());
+        HashSet<String> availableDataSources = new HashSet<>();
+        roleDataSourceByUserId.forEach( ds -> availableDataSources.add(ds.getPath().replaceAll("datasource.","").toLowerCase()));
         JSONArray returnArray = new JSONArray();
         Iterator<Object> iterator = JSON.parseArray(data).iterator();
         while (iterator.hasNext()){
-            JSONObject jsonObject = new JSONObject();
             JSONObject obj = JSON.parseObject(iterator.next().toString());
-            jsonObject.put("granted",false);
-            jsonObject.put("msg","You do not have permission to operate the table: " + obj.getString("type") + "." + obj.getString("db") + "." + obj.getString("table"));
-            returnArray.add(jsonObject);
+            String chechTable;
+            if(obj.getString("db").equals("")){
+                chechTable = obj.getString("type") + "." + obj.getString("table");
+            }else{
+                chechTable = obj.getString("type") + "." + obj.getString("db") + "." + obj.getString("table");
+            }
+            if(!availableDataSources.contains(chechTable.toLowerCase())){
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("granted",false);
+                jsonObject.put("msg","You do not have permission to operate the table: " + chechTable);
+                returnArray.add(jsonObject);
+            }
         }
         return returnArray.toJSONString();
     }

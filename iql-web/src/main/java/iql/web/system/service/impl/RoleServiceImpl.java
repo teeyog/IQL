@@ -118,17 +118,17 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Integer addRole(Role role,String menus) {
+    public Integer addRole(Role role,String menus, String dataSources) {
         roleDao.addRole(role);
-        roleDao.addRoleMenu(role,menus);
+        roleDao.addRoleMenuAndDataSource(role,menus,dataSources);
         return 1;
     }
 
     @Override
-    public Integer updateRole(Role role,String menus) {
+    public Integer updateRole(Role role,String menus, String dataSources) {
         roleDao.updateRole(role);
         roleDao.delRoleMenu(role);
-        roleDao.addRoleMenu(role,menus);
+        roleDao.addRoleMenuAndDataSource(role,menus,dataSources);
         return 1;
     }
 

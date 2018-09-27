@@ -67,12 +67,17 @@
                                 <input type="descs" placeholder="角色权限描述" class="form-control" id="descs" name="descs">
                                 <span id="descs-error" class="help-block m-b-none"></span>
                             </div>
-                            <div class="form-group">
-                                <label class="control-label">授权菜单：</label><br>
-                                <ul id="menu"></ul>
+                            <div>
+                                <div class="form-group" style="float: left">
+                                    <label class="control-label">授权菜单：</label><br>
+                                    <ul id="menu"></ul>
+                                </div>
+                                <div class="form-group" style="float: right">
+                                    <label class="control-label">授权数据源：</label><br>
+                                    <ul id="dataSource"></ul>
+                                </div>
                             </div>
-
-                            <div class="pull-right m-t-n-xs">
+                            <div class="pull-right m-t-n-xs" style="clear:both">
                                 <button class="btn btn-sm btn-default" data-dismiss="modal" id="close"><strong>关闭</strong>
                                 </button>
                                 <button class="btn btn-sm btn-primary" type="button" id="save"><strong>保存</strong>
@@ -178,6 +183,13 @@
                 lines:true,
                 animate:true
             });
+            $('#dataSource').tree({
+                method: 'GET',
+                url:'/mcdata/dataSource/roleDataSource?id=-1',
+                checkbox:true,
+                lines:true,
+                animate:true
+            });
             $("#modal-form").modal("show");
         })
 
@@ -197,7 +209,7 @@
             var marr = [];
             var menus = $('#menu').tree('getChecked');
             $.each(menus,function(i,o){
-                marr.push(o.id)
+                marr.push(o.id);
                 var n=$('#menu').tree('find',o.id);
                 if(n!=null){
                     var parNode = $('#menu').tree('getParent', n.target);
@@ -205,12 +217,28 @@
                         marr.push(parNode.id)
                     }
                 }
-            })
+            });
             return marr
-        }
+        };
+
+        getSelectDataSource = function(){
+            var marr = [];
+            var dataSources = $('#dataSource').tree('getChecked');
+            $.each(dataSources,function(i,o){
+                marr.push(o.id);
+                var n=$('#dataSource').tree('find',o.id);
+                if(n!=null){
+                    var parNode = $('#dataSource').tree('getParent', n.target);
+                    if(parNode!=null&&$.inArray(parNode.id,marr)<0&&parNode.id!=null&&parNode.id!=""&&parNode.id!=" "){
+                        marr.push(parNode.id)
+                    }
+                }
+            });
+            return marr
+        };
 
         $('#modal-form').on('hidden.bs.modal', function (e) {
-            $("[id *= -input]").removeClass("has-error")
+            $("[id *= -input]").removeClass("has-error");
             $("[id *= -error]").html("")
         })
 
@@ -218,11 +246,12 @@
             var id = $("#id").val(),
                 rolename = $("#rolename").val(),
                 descs = $("#descs").val(),
-                menus = getSelectMenu().toString();
-            var vrolename = validate(rolename.trim()=="","rolename","必填")
-            var vdescs = validate(descs.trim()=="","descs","必填")
+                menus = getSelectMenu().toString(),
+                dataSources = getSelectDataSource().toString();
+            var vrolename = validate(rolename.trim()=="","rolename","必填");
+            var vdescs = validate(descs.trim()=="","descs","必填");
             if(!(vrolename&&vdescs)){
-                console.log("检验不通过")
+                console.log("检验不通过");
                 return false
             }
 
@@ -230,7 +259,7 @@
                 $.ajax({
                     url: '/mcdata/role/system/add',
                     type: 'POST',
-                    data: {'rolename': rolename, 'descs': descs,'menus':menus},
+                    data: {'rolename': rolename, 'descs': descs,'menus':menus,'dataSources':dataSources},
                     success: function( response ) {
                         $("#modal-form").modal("hide");
                         $table.bootstrapTable("refresh");
@@ -240,12 +269,11 @@
                         layer.msg('添加失败：'+error.status, {icon: 2});
                     }
                 });
-
             } else {
                 $.ajax({
                     url: '/mcdata/role/system/update',
                     type: 'POST',
-                    data: {'id': id, 'rolename': rolename, 'descs': descs,'menus':menus},
+                    data: {'id': id, 'rolename': rolename, 'descs': descs,'menus':menus,'dataSources':dataSources},
                     success: function( response ) {
                         $("#modal-form").modal("hide");
                         $table.bootstrapTable("refresh");
@@ -268,6 +296,13 @@
             $('#menu').tree({
                 method: 'GET',
                 url:'/mcdata/role/system/rolemenu?id='+row.id,
+                checkbox:true,
+                lines:true,
+                animate:true
+            });
+            $('#dataSource').tree({
+                method: 'GET',
+                url:'/mcdata/dataSource/roleDataSource?id='+row.id,
                 checkbox:true,
                 lines:true,
                 animate:true

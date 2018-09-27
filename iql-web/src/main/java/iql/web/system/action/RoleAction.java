@@ -32,13 +32,15 @@ public class RoleAction {
     }
 
     @RequestMapping(value="/system/add", method= RequestMethod.POST)
-    public Integer addRole(Role role,String menus){
-        return roleService.addRole(role,menus);
+    public Integer addRole(Role role,String menus, String dataSources){
+        return roleService.addRole(role,menus,dataSources);
     }
+
     @RequestMapping(value="/system/update", method= RequestMethod.POST)
-    public Integer updateRole(Role role,String menus){
-        return roleService.updateRole(role,menus);
+    public Integer updateRole(Role role,String menus, String dataSources){
+        return roleService.updateRole(role,menus,dataSources);
     }
+
     @RequestMapping(value="/system/delete", method= RequestMethod.GET)
     public Integer delRole(Role role){
         return roleService.delRole(role);

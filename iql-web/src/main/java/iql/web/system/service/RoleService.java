@@ -17,10 +17,10 @@ public interface RoleService {
     public JSONArray findRoleMenu(Role role);
 
 	@Transactional
-	public Integer addRole(Role role,String menus);
+	public Integer addRole(Role role,String menus, String dataSources);
 
 	@Transactional
-	public Integer updateRole(Role role,String menus);
+	public Integer updateRole(Role role,String menus, String dataSources);
 
 	@Transactional
 	public Integer delRole(Role role);

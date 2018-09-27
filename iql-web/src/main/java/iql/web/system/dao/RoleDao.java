@@ -19,7 +19,7 @@ public interface RoleDao {
 
 	public Integer delRoleMenu(Role role);
 
-	public Integer addRoleMenu(Role role, String menus);
+	public Integer addRoleMenuAndDataSource(Role role, String menus, String dataSources);
 
 	public List<Map> findRoleMenuByRoleId(Role role);
 	

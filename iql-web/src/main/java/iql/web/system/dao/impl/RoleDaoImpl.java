@@ -79,7 +79,7 @@ public class RoleDaoImpl implements RoleDao {
 	}
 
 	@Override
-	public Integer addRoleMenu(Role role, String menus) {
+	public Integer addRoleMenuAndDataSource(Role role, String menus, String dataSources) {
 		String[] menu = menus.split(",");
 		String sqls = "";
 		for(String m:menu){
@@ -91,7 +91,20 @@ public class RoleDaoImpl implements RoleDao {
 		String sql = "insert into t_role_menu (roleid,menuid) values "+sqls;
 		Query query = em.createNativeQuery(sql);
 		Integer result = query.executeUpdate();
-		return result;
+
+		String[] dss = dataSources.split(",");
+		String sqls2 = "";
+		for(String ds:dss){
+			if(ds!=null&&!ds.equals("")){
+				sqls2+="("+role.getId()+","+ds+")"+",";
+			}
+		}
+		sqls2 = StringUtils.strip(sqls2,",");
+		em.createNativeQuery("delete from t_role_datasource where roleid=" + role.getId()).executeUpdate();
+		String sql2 = "insert into t_role_datasource (roleid,datasourceid) values "+sqls2;
+		Query query2 = em.createNativeQuery(sql2);
+		Integer result2 = query2.executeUpdate();
+		return result2;
 	}
 
 	@Override
