@@ -8,7 +8,7 @@ import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import iql.common.Logging
 import iql.common.domain.Bean._
 import iql.common.domain.{JobStatus, SQLMode}
-import iql.common.utils.{HttpUtils, ObjGenerator, ZkUtils}
+import iql.common.utils.{ObjGenerator, ZkUtils}
 import iql.engine.antlr.{IQLBaseListener, IQLLexer, IQLParser}
 import iql.engine.main.IqlMain
 import iql.engine.main.IqlMain.{warn, _}
@@ -24,8 +24,6 @@ import iql.engine.ExeActor._
 import iql.engine.auth.{DataAuth, IQLAuthListener}
 import iql.engine.config._
 import org.I0Itec.zkclient.ZkClient
-import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.ConnectionFactory
 
 
 class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: SparkConf) extends Actor with Logging {
@@ -108,8 +106,6 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 case false => "{}"
             }
             sender() ! catalog
-
-        case HbaseTables(zookeeper) => sender() ! hbaseTables(zookeeper)
 
         case HiveTables() => sender() ! hiveTables(sparkSession)
 
@@ -303,21 +299,6 @@ object ExeActor {
             })
         }
         parseStr(input, execListener)
-    }
-
-    /**
-      *  get hbase tables
-      */
-    def hbaseTables(zookeeper:String) = {
-        val hc = HBaseConfiguration.create()
-        hc.set("hbase.zookeeper.quorum", zookeeper)
-        val connection = ConnectionFactory.createConnection(hc)
-        val tableArray = new JSONArray()
-        connection.getAdmin.listTableNames().foreach(t => {
-            tableArray.add(ObjGenerator.newJSON(Seq(("type","hbase"),("db",""),("table",t.getNameAsString)):_*))
-        })
-        connection.close()
-        tableArray.toJSONString
     }
 
     /**

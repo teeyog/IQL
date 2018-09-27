@@ -162,6 +162,39 @@ CREATE TABLE `t_user_role` (
 
 insert  into `t_user_role`(`id`,`userid`,`roleid`) values (1,1,1),(21,2,2),(29,6,7),(28,9,9),(26,8,8),(25,5,2),(71,10,10),(31,11,10),(108,12,2),(197,14,15),(64,15,12),(208,16,17),(109,19,15),(39,20,2),(78,21,2),(169,22,7),(106,23,10),(203,60,10),(44,25,2),(220,63,10),(50,27,2),(51,27,1),(52,27,7),(53,27,10),(54,27,11),(174,28,10),(66,29,12),(207,16,12),(69,30,2),(74,31,10),(212,32,2),(223,33,2),(80,34,2),(84,35,10),(117,36,10),(93,37,11),(99,38,14),(96,39,2),(116,40,15),(115,44,15),(120,45,2),(121,46,2),(122,47,10),(123,48,15),(125,49,16),(128,50,15),(187,54,2),(136,55,10),(196,14,14),(195,14,13),(194,14,7),(193,14,2),(184,57,15),(183,57,10),(177,56,10),(201,58,10),(188,54,17),(198,14,17),(204,59,7),(215,61,10),(214,62,10);
 
+/*Table structure for table `t_datasource` */
+
+DROP TABLE IF EXISTS `t_datasource`;
+
+CREATE TABLE `t_datasource` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `pid` int(11) NOT NULL,
+  `isparent` tinyint(4) NOT NULL,
+  `sort` int(11) DEFAULT NULL,
+  `path` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+
+/*Data for the table `t_datasource` */
+
+insert  into `t_datasource`(`id`,`name`,`pid`,`isparent`,`sort`,`path`) values (1,'datasource',0,1,1,'datasource'),(2,'HBase',1,1,1,'datasource.HBase'),(3,'Hive',1,1,2,'datasource.Hive'),(4,'t_user_info',2,0,1,'datasource.HBase.t_user_info'),(5,'MySQL',1,1,3,'datasource.MySQL'),(6,'mc',3,1,1,'datasource.Hive.mc'),(7,'default',3,1,2,'datasource.Hive.default'),(8,'mbl',6,0,1,'datasource.Hive.mc.mbl'),(9,'user',6,0,3,'datasource.Hive.mc.user'),(11,'app',5,0,1,'datasource.MySQL.app'),(12,'test',7,0,1,'datasource.Hive.default.test');
+
+/*Table structure for table `t_role_datasource` */
+
+DROP TABLE IF EXISTS `t_role_datasource`;
+
+CREATE TABLE `t_role_datasource` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `roleid` int(11) DEFAULT NULL,
+  `datasourceid` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=32 DEFAULT CHARSET=utf8;
+
+/*Data for the table `t_role_datasource` */
+
+insert  into `t_role_datasource`(`id`,`roleid`,`datasourceid`) values (1,1,9),(2,1,11),(28,24,8),(31,24,11),(30,24,5),(29,24,6),(27,24,4),(26,24,2);
+
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
