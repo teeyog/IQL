@@ -72,6 +72,7 @@ where `hbase.zookeeper.quorum`="localhost:2181"
 |hbase.table.endKey | 预分区结束key  |  无 |
 |hbase.table.numReg | 分区个数 |  无 |
 |hbase.check_table | 写入hbase表时，是否需要检查表是否存在  |  false |
+|hbase.cf.ttl | ttl | 无 |
 
 ## MySQL
 - 加载数据
