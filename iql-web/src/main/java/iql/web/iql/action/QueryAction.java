@@ -21,6 +21,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.http.client.fluent.Form;
+import org.apache.http.client.fluent.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
@@ -114,7 +116,7 @@ public class QueryAction {
                     userName = userService.findUserByToken(request.getSession().getAttribute("token").toString()).getUsername();
                 }
                 resultObj.put("user", userName);
-                resultObj.put("success",resultObj.getBooleanValue("isSuccess"));
+                resultObj.put("success", resultObj.getBooleanValue("isSuccess"));
                 iqlExcutionRepository.save(JSONObject.toJavaObject(resultObj, IqlExcution.class));
                 if (resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0) {
                     resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString(), env.getProperty("hdfs.uri")));
@@ -133,20 +135,25 @@ public class QueryAction {
         }
     }
 
-    @PostMapping(value = "/query2")
-    public JSONObject execution(HttpServletRequest request, String iql, int timeout) throws Exception {
-        Map pramMap = new HashMap<String, String>();
-        pramMap.put("iql", iql);
-        pramMap.put("variables", "[]");
-        pramMap.put("mode", "iql");
-        pramMap.put("token", request.getParameter("token"));
-        String postResult = HttpUtils.post("http://localhost:8888/query", pramMap, 6000, "utf-8");
+    @PostMapping(value = "/queryApi")
+    public JSONObject execution(HttpServletRequest request, String iql) throws Exception {
+        String postResult = Request.Post("http://localhost:8888/query").bodyForm(
+                Form.form()
+                        .add("iql", iql)
+                        .add("variables", "[]")
+                        .add("mode", "iql")
+                        .add("token", request.getParameter("token"))
+                        .build())
+                .execute().returnContent().asString();
+
         JSONObject jsonObject = JSON.parseObject(postResult);
         if (jsonObject.getBoolean("isSuccess")) {
-            Map pramMap2 = new HashMap<String, String>();
-            pramMap2.put("engineInfoAndGroupId", jsonObject.getString("engineInfoAndGroupId"));
-            pramMap2.put("token", request.getParameter("token"));
-            String postResult2 = HttpUtils.post("http://localhost:8888/getresult", pramMap2, timeout, "utf-8");
+            String postResult2 = Request.Post("http://localhost:8888/getresult").bodyForm(
+                    Form.form()
+                            .add("engineInfoAndGroupId", jsonObject.getString("engineInfoAndGroupId"))
+                            .add("token", request.getParameter("token"))
+                            .build())
+                    .execute().returnContent().asString();
             return JSON.parseObject(postResult2);
         } else {
             return jsonObject;
