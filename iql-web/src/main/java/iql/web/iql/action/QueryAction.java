@@ -5,7 +5,6 @@ import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import iql.common.domain.Bean;
-import iql.common.utils.HttpUtils;
 import iql.common.utils.ShellUtils;
 import iql.common.utils.ZkUtils;
 import iql.web.bean.BaseBean;

@@ -1,12 +1,7 @@
-import java.util
-import java.util.concurrent.TimeUnit
-import javax.ws.rs.client.{Client, ClientBuilder}
-import javax.ws.rs.core.MediaType
 
-import iql.common.utils.HttpUtils
+import java.util.concurrent.TimeUnit
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.streaming.Trigger
-import org.glassfish.jersey.client.ClientProperties
 
 object HackTest {
 
