@@ -8,6 +8,7 @@ import org.apache.log4j.Logger
 import org.apache.zookeeper.data.Stat
 
 import scala.collection._
+import scala.util.Random
 
 object ZkUtils {
 
@@ -316,7 +317,8 @@ object ZkUtils {
   }
 
   def getChildrenFilter(client: ZkClient, path: String, engineInfo:String): Seq[String] = {
-    getChildren(client,path).filter(_.startsWith(engineInfo))
+    val seqEngine = getChildren(client,path).filter(_.startsWith(engineInfo))
+    Random.shuffle(seqEngine)
   }
 
   def getChildrenParentMayNotExist(client: ZkClient, path: String): Seq[String] = {
