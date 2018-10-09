@@ -1,16 +1,13 @@
 package iql.engine.adaptor.auth
 
-import java.util
-
-import iql.common.utils.HttpUtils
-import iql.engine.{ExeActor, IQLSQLExecListener}
+import iql.engine.ExeActor
 import iql.engine.adaptor.{DslTool, IQLAuth}
 import iql.engine.antlr.IQLLexer
 import iql.engine.antlr.IQLParser.SqlContext
 import iql.engine.auth._
-import iql.engine.config.IQL_AUTH_ENABLE
 import iql.engine.utils.PropsUtils
 import org.antlr.v4.runtime.misc.Interval
+import org.apache.http.client.fluent.{Form, Request}
 
 
 class ImportAuth(authListener: IQLAuthListener) extends IQLAuth with DslTool {
@@ -26,10 +23,10 @@ class ImportAuth(authListener: IQLAuthListener) extends IQLAuth with DslTool {
     }
 
     def getScriptByPath(originalText: String): String = {
-        val pramsMap = new util.HashMap[String, String]()
-        pramsMap.put("packageName", originalText)
-        pramsMap.put("token", "fa39e32c09332d47f6f38d9c946cfa25")
         val url = PropsUtils.get("iql.server.address") + "/jobScript/getScriptByPath"
-        HttpUtils.get(url, pramsMap, 5, "utf-8")
+        Request.Post(url).bodyForm(Form.form().add("packageName", originalText).
+            add("token", PropsUtils.get("token"))
+            .build())
+            .execute().returnContent().asString()
     }
 }
