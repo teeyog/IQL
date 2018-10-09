@@ -318,7 +318,7 @@ object ZkUtils {
 
   def getChildrenFilter(client: ZkClient, path: String, engineInfo:String): Seq[String] = {
     val seqEngine = getChildren(client,path).filter(_.startsWith(engineInfo))
-    Random.shuffle(seqEngine)
+    Random.shuffle(seqEngine) // Shuffle engine around to avoid always use the same engine.
   }
 
   def getChildrenParentMayNotExist(client: ZkClient, path: String): Seq[String] = {
