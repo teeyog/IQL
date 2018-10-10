@@ -308,17 +308,17 @@ object ZkUtils {
   }
 
   def getValidChildren(client: ZkClient, path: String): Seq[String] = {
-    getChildren(client,path)
+    val seqEngine = getChildren(client,path)
       .map(r => (r.split("_")(0),r))
       .groupBy(_._1)
       .filter(_._2.size>1)
       .flatMap(r => r._2)
       .map(_._2).toSeq
+    Random.shuffle(seqEngine) // Shuffle engine around to avoid always use the same engine.
   }
 
   def getChildrenFilter(client: ZkClient, path: String, engineInfo:String): Seq[String] = {
-    val seqEngine = getChildren(client,path).filter(_.startsWith(engineInfo))
-    Random.shuffle(seqEngine) // Shuffle engine around to avoid always use the same engine.
+    getChildren(client,path).filter(_.startsWith(engineInfo))
   }
 
   def getChildrenParentMayNotExist(client: ZkClient, path: String): Seq[String] = {

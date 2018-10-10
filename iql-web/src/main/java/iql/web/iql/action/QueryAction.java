@@ -25,6 +25,7 @@ import org.apache.http.client.fluent.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
+import scala.collection.Iterator;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 import scala.concurrent.Await;
