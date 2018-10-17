@@ -1,7 +1,7 @@
 grammar IQL;
 
 @header {
-package cn.i4.iql.antlr;
+package iql.engine.antlr;
 }
 
 statement
