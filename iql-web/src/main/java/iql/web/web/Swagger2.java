@@ -27,9 +27,9 @@ public class Swagger2 {
     }
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("爱思大数据平台API")
-                .description("www.i4.cn")
-                .termsOfServiceUrl("www.i4.cn")
+                .title("IQL大数据平台API")
+                .description("https://github.com/teeyog/IQL")
+                .termsOfServiceUrl("https://github.com/teeyog/IQL")
                 .version("2.7.0")
                 .build();
     }
