@@ -86,6 +86,9 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         }
         table = reader.option("header", "true").format(format).load(path)
 
+      case "xml" =>
+        table = reader.option("path", path).format("com.databricks.spark.xml").load()
+
       case "jsonStr" =>
         import sparkSession.implicits._
         val items = cleanStr(path).split("\n")

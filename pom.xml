@@ -105,6 +105,12 @@
                 <version>${elasticsearch.version}</version>
                 <scope>${i4scope}</scope>
             </dependency>
+            <dependency>
+                <groupId>com.databricks</groupId>
+                <artifactId>spark-xml_2.11</artifactId>
+                <version>0.4.1</version>
+                <scope>${i4scope}</scope>
+            </dependency>
 
             <!--hadoop相关-->
             <dependency>
