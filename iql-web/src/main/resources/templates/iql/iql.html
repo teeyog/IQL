@@ -85,6 +85,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="iql_input">
                 <textarea id="iql" rows="15" placeholder="Example: SELECT * FROM tablename, or press CTRL + space"
                           style="width: 100%"></textarea>
@@ -114,6 +115,9 @@
                 </div>
             </div>
             <div class="ibox-content">
+                <div class="snippet-code-resizer ui-draggable" data-bind="aceResizer : { ace: ace, target: '.ace-container-resizable', onStart: hideFixedHeaders, onStop: redrawFixedHeaders }">
+                    <i class="fa fa-ellipsis-h"></i>
+                </div>
                 <div class="tabs-container" style="margin-top: 20px">
                     <ul class="nav nav-tabs" style="margin-left: 20px">
                         <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true">Query History</a>
@@ -480,6 +484,31 @@
 </SCRIPT>
 
 
+<script> // 鼠标拉伸代码框高度
+    $(function(){
+        var src_posi_Y = 0, dest_posi_Y = 0, move_Y = 0, is_mouse_down = false, destHeight = 30;
+        $(".ui-draggable")
+            .mousedown(function(e){
+                src_posi_Y = e.pageY;//鼠标指针的位置
+                is_mouse_down = true;
+            });
+        $(document).bind("click mouseup",function(e){
+            if(is_mouse_down){
+                is_mouse_down = false;
+            }
+        }).mousemove(function(e){
+                dest_posi_Y = e.pageY;
+                move_Y = src_posi_Y - dest_posi_Y;
+                src_posi_Y = dest_posi_Y;
+                destHeight = $(".CodeMirror").height() - move_Y;
+                if(is_mouse_down){
+                    $(".CodeMirror").css("height", destHeight > 250 ? destHeight : 250);
+                    $(".CodeMirror-scroll").css("height", destHeight > 250 ? destHeight : 250);
+                }
+            });
+    });
+</script>
+
 <script type="text/javascript">
     $(function () {
         window.operateEvents_stop_streamjob = {
@@ -562,7 +591,7 @@
             hintOptions: {
                 tables: result
             }
-        })
+        });
         window.editor.on("keyup", autocomplete);
         window.editor.on("change", change);
     });

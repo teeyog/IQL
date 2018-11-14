@@ -156,4 +156,24 @@ div#rMenu ul li{
     padding-left: 8% !important;
 }
 
+.snippet-code-resizer {
+    cursor: n-resize;
+    text-align: center;
+    font-size: 12px;
+    height: 8px;
+    margin-bottom: 5px;
+}
 
+.ibox-content {
+    padding-top: 0px !important;
+}
+
+.CodeMirror {
+    min-height: 250px !important;
+    height: 250px;
+}
+
+.CodeMirror-scroll {
+    min-height: 250px !important;
+    height: 250px;
+}
