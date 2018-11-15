@@ -69,6 +69,7 @@
 
 
     <build>
+        <finalName>iql-engine</finalName>
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
