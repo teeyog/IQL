@@ -8,7 +8,7 @@ package object config {
 		.createWithDefault(true)
 
 	val HIVE_CATALOG_AUTO_COMPLETE = ConfigBuilder("iql.hiveCatalog.autoComplete")
-		.doc("SQL边界框是否获取hive元数据以自动补全")
+		.doc("SQL编辑框是否获取hive元数据以自动补全")
 		.booleanConf
 		.createWithDefault(true)
 
