@@ -127,7 +127,7 @@ public class QueryAction {
                 return resultObj;
             } else {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
