@@ -861,7 +861,7 @@
                     title: '耗时',
                     width: 80,
                     formatter: function (value, row, index) {
-                        return '<span>' + value + ' s' + '</span>'
+                        return '<span>' + (value/1000).toFixed(1) + ' s' + '</span>'
                     }
                 },
                 {

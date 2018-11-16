@@ -152,11 +152,10 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     def parseSQL(input: String, listener: IQLSQLExecListener): Unit = {
         try {
             parse(input, listener)
-            val endTime = System.currentTimeMillis()
-            iqlExcution.takeTime = (endTime - iqlExcution.startTime.getTime) / 1000
             if(listener.result().containsKey("uuidTable")){
                 val showTable = sparkSession.table(listener.getResult("uuidTable"))
                 iqlExcution.data = showTable.limit(5000).toJSON.collect().mkString("[",",","]")
+                iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
                 val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
                 iqlExcution.hdfsPath = hdfsPath
                 iqlExcution.schema = showTable.schema.fields.map(_.name).mkString(",")
