@@ -744,10 +744,10 @@
                     $("#execForm, .loading").toggle();
                     if (data.isSuccess) {
                         $("#results-list-table").bootstrapTable("destroy");
-                        if ("content" in data) {
+                        if (data.mode=="code") {
                             $("#results-tab").tab("show");
                             $("#result-content").show();
-                            $("#result-content pre").html(data.content)
+                            $("#result-content pre").html(data.data)
                         } else {
                             $("#results-tab").tab("show");
                             hdfsPath = data.hdfsPath;

@@ -119,11 +119,6 @@ public class QueryAction {
                 resultObj.put("user", userName);
                 resultObj.put("success", resultObj.getBooleanValue("isSuccess"));
                 iqlExcutionRepository.save(JSONObject.toJavaObject(resultObj, IqlExcution.class));
-                if (resultObj.get("hdfsPath") != null && resultObj.get("hdfsPath").toString().length() > 0) {
-                    resultObj.put("data", HdfsUtils.readFileToString(resultObj.get("hdfsPath").toString(), env.getProperty("hdfs.uri")));
-                    resultObj.put("schema", resultObj.getOrDefault("schema", "").toString());
-                    resultObj.remove("content");
-                }
                 return resultObj;
             } else {
                 try {
