@@ -11,11 +11,11 @@ object Bean {
                            var mode: String = SQLMode.IQL,
                            startTime: Timestamp = new Timestamp(System.currentTimeMillis),
                            var takeTime: Long = 0,
-                           var success: Boolean = false,
+                           var success: Boolean = true,
                            var hdfsPath: String = "",
                            var user: String = "",
                            var errorMessage: String = "",
-                           var content: String = "",
+                           var data: String = "",
                            var schema: String = "",
                            var variables: String = "[]",
                            var status: String = JobStatus.RUNNING,
@@ -30,7 +30,7 @@ object Bean {
             obj.put("hdfsPath",hdfsPath)
             obj.put("user",user)
             obj.put("errorMessage",errorMessage)
-            obj.put("content",content)
+            obj.put("data",data)
             obj.put("schema",schema)
             obj.put("variables",variables)
             obj.put("status",status)

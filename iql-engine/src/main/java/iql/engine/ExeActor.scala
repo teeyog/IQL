@@ -24,6 +24,7 @@ import iql.engine.ExeActor._
 import iql.engine.auth.{DataAuth, IQLAuthListener}
 import iql.engine.config._
 import org.I0Itec.zkclient.ZkClient
+import org.apache.spark.sql.functions.col
 
 
 class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: SparkConf) extends Actor with Logging {
@@ -152,14 +153,21 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         try {
             parse(input, listener)
             val endTime = System.currentTimeMillis()
-            val take = (endTime - iqlExcution.startTime.getTime) / 1000
-            iqlExcution.hdfsPath = listener.getResult("hdfsPath")
-            iqlExcution.schema = listener.getResult("schema")
-            iqlExcution.takeTime = take
-            iqlExcution.success = true
+            iqlExcution.takeTime = (endTime - iqlExcution.startTime.getTime) / 1000
+            if(listener.result().containsKey("uuidTable")){
+                val showTable = sparkSession.table(listener.getResult("uuidTable"))
+                iqlExcution.data = showTable.limit(5000).toJSON.collect().mkString("[",",","]")
+                val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
+                iqlExcution.hdfsPath = hdfsPath
+                iqlExcution.schema = showTable.schema.fields.map(_.name).mkString(",")
+                iqlExcution.status = JobStatus.FINISH
+                iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
+                showTable.select(showTable.columns.map(col(_).cast("String")):_*).write.json(hdfsPath)
+            }
         } catch {
             case e: Exception =>
                 e.printStackTrace()
+                iqlExcution.success = false
                 val out = new ByteArrayOutputStream()
                 e.printStackTrace(new PrintStream(out))
                 iqlExcution.errorMessage = new String(out.toByteArray)
@@ -241,7 +249,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 val take = (System.currentTimeMillis() - iqlExcution.startTime.getTime) / 1000
                 iqlExcution.takeTime = take
                 iqlExcution.success = true
-                iqlExcution.content = e.content.values.values.mkString("\n")
+                iqlExcution.data = e.content.values.values.mkString("\n")
                 iqlExcution.status = JobStatus.FINISH
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteError =>
