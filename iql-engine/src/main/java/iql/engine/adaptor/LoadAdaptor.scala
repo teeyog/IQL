@@ -45,7 +45,7 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
     var table: DataFrame = null
     val sparkSession = scriptSQLExecListener.sparkSession
     val reader = scriptSQLExecListener.sparkSession.read
-    reader.options(option).option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
+    reader.options(option)
     format match {
       case "jdbc" =>
         reader
