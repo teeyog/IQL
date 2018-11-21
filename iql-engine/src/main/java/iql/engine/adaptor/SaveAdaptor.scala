@@ -132,7 +132,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
 
     format match {
       case "jdbc" =>
-        option += ("implClass" -> "org.apache.spark.sql.jdbc.JdbcSourceProvider")
+        option += ("implClass" -> "org.apache.spark.sql.execution.jdbc.JdbcSourceProvider")
         writer
           .option("driver", option.getOrElse("driver", PropsUtils.get("jdbc.driver")))
           .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
