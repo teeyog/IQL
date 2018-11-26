@@ -23,7 +23,7 @@ class SelectAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapto
     if(tableName.equals("")){
       val uuidTable = UUID.randomUUID().toString.replace("-","")
       scriptSQLExecListener.addResult("uuidTable", uuidTable)
-      sparkSession.sql(sql).createOrReplaceTempView(uuidTable)
+      sparkSession.sql(originalText).createOrReplaceTempView(uuidTable)
     } else {
       sparkSession.sql(sql).createOrReplaceTempView(tableName)
     }
