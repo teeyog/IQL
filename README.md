@@ -2,7 +2,7 @@
  
 ![](https://upload-images.jianshu.io/upload_images/3597066-e19cdef507fd77a7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-参考 [spark sql在喜马拉雅的使用之xql](https://github.com/cjuexuan/mynote/issues/21)的load、select、save语法实现了一套基于spark的即席查询服务
+基于SparkSQL实现了一套即席查询服务,具有如下特性：
 - 优雅的交互方式，支持多种datasource/sink，多数据源混算
 - spark常驻服务，基于zookeeper的引擎自动发现
 - 负载均衡，多个引擎随机执行
@@ -136,4 +136,6 @@ select myupper(name) as newName from tb1;
 
 ## 参考
 [StreamingPro之MLSQL](https://github.com/allwefantasy/streamingpro)
+
+[spark sql在喜马拉雅的使用之xql](https://github.com/cjuexuan/mynote/issues/21)
 
