@@ -2,7 +2,7 @@
  
 ![](https://upload-images.jianshu.io/upload_images/3597066-e19cdef507fd77a7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-基于SparkSQL实现了一套即席查询服务,具有如下特性：
+基于SparkSQL实现了一套即席查询服务，具有如下特性：
 - 优雅的交互方式，支持多种datasource/sink，多数据源混算
 - spark常驻服务，基于zookeeper的引擎自动发现
 - 负载均衡，多个引擎随机执行
