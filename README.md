@@ -24,8 +24,6 @@
 
 
 ## [Quick-start](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
-
----
  
 ## HBase
  
