@@ -23,7 +23,7 @@
 
 
 
-## [Quick-start](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
+## [Quickstart](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
  
 ### HBase
  

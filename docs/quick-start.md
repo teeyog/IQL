@@ -1,4 +1,4 @@
-# Quick-start
+# Quickstart
 
 ### 1. 拉取代码
 ```
