@@ -1,67 +1,31 @@
-
 # Quick-start
-## WEB端
-- 配置application.properties，mysql连接信息和zookeeper地址
+
+### 1. 拉取代码
 ```
-spring.datasource.druid.url=jdbc:mysql://localhost:3306/iql?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-spring.datasource.druid.username=root
-spring.datasource.druid.password=123456
-
-...
-
-# 通过zk发现引擎地址
-zkServers=localhost:2181
-
-# 用于结果下载
-hdfs.uri=hdfs://dsj01:8020
+git clone https://github.com/teeyog/IQL.git
 ```
+### 2. 修改配置文件，文件中已列出必填项
+```
+修改web模块配置文件 iql-web\src\main\resources\application.properties
 
-- 导入SQL表
+修改engine模块配置文件 iql-engine\src\main\resources\iql.properties
+```
+### 3. 导入web模块所需元数据表：[iql.sql](https://github.com/teeyog/IQL/blob/master/docs/file/iql.sql)
 
-[iql.sql](https://github.com/teeyog/IQL/blob/master/docs/file/iql.sql)
-
-> 打jar包，运行 java -jar iql.jar
- 
-## Engine端
-
-- FAIR 公平调度
-
-[fairscheduler.xml](https://github.com/teeyog/IQL/blob/master/docs/file/fairscheduler.xml)
-``` 
-可在spark-submit启动参数中配置 --flies /path/fairscheduler.xml；
-也可直接在SparkConf中指定参数：spark.scheduler.allocation.file
+### 4. 编译打包
+```
+cd IQL/
+mvn clean package
+cd iql-web\target # 获取iql-web.jar
+cd iql-engine\target # 获取iql-engine.jar
 ```
 
-- 默认配置文件 iql.properties
-
-``` 
-默认配置文件配置的都是一些常用的环境信息，比如加载mysql的数据，避免每次都写一遍连接信息
-
-# web服务地址，用于import语法回调SQL代码片段 
-iql.server.address=http://192.168.1.40:8888
-
-# iql任务需要操作的mysql默认地址（不是web后台的mysql地址）
-jdbc.driver=com.mysql.jdbc.Driver
-jdbc.url=jdbc:mysql://dsj01:3306/job?user=root&password=123456&useUnicode=true&characterEncoding=UTF8&useSSL=false
-
-# iql任务需要操作的kafka默认地址
-kafka.metadata.broker.list=dsj01:9092
-kafka.zookeeper.connect=dsj01:2181
-
-# iql任务需要操作的es默认地址
-es.nodes=localhost
-es.port=9200
-
-# iql任务需要操作的HBase默认地址
-hbase.zookeeper.quorum=dsj01:2181
-
-# 引擎启动向zk注册地址
-zkServers=dsj01:2181
+### 5. 运行
 ```
+web 模块启动示例
+java -jar iql-web.jar
 
-- 启动示例
-
-```
+engine 模块启动示例
 sudo -u hdfs spark2-submit \
 	--name IQL \
 	--master yarn \
@@ -74,3 +38,5 @@ sudo -u hdfs spark2-submit \
 	--class iql.engine.main.IqlMain \
 	/home/run/jobJar/iql-engine.jar
 ```
+
+> 注意：engine 启动命令中的 fairscheduler.xml文件在这里：[fairscheduler.xml](https://github.com/teeyog/IQL/blob/master/docs/file/fairscheduler.xml)
