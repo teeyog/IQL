@@ -15,7 +15,7 @@ git clone https://github.com/teeyog/IQL.git
 ### 4. 编译打包
 ```
 cd IQL/
-mvn clean package
+mvn clean package -Dmaven.test.skip
 cd iql-web\target # 获取iql-web.jar
 cd iql-engine\target # 获取iql-engine.jar
 ```
