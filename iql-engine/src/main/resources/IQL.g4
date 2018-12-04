@@ -9,16 +9,16 @@ statement
     ;
 
 sql
-    : ('load'|'LOAD') format '.'? path 'where'? expression? booleanExpression*  'as' tableName
-    | ('save'|'SAVE') (overwrite | append | errorIfExists | ignore | update)* tableName 'as' format '.' path 'where'? expression? booleanExpression* ('partitionBy' col)? ('coalesce' numPartition)?
+    : ('load'|'LOAD') format '.'? path ('where' | 'WHERE')? expression? booleanExpression*  'as' tableName
+    | ('save'|'SAVE') (overwrite | append | errorIfExists | ignore | update)* tableName 'as' format '.' path ('where' | 'WHERE')? expression? booleanExpression* ('partitionBy' col)? ('coalesce' numPartition)?
     | ('select'|'SELECT') ~(';')* 'as'? tableName
     | ('insert'|'INSERT') ~(';')*
     | ('create'|'CREATE') ~(';')*
     | ('drop'|'DROP') ~(';')*
     | ('refresh'|'REFRESH') ~(';')*
     | ('set'|'SET') ~(';')*
-    | ('train'|'TRAIN') tableName 'as' format '.' path 'where'? expression? booleanExpression*
-    | ('register'|'REGISTER') format '.' path 'where'? expression? booleanExpression*
+    | ('train'|'TRAIN') tableName 'as' format '.' path ('where' | 'WHERE')? expression? booleanExpression*
+    | ('register'|'REGISTER') format '.' path ('where' | 'WHERE')? expression? booleanExpression*
     | ('show'|'SHOW') ~(';')*
     | ('describe'|'DESCRIBE') ~(';')*
     | ('import'|'IMPORT'|'include'|'INCLUDE') ~(';')*
@@ -26,11 +26,11 @@ sql
     ;
 
 overwrite
-    : 'overwrite'
+    : ('overwrite' | 'OVERWRITE')
     ;
 
 append
-    : 'append'
+    : ('append' | 'APPEND')
     ;
 
 errorIfExists
@@ -38,15 +38,15 @@ errorIfExists
     ;
 
 ignore
-    : 'ignore'
+    : ('ignore' | 'IGNORE')
     ;
 
 update
-    : 'update'
+    : ('update' | 'UPDATE')
     ;
 
 booleanExpression
-    : 'and' expression
+    : ('and' | 'AND') expression
     ;
 
 expression
