@@ -28,9 +28,17 @@ class RegisterAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdap
         case _ =>
       }
     }
-    require(option.contains("func"),"Registration UDF must specify the UDF function: func")
-    val func = ScalaScriptUDF.load(sparkSession,option("func"),option)
-    ScalaScriptUDF.predict(sparkSession,func,path,option)
+    format.toLowerCase match {
+      case "udf" =>
+        require(option.contains("func"),"Registration UDF must specify the UDF function: func")
+        val func = ScalaScriptUDF.load(sparkSession,option("func"),option)
+        ScalaScriptUDF.predict(sparkSession,func,path,option)
+      case "watermark" =>
+        require(option.contains("eventTimeCol"),"Registration watermark must specify the eventTimeCol")
+        require(option.contains("delayThreshold"),"Registration watermark must specify the delayThreshold")
+        sparkSession.table(path).withWatermark(option("eventTimeCol"),option("delayThreshold"))
+            .createOrReplaceTempView(path)
+    }
   }
 }
 
