@@ -60,7 +60,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User findUserById(User user) {
-        String sql = "select id, username, `password`, real_name, phone, create_time, status, type, isfirstlogin from t_user where id=:id";
+        String sql = "select id, username, `password`, real_name, phone, create_time, status, type, isfirstlogin,token from t_user where id=:id";
         Query query = em.createNativeQuery(sql, User.class);
         query.setParameter("id", user.getId());
         List<User> list = query.getResultList();

@@ -63,12 +63,12 @@ public class QueryAction {
         JSONObject resultObj = new JSONObject();
         resultObj.put("isSuccess", false);
         if (iql.trim().equals("")) {
-            resultObj.put("errorMessage", "iql can't be empty...");
+            resultObj.put("data", "iql can't be empty...");
             return resultObj;
         }
         Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath());
         if (validEngines.size() == 0) {
-            resultObj.put("errorMessage", "There is no available execution engine....");
+            resultObj.put("data", "There is no available execution engine....");
             return resultObj;
         } else {
             String[] engineInfoAndActorname = validEngines.head().split("_");
@@ -80,7 +80,7 @@ public class QueryAction {
                 resultObj = result1.toJSONObjet();
                 resultObj.put("isSuccess", true);
             } catch (Exception e) {
-                resultObj.put("errorMessage", e.getMessage());
+                resultObj.put("data", e.getMessage());
             }
             return resultObj;
         }
@@ -95,7 +95,7 @@ public class QueryAction {
         String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfoAndGroupId.split("_")[0]);
         if (validEngineByEngineInfo == null) {
             resultObj.put("isSuccess", false);
-            resultObj.put("errorMessage", "当前未有可用的执行引擎...");
+            resultObj.put("data", "当前未有可用的执行引擎...");
             return resultObj;
         } else {
             String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
@@ -106,7 +106,7 @@ public class QueryAction {
                 Bean.IQLExcution result1 = (Bean.IQLExcution) Await.result(future1, timeout.duration());
                 resultObj = result1.toJSONObjet();
             } catch (Exception e) {
-                resultObj.put("errorMessage", e.getMessage());
+                resultObj.put("data", e.getMessage());
             }
             if (!resultObj.getString("status").equals("RUNNING")) {
                 User user = (User) request.getSession().getAttribute("user");
@@ -197,7 +197,7 @@ public class QueryAction {
         String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfo);
         if (validEngineByEngineInfo == null) {
             resultObj.put("isSuccess", false);
-            resultObj.put("errorMessage", "get stream staus fail,no valid engine...");
+            resultObj.put("data", "get stream staus fail,no valid engine...");
             return resultObj;
         } else {
             String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
@@ -208,7 +208,7 @@ public class QueryAction {
                 String resultStr = Await.result(future, timeout.duration()).toString();
                 resultObj.put("data", resultStr);
             } catch (Exception e) {
-                resultObj.put("errorMessage", e.getMessage());
+                resultObj.put("data", e.getMessage());
                 resultObj.put("isSuccess", false);
             }
             return resultObj;
@@ -225,7 +225,7 @@ public class QueryAction {
         String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfo);
         if (validEngineByEngineInfo == null) {
             resultObj.put("isSuccess", false);
-            resultObj.put("errorMessage", "stop query fail,no valid engine...");
+            resultObj.put("data", "stop query fail,no valid engine...");
             return resultObj;
         } else {
             System.out.println("StopStreamJob:" + validEngineByEngineInfo);
@@ -236,7 +236,7 @@ public class QueryAction {
                 Future<Object> future = Patterns.ask(selection, new Bean.StopSreamJob(engineInfo + "_" + name + "_" + uid), timeout);
                 resultObj.put("isSuccess", Boolean.valueOf(Await.result(future, timeout.duration()).toString()));
             } catch (Exception e) {
-                resultObj.put("errorMessage", e.getMessage());
+                resultObj.put("data", e.getMessage());
                 resultObj.put("isSuccess", false);
             }
             return resultObj;
@@ -247,18 +247,25 @@ public class QueryAction {
      * 根据历史查询加载结果
      */
     @PostMapping(value = "/loadresult")
-    public JSONObject loadResult(String hdfsPath, String schema, String mode, Long id) {
+    public JSONObject loadResult(String hdfsPath, String schema, String dataType, Long id) {
         JSONObject resultObj = new JSONObject();
         try {
-            if (mode.equals("iql"))
+            if (dataType.equals("structuredData")){
                 resultObj.put("data", HdfsUtils.readFileToString(hdfsPath, env.getProperty("hdfs.uri")));
-            else resultObj.put("content", iqlExcutionRepository.findOne(id).getContent());
-            resultObj.put("schema", schema);
-            resultObj.put("isSuccess", true);
+                resultObj.put("schema", schema);
+                resultObj.put("isSuccess", true);
+            } else if(dataType.equals("errorData")){
+                resultObj.put("data", iqlExcutionRepository.findOne(id).getData());
+                resultObj.put("isSuccess", false);
+            }
+            else {
+                resultObj.put("data", iqlExcutionRepository.findOne(id).getData());
+                resultObj.put("isSuccess", true);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             resultObj.put("isSuccess", false);
-            resultObj.put("errorMessage", e.getMessage());
+            resultObj.put("data", e.getMessage());
         }
         return resultObj;
     }
@@ -275,7 +282,7 @@ public class QueryAction {
         String validEngineByEngineInfo = getValidEngineByEngineInfo(engineInfoAndGroupId.split("_")[0]);
         if (validEngineByEngineInfo == null) {
             resultObj.put("isSuccess", false);
-            resultObj.put("errorMessage", "stop query fail,no valid engine...");
+            resultObj.put("data", "stop query fail,no valid engine...");
             return resultObj;
         } else {
             System.out.println("StopQuery:" + validEngineByEngineInfo);
@@ -286,7 +293,7 @@ public class QueryAction {
                 Future<Object> future = Patterns.ask(selection, new Bean.CancelJob(Integer.valueOf(engineInfoAndGroupId.split("_")[1])), timeout);
                 resultObj.put("isSuccess", Boolean.valueOf(Await.result(future, timeout.duration()).toString()));
             } catch (Exception e) {
-                resultObj.put("errorMessage", e.getMessage());
+                resultObj.put("data", e.getMessage());
                 resultObj.put("isSuccess", false);
             }
             return resultObj;
