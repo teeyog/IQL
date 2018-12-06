@@ -15,18 +15,13 @@ class ExplainAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapt
         val stop = ctx.stop.getStopIndex
         val interval = new Interval(start, stop)
         val originalText = input.getText(interval)
-        var tableName = ""
 
         val chunks = originalText.replace(";", "").split("\\s+")
         chunks.length match {
             case 2 =>
                 scriptSQLExecListener.addResult("explainStr", sparkSession.table(chunks(1)).queryExecution.toString())
             case _ =>
-                val uuidTable = UUID.randomUUID().toString.replace("-", "")
-                scriptSQLExecListener.addResult("uuidTable", uuidTable)
-                sparkSession.sql(originalText).createOrReplaceTempView(uuidTable)
+                scriptSQLExecListener.addResult("explainStr", sparkSession.sql(chunks.tail.mkString(" ")).queryExecution.toString())
         }
-
-        if (chunks(chunks.length - 2).equals("as")) tableName = chunks.last.replace(";", "")
     }
 }
