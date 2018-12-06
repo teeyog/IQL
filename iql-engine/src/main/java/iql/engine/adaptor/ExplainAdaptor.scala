@@ -1,7 +1,5 @@
 package iql.engine.adaptor
 
-import java.util.UUID
-
 import iql.engine.IQLSQLExecListener
 import iql.engine.antlr.IQLLexer
 import iql.engine.antlr.IQLParser.SqlContext
