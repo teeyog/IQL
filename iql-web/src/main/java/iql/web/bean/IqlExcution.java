@@ -27,10 +27,10 @@ public class IqlExcution implements Serializable{
     private String hdfsPath;
     @Column(nullable = true,name = "user")
     private String user;
-    @Column(nullable = true,name = "error_message")
-    private String errorMessage;
-    @Column(nullable = true,name = "content")
-    private String content;
+    @Column(nullable = true,name = "data")
+    private String data;
+    @Column(nullable = true,name = "data_type")
+    private String dataType;
     @Column(nullable = true,name = "table_schema")
     private String schema;
     @Column(nullable = true,name = "variables")
@@ -39,7 +39,7 @@ public class IqlExcution implements Serializable{
     public IqlExcution() {
     }
 
-    public IqlExcution(String iql, String mode, Timestamp startTime, Long takeTime, Boolean success, String hdfsPath, String user, String errorMessage, String content, String schema, String variables) {
+    public IqlExcution(String iql, String mode, Timestamp startTime, Long takeTime, Boolean success, String hdfsPath, String user, String dataType, String data, String schema, String variables) {
         this.iql = iql;
         this.mode = mode;
         this.startTime = startTime;
@@ -47,18 +47,26 @@ public class IqlExcution implements Serializable{
         this.success = success;
         this.hdfsPath = hdfsPath;
         this.user = user;
-        this.errorMessage = errorMessage;
-        this.content = content;
+        this.dataType = dataType;
+        this.data = data;
         this.schema = schema;
         this.variables = variables;
     }
 
-    public String getContent() {
-        return content;
+    public String getDataType() {
+        return dataType;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
 
     public String getVariables() {
@@ -75,14 +83,6 @@ public class IqlExcution implements Serializable{
 
     public void setSchema(String schema) {
         this.schema = schema;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
     }
 
     public Long getId() {
@@ -159,6 +159,8 @@ public class IqlExcution implements Serializable{
         object.put("isSuccess",success);
         object.put("hdfsPath",hdfsPath);
         object.put("user",user);
+        object.put("data",data);
+        object.put("dataType",dataType);
         object.put("schema",schema);
         object.put("variables",variables);
         return object;

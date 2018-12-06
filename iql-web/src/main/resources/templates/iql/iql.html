@@ -519,7 +519,7 @@
                         loadActiveStreamJob();
                     } else {
                         $("#errorMessage").show();
-                        $("#errorMessage pre").html(data.errorMessage)
+                        $("#errorMessage pre").html(data.data)
                     }
                 })
             }
@@ -638,7 +638,7 @@
                 $.post("/loadresult", {
                     schema: row.schema,
                     hdfsPath: row.hdfsPath,
-                    mode: row.mode,
+                    dataType: row.dataType,
                     id: row.id
                 }, function (data) {
                     $("#execForm, .loading").toggle();
@@ -647,10 +647,10 @@
                     $("#results-list-table").bootstrapTable("destroy")
                     $("#downloadForm").hide();
                     if (data.isSuccess) {
-                        if (row.mode == "code") {
+                        if (row.dataType == "preData") {
                             $("#results-tab").tab("show");
                             $("#result-content").show();
-                            $("#result-content pre").html(data.content)
+                            $("#result-content pre").html(data.data)
                         } else {
                             hdfsPath = row.hdfsPath;
                             schema = row.schema;
@@ -659,7 +659,7 @@
                         }
                     } else {
                         $("#errorMessage").show();
-                        $("#errorMessage pre").html(data.errorMessage)
+                        $("#errorMessage pre").html(data.data)
                     }
                 })
             },
@@ -744,7 +744,7 @@
                     $("#execForm, .loading").toggle();
                     if (data.isSuccess) {
                         $("#results-list-table").bootstrapTable("destroy");
-                        if (data.mode=="code") {
+                        if (data.dataType=="preData") {
                             $("#results-tab").tab("show");
                             $("#result-content").show();
                             $("#result-content pre").html(data.data)
@@ -756,13 +756,13 @@
                         }
                     } else {
                         $("#errorMessage").show();
-                        $("#errorMessage pre").html(data.errorMessage)
+                        $("#errorMessage pre").html(data.data)
                     }
                 });
             } else {
                 $("#execForm, .loading").toggle();
                 $("#errorMessage").show();
-                $("#errorMessage pre").html(data.errorMessage)
+                $("#errorMessage pre").html(data.data)
             }
         })
     }
@@ -882,7 +882,7 @@
                     visible: false
                 },
                 {
-                    field: 'mode',
+                    field: 'dataType',
                     visible: false
                 },
                 {
