@@ -78,6 +78,9 @@ class IQLSQLExecListener(var _sparkSession: SparkSession, _iqlSession: IQLSessio
 
             case "refresh" =>
                 new RefreshAdaptor(this).parse(ctx)
+
+            case "explain" =>
+                new ExplainAdaptor(this).parse(ctx)
         }
     }
 

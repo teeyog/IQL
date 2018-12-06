@@ -152,16 +152,21 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     def parseSQL(input: String, listener: IQLSQLExecListener): Unit = {
         try {
             parse(input, listener)
+            iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
+            val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
+            iqlExcution.hdfsPath = hdfsPath
             if(listener.result().containsKey("uuidTable")){
                 val showTable = sparkSession.table(listener.getResult("uuidTable"))
                 iqlExcution.data = showTable.limit(500).toJSON.collect().mkString("[",",","]")
-                iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
-                val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
-                iqlExcution.hdfsPath = hdfsPath
                 iqlExcution.schema = showTable.schema.fields.map(_.name).mkString(",")
                 iqlExcution.status = JobStatus.FINISH
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
                 showTable.select(showTable.columns.map(col(_).cast("String")):_*).write.json(hdfsPath)
+            } else if(listener.result().containsKey("explainStr")){
+                iqlExcution.data = listener.getResult("explainStr")
+                iqlExcution.dataType = "preData"
+                iqlExcution.status = JobStatus.FINISH
+                iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             }
         } catch {
             case e: Exception =>
@@ -169,7 +174,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 iqlExcution.success = false
                 val out = new ByteArrayOutputStream()
                 e.printStackTrace(new PrintStream(out))
-                iqlExcution.errorMessage = new String(out.toByteArray)
+                iqlExcution.data = new String(out.toByteArray)
+                iqlExcution.dataType = "errorData"
                 out.close()
         }
         iqlExcution.status = JobStatus.FINISH
@@ -185,7 +191,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
             case e: Exception =>
                 val out = new ByteArrayOutputStream()
                 e.printStackTrace(new PrintStream(out))
-                iqlExcution.errorMessage = new String(out.toByteArray)
+                iqlExcution.data = new String(out.toByteArray)
+                iqlExcution.dataType = "errorData"
                 sender() ! iqlExcution
         }
         ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
@@ -249,15 +256,18 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 iqlExcution.takeTime = take
                 iqlExcution.success = true
                 iqlExcution.data = e.content.values.values.mkString("\n")
+                iqlExcution.dataType = "preData"
                 iqlExcution.status = JobStatus.FINISH
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteError =>
                 iqlExcution.status = JobStatus.FINISH
-                iqlExcution.errorMessage = e.evalue
+                iqlExcution.data = e.evalue
+                iqlExcution.dataType = "errorData"
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteAborted =>
                 iqlExcution.status = JobStatus.FINISH
-                iqlExcution.errorMessage = e.message
+                iqlExcution.data = e.message
+                iqlExcution.dataType = "errorData"
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case _ =>
         }
