@@ -14,8 +14,8 @@ object Bean {
                            var success: Boolean = true,
                            var hdfsPath: String = "",
                            var user: String = "",
-                           var errorMessage: String = "",
                            var data: String = "",
+                           var dataType: String = "structuredData",
                            var schema: String = "",
                            var variables: String = "[]",
                            var status: String = JobStatus.RUNNING,
@@ -29,8 +29,8 @@ object Bean {
             obj.put("isSuccess",success)
             obj.put("hdfsPath",hdfsPath)
             obj.put("user",user)
-            obj.put("errorMessage",errorMessage)
             obj.put("data",data)
+            obj.put("dataType",dataType)
             obj.put("schema",schema)
             obj.put("variables",variables)
             obj.put("status",status)
