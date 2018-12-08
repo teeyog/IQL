@@ -22,6 +22,7 @@ sql
     | ('show'|'SHOW') ~(';')*
     | ('describe'|'DESCRIBE') ~(';')*
     | ('import'|'IMPORT'|'include'|'INCLUDE') ~(';')*
+    | ('explain'|'EXPLAIN') ~(';')*
     |  SIMPLE_COMMENT
     ;
 
