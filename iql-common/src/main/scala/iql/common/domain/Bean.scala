@@ -1,9 +1,7 @@
 package iql.common.domain
 
 import java.sql.Timestamp
-
-import com.alibaba.fastjson.JSONObject
-
+import iql.common.utils.ObjGenerator
 
 object Bean {
 
@@ -15,27 +13,16 @@ object Bean {
                            var hdfsPath: String = "",
                            var user: String = "",
                            var data: String = "",
-                           var dataType: String = "structuredData",
+                           var dataType: String = ResultDataType.STRUCTURED_DATA,
                            var schema: String = "",
                            var variables: String = "[]",
                            var status: String = JobStatus.RUNNING,
                            var engineInfoAndGroupId: String = ""){
         def toJSONObjet = {
-            val obj = new JSONObject()
-            obj.put("iql",iql)
-            obj.put("mode",mode)
-            obj.put("startTime",startTime)
-            obj.put("takeTime",takeTime)
-            obj.put("isSuccess",success)
-            obj.put("hdfsPath",hdfsPath)
-            obj.put("user",user)
-            obj.put("data",data)
-            obj.put("dataType",dataType)
-            obj.put("schema",schema)
-            obj.put("variables",variables)
-            obj.put("status",status)
-            obj.put("engineInfoAndGroupId",engineInfoAndGroupId)
-            obj
+            ObjGenerator.newJSON(Seq(("iql",iql),("mode",mode),("startTime",startTime),("takeTime",takeTime),
+                ("isSuccess",success),("hdfsPath",hdfsPath),("user",user),("data",data),("dataType",dataType),
+                ("schema",schema),("variables",variables),("status",status),("engineInfoAndGroupId",engineInfoAndGroupId)
+            ):_*)
         }
     }
 
@@ -77,5 +64,11 @@ object JobStatus {
 object SQLMode {
     val IQL = "iql"
     val CODE = "code"
+}
+
+object ResultDataType {
+    val ERROR_DATA = "errorData"
+    val PRE_DATA = "preData"
+    val STRUCTURED_DATA = "structuredData"
 }
 

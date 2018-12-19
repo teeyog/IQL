@@ -7,7 +7,7 @@ import akka.actor.{Actor, Props}
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import iql.common.Logging
 import iql.common.domain.Bean._
-import iql.common.domain.{JobStatus, SQLMode}
+import iql.common.domain.{JobStatus, ResultDataType, SQLMode}
 import iql.common.utils.{ObjGenerator, ZkUtils}
 import iql.engine.antlr.{IQLBaseListener, IQLLexer, IQLParser}
 import iql.engine.main.IqlMain
@@ -123,11 +123,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 case (array, stream) =>
                     stream.split("_") match {
                         case Array(engineInfo, name, uid) =>
-                            val obj = new JSONObject()
-                            obj.put("engineInfo", engineInfo)
-                            obj.put("name", name)
-                            obj.put("uid", uid)
-                            array.add(obj)
+                            array.add(ObjGenerator.newJSON(Seq(("engineInfo", engineInfo),("name", name),("uid", uid)):_*))
                     }
                     array
             }.toJSONString
@@ -164,7 +160,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 showTable.select(showTable.columns.map(col(_).cast("String")):_*).write.json(hdfsPath)
             } else if(listener.result().containsKey("explainStr")){
                 iqlExcution.data = listener.getResult("explainStr")
-                iqlExcution.dataType = "preData"
+                iqlExcution.dataType = ResultDataType.PRE_DATA
                 iqlExcution.status = JobStatus.FINISH
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             }
@@ -175,7 +171,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 val out = new ByteArrayOutputStream()
                 e.printStackTrace(new PrintStream(out))
                 iqlExcution.data = new String(out.toByteArray)
-                iqlExcution.dataType = "errorData"
+                iqlExcution.dataType = ResultDataType.ERROR_DATA
                 out.close()
         }
         iqlExcution.status = JobStatus.FINISH
@@ -192,7 +188,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 val out = new ByteArrayOutputStream()
                 e.printStackTrace(new PrintStream(out))
                 iqlExcution.data = new String(out.toByteArray)
-                iqlExcution.dataType = "errorData"
+                iqlExcution.dataType = ResultDataType.ERROR_DATA
                 sender() ! iqlExcution
         }
         ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
@@ -205,27 +201,15 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
             num += 1
             val dbId = num
-            val dbObj = new JSONObject()
-            dbObj.put("id", dbId)
-            dbObj.put("name", db)
-            dbObj.put("pId", 0)
-            hiveArray.add(dbObj)
+            hiveArray.add(ObjGenerator.newJSON(Seq(("id", dbId),("name", db),("pId", 0)):_*))
             SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
                 num += 1
                 val tbId = num
-                val tbObj = new JSONObject()
-                tbObj.put("id", tbId)
-                tbObj.put("pId", dbId)
-                tbObj.put("name", tb)
-                hiveArray.add(tbObj)
+                hiveArray.add(ObjGenerator.newJSON(Seq(("id", tbId),("pId", dbId),("name", tb)):_*))
                 SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
                     num += 1
                     val fieldId = num
-                    val fieldObj = new JSONObject()
-                    fieldObj.put("id", fieldId)
-                    fieldObj.put("pId", tbId)
-                    fieldObj.put("name", f.name + "(" + f.dataType.typeName + ")")
-                    hiveArray.add(fieldObj)
+                    hiveArray.add(ObjGenerator.newJSON(Seq(("id", fieldId),("pId", tbId),("name", f.name + "(" + f.dataType.typeName + ")")):_*))
                 }
                 )
             })
@@ -255,20 +239,20 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 val take = (System.currentTimeMillis() - iqlExcution.startTime.getTime) / 1000
                 iqlExcution.takeTime = take
                 iqlExcution.data = e.content.values.values.mkString("\n")
-                iqlExcution.dataType = "preData"
+                iqlExcution.dataType = ResultDataType.PRE_DATA
                 iqlExcution.status = JobStatus.FINISH
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteError =>
                 iqlExcution.status = JobStatus.FINISH
                 iqlExcution.data = e.evalue
                 iqlExcution.success = false
-                iqlExcution.dataType = "errorData"
+                iqlExcution.dataType = ResultDataType.ERROR_DATA
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteAborted =>
                 iqlExcution.status = JobStatus.FINISH
                 iqlExcution.data = e.message
                 iqlExcution.success = false
-                iqlExcution.dataType = "errorData"
+                iqlExcution.dataType = ResultDataType.ERROR_DATA
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case _ =>
         }
