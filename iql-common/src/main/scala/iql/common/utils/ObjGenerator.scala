@@ -1,6 +1,7 @@
 package iql.common.utils
 
 import java.util
+import java.util.Properties
 
 import com.alibaba.fastjson.JSONObject
 
@@ -28,6 +29,18 @@ object ObjGenerator {
         tuples.foldLeft(new util.HashMap[String, String]()) {
             case (map, (k, v)) => map.put(k, v)
                 map
+        }
+    }
+
+    /**
+      * PerpertiesGenerator
+      * @param tuples
+      * @return
+      */
+    def newProperties(tuples: (String, String)*) = {
+        tuples.foldLeft(new Properties()) {
+            case (props, (k, v)) => props.put(k, v)
+                props
         }
     }
 }
