@@ -254,7 +254,6 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
             case e: ExecuteSuccess =>
                 val take = (System.currentTimeMillis() - iqlExcution.startTime.getTime) / 1000
                 iqlExcution.takeTime = take
-                iqlExcution.success = true
                 iqlExcution.data = e.content.values.values.mkString("\n")
                 iqlExcution.dataType = "preData"
                 iqlExcution.status = JobStatus.FINISH
@@ -262,11 +261,13 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
             case e: ExecuteError =>
                 iqlExcution.status = JobStatus.FINISH
                 iqlExcution.data = e.evalue
+                iqlExcution.success = false
                 iqlExcution.dataType = "errorData"
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case e: ExecuteAborted =>
                 iqlExcution.status = JobStatus.FINISH
                 iqlExcution.data = e.message
+                iqlExcution.success = false
                 iqlExcution.dataType = "errorData"
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
             case _ =>
