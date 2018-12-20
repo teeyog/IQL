@@ -112,7 +112,6 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
   }
 }
 
-
 class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
                         var option: Map[String, String],
                         var oldDF: DataFrame,
@@ -154,7 +153,11 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
       .options(option - "mode" - "duration")
 
     option.get("streamName") match {
-      case Some(name) => writer.queryName(name)
+      case Some(name) =>
+        writer.queryName(name)
+        if(option.contains("mail.receiver")){
+          scriptSQLExecListener.iqlSession.streamJobWithMailReceiver.put(name,option("mail.receiver"))
+        }
       case None =>
     }
     val query = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
