@@ -13,7 +13,7 @@ object ObjGenerator {
       * @param tuples
       * @return
       */
-    def newJSON(tuples: (String, Object)*) = {
+    def newJSON(tuples: (String, Any)*) = {
         tuples.foldLeft(new JSONObject()) {
             case (obj, (k, v)) => obj.put(k, v)
                 obj
