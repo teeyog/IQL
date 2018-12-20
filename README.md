@@ -111,6 +111,7 @@ where maxRatePerPartition="200"
 | ------------- |:-------------:|:-------------:|
 | spark.job.mode | 任务模式（batch:离线任务，stream:实时任务）| batch |
 | mail.receiver | 任务失败邮件通知（多个邮箱逗号分隔）| 无 |
+| sendDingDingOnTerminated | 钉钉Robot通知 | false |
 
 ### 动态注册UDF函数
 ```
