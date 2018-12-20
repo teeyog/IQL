@@ -62,6 +62,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.mongodb.spark</groupId>
+            <artifactId>mongo-spark-connector_2.11</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.databricks</groupId>
             <artifactId>spark-xml_2.11</artifactId>
         </dependency>

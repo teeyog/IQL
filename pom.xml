@@ -106,6 +106,12 @@
                 <scope>${i4scope}</scope>
             </dependency>
             <dependency>
+                <groupId>org.mongodb.spark</groupId>
+                <artifactId>mongo-spark-connector_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${i4scope}</scope>
+            </dependency>
+            <dependency>
                 <groupId>com.databricks</groupId>
                 <artifactId>spark-xml_2.11</artifactId>
                 <version>0.4.1</version>

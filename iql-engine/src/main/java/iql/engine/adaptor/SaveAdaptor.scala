@@ -87,6 +87,8 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
           .format(format).save(final_path) //写
       case "es" =>
         writer.save(final_path)
+      case "mongo" =>
+        writer.format("com.mongodb.spark.sql").save()
       case "hive" =>
         oldDF.coalesce(numPartition).write.format(option.getOrElse("file_format", "parquet")).mode(mode).options(option)
           .insertInto(final_path)

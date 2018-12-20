@@ -1,5 +1,6 @@
 package iql.engine.adaptor
 
+import iql.common.Logging
 import iql.engine.IQLSQLExecListener
 import iql.engine.antlr.IQLParser._
 import iql.engine.utils.PropsUtils
@@ -54,6 +55,16 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
           .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
         table = reader.format("jdbc").load()
 
+//      case "jdbc2" =>
+//        reader
+//            .option("dbtable", path)
+//            .option("driver", option.getOrElse("driver", PropsUtils.get("jdbc.driver")))
+//            .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
+//        table = reader.format("org.apache.spark.sql.execution.datasources.jdbc2").load()
+
+      case "mongo" =>
+        table = reader.format("com.mongodb.spark.sql").load()
+
       case "es" | "org.elasticsearch.spark.sql" =>
         table = reader.format("org.elasticsearch.spark.sql").load(path)
 
@@ -105,18 +116,11 @@ class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
                         path: String,
                         tableName: String,
                         format: String
-                       ) {
-
-  def withWaterMark(table: DataFrame, option: Map[String, String]) = {
-    if (option.contains("eventTimeCol")) {
-      table.withWatermark(option("eventTimeCol"), option("delayThreshold"))
-    } else {
-      table
-    }
-  }
+                       ) extends Logging{
+  private val spark: SparkSession = scriptSQLExecListener.sparkSession
   def parse = {
     var table: DataFrame = null
-    val reader = scriptSQLExecListener.sparkSession.readStream
+    val reader = spark.readStream
     format match {
       case "kafka" =>
         reader.option("kafka.bootstrap.servers", option.getOrElse("kafka.bootstrap.servers", PropsUtils.get("kafka.metadata.broker.list")))
@@ -125,7 +129,6 @@ class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
             .selectExpr("CAST(key AS STRING)","CAST(value AS STRING)","topic","partition","offset","timestamp","timestampType")
       case _ =>
     }
-    table = withWaterMark(table, option)
     table.createOrReplaceTempView(tableName)
   }
 }
