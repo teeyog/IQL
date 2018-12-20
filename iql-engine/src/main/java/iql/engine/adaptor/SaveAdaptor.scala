@@ -158,6 +158,9 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
         if(option.contains("mail.receiver")){
           scriptSQLExecListener.iqlSession.streamJobWithMailReceiver.put(name,option("mail.receiver"))
         }
+        if(option.contains("sendDingDingOnTerminated") && option("sendDingDingOnTerminated").toBoolean){
+          scriptSQLExecListener.iqlSession.streamJobWithDingDingReceiver += name
+        }
       case None =>
     }
     val query = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()

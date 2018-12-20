@@ -20,6 +20,7 @@ class IQLSession(_engineInfo:String) {
 
   // 实时任务对应的邮件receiver
   val streamJobWithMailReceiver = new ConcurrentHashMap[String, String]()
+  var streamJobWithDingDingReceiver:Set[String] = Set()
 
   private val lock = new ReentrantLock()
   private val condition = lock.newCondition()

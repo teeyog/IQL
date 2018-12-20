@@ -25,6 +25,8 @@ import iql.engine.auth.{DataAuth, IQLAuthListener}
 import iql.engine.config._
 import iql.spark.listener.IQLStreamingQueryListener
 import org.I0Itec.zkclient.ZkClient
+import org.apache.http.client.fluent.Request
+import org.apache.http.entity.ContentType
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.streaming.StreamingQueryListener
 
@@ -152,15 +154,35 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         val props = ObjGenerator.newProperties(Seq(("mail.smtp.auth", PropsUtils.get("mail.smtp.auth")), ("mail.smtp.host", PropsUtils.get("mail.smtp.host")),
             ("mail.smtp.port", PropsUtils.get("mail.smtp.port")), ("mail.user", PropsUtils.get("mail.user")), ("mail.password", PropsUtils.get("mail.password"))): _*)
         val handleFunc = (start: StreamingQueryListener.QueryStartedEvent, end: StreamingQueryListener.QueryTerminatedEvent) => {
+            val receiver = iqlSession.streamJobWithMailReceiver.get(start.name)
             try {
-                val receiver = iqlSession.streamJobWithMailReceiver.get(start.name)
                 if(null != receiver){
-                    MailUtils.sendMail(props, Array(receiver, "IQL大数据任务告警", s"实时任务：${start.name}(${start.id}) 执行失败...\n ${end.exception.getOrElse("")}"))
-                    iqlSession.streamJobWithMailReceiver.remove(start.name)
+                    MailUtils.sendMail(props, Array(receiver, "IQL任务告警", s"实时任务：${start.name}(${start.id}) 执行失败...\n ${end.exception.getOrElse("")}"))
                 }
             } catch {
-                case e: Exception => error("发送邮件失败" + e)
+                case e: Exception => error("发送邮件失败...\n" + e)
+            }finally {
+                iqlSession.streamJobWithMailReceiver.remove(start.name)
             }
+           if(iqlSession.streamJobWithDingDingReceiver.contains(start.name)){
+               try {
+                   Request.Post(s"https://oapi.dingtalk.com/robot/send?access_token=${PropsUtils.get("access_token")}")
+                       .bodyString(
+                           s"""
+                              |{
+                              |     "msgtype": "markdown",
+                              |     "markdown": {"title":"IQL任务告警",
+                              |     "text":"### IQL任务告警  \n > 实时任务：${start.name}（${start.id}）执行失败...\n ${end.exception.getOrElse("")}"
+                              |     }
+                              | }
+                        """.stripMargin, ContentType.APPLICATION_JSON)
+                       .execute().returnContent().asString()
+               } catch {
+                   case e:Exception => error("发送钉钉失败...\n" + e)
+               }finally {
+                   iqlSession.streamJobWithDingDingReceiver -= start.name
+               }
+           }
         }
         sparkSession.streams.addListener(new IQLStreamingQueryListener(handleFunc))
     }
