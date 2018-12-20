@@ -107,6 +107,11 @@ where maxRatePerPartition="200"
 	and `group.id`="consumerGroupId"
 ```
 
+| 参数 | 说明 | 默认值 | 
+| ------------- |:-------------:|:-------------:|
+| spark.job.mode | 任务模式（batch:离线任务，stream:实时任务）| batch |
+| mail.receiver | 任务失败邮件通知（多个邮箱逗号分隔）| 无 |
+
 ### 动态注册UDF函数
 ```
 register udf.`myupper`
