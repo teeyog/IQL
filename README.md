@@ -101,10 +101,42 @@ save tb as formate.`path` partitionBy uid coalesce 2;
 
 ### Kafka
 
+- 离线
  ```
 load kafka.`topicName`
 where maxRatePerPartition="200"
 	and `group.id`="consumerGroupId"
+as tb;
+select * from tb;
+```
+| 参数 | 说明 | 默认值 | 
+| ------------- |:-------------:|:-------------:|
+| autoCommitOffset | 是否提交offset | false | 
+- 实时
+```
+load kafka.`mc-monitor` 
+where startingoffsets="latest"
+	and failOnDataLoss="false"
+	and `spark.job.mode`="stream" 
+as tb1;
+
+register watermark.tb1
+where eventTimeCol="timestamp"
+and delayThreshold="10 seconds"
+
+select window.end as time_end,
+count(1) as count
+from tb1 a  
+group by  window(a.timestamp,"10 seconds","10 seconds")
+as tb2;
+
+save tb2 as json.`/tmp/abc6` 
+where outputMode="Append"
+	and streamName="Stream"
+	and duration="10"
+	and sendDingDingOnTerminated="true"
+	and `mail.receiver`="3146635263@qq.com"
+	and checkpointLocation="/tmp/cp/cp16";
 ```
 
 | 参数 | 说明 | 默认值 | 
