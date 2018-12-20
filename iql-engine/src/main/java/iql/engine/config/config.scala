@@ -17,10 +17,15 @@ package object config {
 		.booleanConf
 		.createWithDefault(false)
 
-	val IQL_PARALLELISM = ConfigBuilder("iql.parallelism ")
+	val IQL_PARALLELISM = ConfigBuilder("iql.parallelism")
 		.doc("iql并行度")
 		.intConf
 		.createWithDefault(3)
+
+	val MAIL_ENABLE = ConfigBuilder("mail.enable")
+		.doc("是否启用邮件通知")
+		.booleanConf
+		.createWithDefault(true)
 
 
 }
