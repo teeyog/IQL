@@ -18,6 +18,8 @@ class IQLSession(_engineInfo:String) {
   // 保存stream任务engineInfo和StreamingQuery的映射（查看某个stream的状态或者stop某个stream）
   val streamJob = new ConcurrentHashMap[String, StreamingQuery]().asScala
 
+  // 实时任务对应的邮件receiver
+  val streamJobWithMailReceiver = new ConcurrentHashMap[String, String]()
 
   private val lock = new ReentrantLock()
   private val condition = lock.newCondition()

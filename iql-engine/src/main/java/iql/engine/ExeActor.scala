@@ -8,7 +8,7 @@ import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import iql.common.Logging
 import iql.common.domain.Bean._
 import iql.common.domain.{JobStatus, ResultDataType, SQLMode}
-import iql.common.utils.{ObjGenerator, ZkUtils}
+import iql.common.utils.{MailUtils, ObjGenerator, ZkUtils}
 import iql.engine.antlr.{IQLBaseListener, IQLLexer, IQLParser}
 import iql.engine.main.IqlMain
 import iql.engine.main.IqlMain.{warn, _}
@@ -23,8 +23,10 @@ import org.apache.spark.sql.bridge.SparkBridge
 import iql.engine.ExeActor._
 import iql.engine.auth.{DataAuth, IQLAuthListener}
 import iql.engine.config._
+import iql.spark.listener.IQLStreamingQueryListener
 import org.I0Itec.zkclient.ZkClient
 import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.streaming.StreamingQueryListener
 
 
 class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: SparkConf) extends Actor with Logging {
@@ -37,12 +39,14 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     val initHiveCatalog = conf.getBoolean(INIT_HIVE_CATALOG.key, INIT_HIVE_CATALOG.defaultValue.get)
     val autoComplete = conf.getBoolean(HIVE_CATALOG_AUTO_COMPLETE.key, HIVE_CATALOG_AUTO_COMPLETE.defaultValue.get)
     val authEnable = conf.getBoolean(IQL_AUTH_ENABLE.key, IQL_AUTH_ENABLE.defaultValue.get)
+    val mailEnable = conf.getBoolean(MAIL_ENABLE.key, MAIL_ENABLE.defaultValue.get)
 
     override def preStart(): Unit = {
         warn("Actor Start ...")
         zkClient = ZkUtils.getZkClient(PropsUtils.get("zkServers"))
         interpreter = _interpreter
         sparkSession = IqlMain.createSpark(conf).newSession()
+        if (mailEnable)  addListener
         registerUDF("iql.engine.utils.SparkUDF") //注册常用UDF
         ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
     }
@@ -76,7 +80,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 sender() ! iqlExcution
 
                 mode match {
-                    case SQLMode.IQL=>
+                    case SQLMode.IQL =>
                         val execListener = new IQLSQLExecListener(sparkSession, iqlSession)
                         execListener.addAuthListener(if (authEnable) {
                             Some(new IQLAuthListener(sparkSession))
@@ -123,7 +127,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 case (array, stream) =>
                     stream.split("_") match {
                         case Array(engineInfo, name, uid) =>
-                            array.add(ObjGenerator.newJSON(Seq(("engineInfo", engineInfo),("name", name),("uid", uid)):_*))
+                            array.add(ObjGenerator.newJSON(Seq(("engineInfo", engineInfo), ("name", name), ("uid", uid)): _*))
                     }
                     array
             }.toJSONString
@@ -144,6 +148,23 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         case _ => None
     }
 
+    def addListener = {
+        val props = ObjGenerator.newProperties(Seq(("mail.smtp.auth", PropsUtils.get("mail.smtp.auth")), ("mail.smtp.host", PropsUtils.get("mail.smtp.host")),
+            ("mail.smtp.port", PropsUtils.get("mail.smtp.port")), ("mail.user", PropsUtils.get("mail.user")), ("mail.password", PropsUtils.get("mail.password"))): _*)
+        val handleFunc = (start: StreamingQueryListener.QueryStartedEvent, end: StreamingQueryListener.QueryTerminatedEvent) => {
+            try {
+                val receiver = iqlSession.streamJobWithMailReceiver.get(start.name)
+                if(null != receiver){
+                    MailUtils.sendMail(props, Array(receiver, "IQL大数据任务告警", s"实时任务：${start.name}(${start.id}) 执行失败...\n ${end.exception.getOrElse("")}"))
+                    iqlSession.streamJobWithMailReceiver.remove(start.name)
+                }
+            } catch {
+                case e: Exception => error("发送邮件失败" + e)
+            }
+        }
+        sparkSession.streams.addListener(new IQLStreamingQueryListener(handleFunc))
+    }
+
     // antlr4解析SQL语句
     def parseSQL(input: String, listener: IQLSQLExecListener): Unit = {
         try {
@@ -151,14 +172,14 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
             iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
             val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
             iqlExcution.hdfsPath = hdfsPath
-            if(listener.result().containsKey("uuidTable")){
+            if (listener.result().containsKey("uuidTable")) {
                 val showTable = sparkSession.table(listener.getResult("uuidTable"))
-                iqlExcution.data = showTable.limit(500).toJSON.collect().mkString("[",",","]")
+                iqlExcution.data = showTable.limit(500).toJSON.collect().mkString("[", ",", "]")
                 iqlExcution.schema = showTable.schema.fields.map(_.name).mkString(",")
                 iqlExcution.status = JobStatus.FINISH
                 iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
-                showTable.select(showTable.columns.map(col(_).cast("String")):_*).write.json(hdfsPath)
-            } else if(listener.result().containsKey("explainStr")){
+                showTable.select(showTable.columns.map(col(_).cast("String")): _*).write.json(hdfsPath)
+            } else if (listener.result().containsKey("explainStr")) {
                 iqlExcution.data = listener.getResult("explainStr")
                 iqlExcution.dataType = ResultDataType.PRE_DATA
                 iqlExcution.status = JobStatus.FINISH
@@ -201,15 +222,15 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
             num += 1
             val dbId = num
-            hiveArray.add(ObjGenerator.newJSON(Seq(("id", dbId),("name", db),("pId", 0)):_*))
+            hiveArray.add(ObjGenerator.newJSON(Seq(("id", dbId), ("name", db), ("pId", 0)): _*))
             SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
                 num += 1
                 val tbId = num
-                hiveArray.add(ObjGenerator.newJSON(Seq(("id", tbId),("pId", dbId),("name", tb)):_*))
+                hiveArray.add(ObjGenerator.newJSON(Seq(("id", tbId), ("pId", dbId), ("name", tb)): _*))
                 SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
                     num += 1
                     val fieldId = num
-                    hiveArray.add(ObjGenerator.newJSON(Seq(("id", fieldId),("pId", tbId),("name", f.name + "(" + f.dataType.typeName + ")")):_*))
+                    hiveArray.add(ObjGenerator.newJSON(Seq(("id", fieldId), ("pId", tbId), ("name", f.name + "(" + f.dataType.typeName + ")")): _*))
                 }
                 )
             })
@@ -295,7 +316,7 @@ object ExeActor {
             checkAuth(input, execListener.authListener())
             execListener.authListener().foreach(listener => {
                 val authResults = DataAuth.auth(listener.tables().tables.toList).filter(!_.granted)
-                if(authResults.nonEmpty){
+                if (authResults.nonEmpty) {
                     throw new Exception(authResults.map(_.msg).mkString("\n"))
                 }
             })
@@ -304,13 +325,13 @@ object ExeActor {
     }
 
     /**
-      *  get hive tables
+      * get hive tables
       */
-    def hiveTables(spark:SparkSession) = {
+    def hiveTables(spark: SparkSession) = {
         val tableArray = new JSONArray()
         SparkBridge.getHiveCatalg(spark).client.listDatabases("*").foreach(db => {
             SparkBridge.getHiveCatalg(spark).client.listTables(db).foreach(tb => {
-                tableArray.add(ObjGenerator.newJSON(Seq(("type","hive"),("db",db),("table",tb)):_*))
+                tableArray.add(ObjGenerator.newJSON(Seq(("type", "hive"), ("db", db), ("table", tb)): _*))
             })
         })
         tableArray.toJSONString
