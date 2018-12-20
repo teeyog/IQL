@@ -18,9 +18,9 @@ class SelectAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapto
     var tableName = ""
 
     val chunks = originalText.split("\\s+")
-    if(chunks(chunks.length - 2).equals("as")) tableName = chunks.last.replace(";", "")
+    if(chunks(chunks.length - 2).equals("as")) tableName = chunks.last.replace(";", "").trim
     val sql = originalText.replaceAll(s"as[\\s|\\n]+${tableName}", "")
-    if(tableName.equals("")){
+    if(tableName.equals("") || tableName.endsWith(")")){
       val uuidTable = UUID.randomUUID().toString.replace("-","")
       scriptSQLExecListener.addResult("uuidTable", uuidTable)
       sparkSession.sql(originalText).createOrReplaceTempView(uuidTable)
