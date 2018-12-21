@@ -46,6 +46,7 @@ as tb;
 | hbase.table.schema| HBase表对应schema（eg: ":rowkey,info:appname,info:age"）| 无 |
 |spark.rowkey.view.name| rowkey对应的dataframe创建的temp view名 ，设置了该值后只获取rowkey对应的数据  |  无 |
 
+> 可获取指定rowkey集合对应的数据，spark.rowkey.view.name 即是rowkey集合对应的tempview，默认获取第一列为rowkey列
 
 #### 保存数据
 
