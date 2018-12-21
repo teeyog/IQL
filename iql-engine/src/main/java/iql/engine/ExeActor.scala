@@ -72,7 +72,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                     rIql = rIql.replace("${" + nObject.getString("name") + "}", nObject.getString("value"))
                 }
                 schedulerMode = !schedulerMode //切换调度池
-                sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool", if (schedulerMode) "pool_fair_1" else "pool_fair_2")
+                sparkSession.sparkContext.setLocalProperty("spark.scheduler.pool",
+                    if (schedulerMode) "pool_fair_1" else "pool_fair_2")
                 iqlExcution = IQLExcution(iql = iql, variables = variables)
                 //为当前iql设置groupId
                 val groupId = BatchSQLRunnerEngine.getGroupId
@@ -155,19 +156,24 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     }
 
     def addListener = {
-        val props = ObjGenerator.newProperties(Seq(("mail.smtp.auth", PropsUtils.get("mail.smtp.auth")), ("mail.smtp.host", PropsUtils.get("mail.smtp.host")),
-            ("mail.smtp.port", PropsUtils.get("mail.smtp.port")), ("mail.user", PropsUtils.get("mail.user")), ("mail.password", PropsUtils.get("mail.password"))): _*)
-        val handleFunc = (start: StreamingQueryListener.QueryStartedEvent, end: StreamingQueryListener.QueryTerminatedEvent) => {
+        val props = ObjGenerator.newProperties(Seq(("mail.smtp.auth", PropsUtils.get("mail.smtp.auth")),
+            ("mail.smtp.host", PropsUtils.get("mail.smtp.host")), ("mail.smtp.port", PropsUtils.get("mail.smtp.port")),
+            ("mail.user", PropsUtils.get("mail.user")), ("mail.password", PropsUtils.get("mail.password"))): _*)
+        val handleFunc = (start: StreamingQueryListener.QueryStartedEvent,
+                          end: StreamingQueryListener.QueryTerminatedEvent) => {
             val streamName = start.name
-            val otherMsg = if (iqlSession.streamJobMaxAttempts.containsKey(streamName) && iqlSession.streamJobMaxAttempts.get(streamName) > 0) {
-                val restTimes = streamJobMaxAttempts - iqlSession.streamJobMaxAttempts.get(streamName) + 1
-                if (restTimes <= streamJobMaxAttempts) Some(s"""正在尝试第${restTimes}次重启""")
-                else None
-            } else None
+            val otherMsg =
+                if (iqlSession.streamJobMaxAttempts.containsKey(streamName)
+                    && iqlSession.streamJobMaxAttempts.get(streamName) > 0) {
+                    val restTimes = streamJobMaxAttempts - iqlSession.streamJobMaxAttempts.get(streamName) + 1
+                    if (restTimes <= streamJobMaxAttempts) Some(s"""正在尝试第${restTimes}次重启""")
+                    else None
+                } else None
             val receiver = iqlSession.streamJobWithMailReceiver.get(streamName)
             try {
                 if (null != receiver) {
-                    MailUtils.sendMail(props, Array(receiver, "IQL任务告警", s"实时任务：$streamName(${start.id}) 执行失败...\n${otherMsg.getOrElse("")}\n ${end.exception.getOrElse("")}"))
+                    MailUtils.sendMail(props, Array(receiver, "IQL任务告警",
+                        s"实时任务：$streamName(${start.id}) 执行失败...\n${otherMsg.getOrElse("")}\n ${end.exception.getOrElse("")}"))
                 }
             } catch {
                 case e: Exception => error("发送邮件失败...\n" + e)
@@ -180,7 +186,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                                |{
                                |     "msgtype": "markdown",
                                |     "markdown": {"title":"IQL任务告警",
-                               |     "text":"### IQL任务告警  \n > 实时任务：$streamName（${start.id}）执行失败...\n${otherMsg.getOrElse("")}\n ${end.exception.getOrElse("")}"
+                               |     "text":"### IQL任务告警  \n > 实时任务：$streamName（${start.id}）执行失败...\n
+                               |     ${otherMsg.getOrElse("")}\n ${end.exception.getOrElse("")}"
                                |     }
                                | }
                         """.stripMargin, ContentType.APPLICATION_JSON)
