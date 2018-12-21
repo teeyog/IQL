@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import iql.engine.IQLSQLExecListener
 import iql.engine.antlr.IQLParser._
+import iql.engine.config.STREAMJOB_MAXATTRPTS
 import iql.engine.utils.PropsUtils
 import org.apache.spark.sql._
 import org.apache.spark.sql.streaming.{DataStreamWriter, Trigger}
@@ -157,15 +158,22 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
     option.get("streamName") match {
       case Some(name) =>
         writer.queryName(name)
-        if(option.contains("mail.receiver")){
-          scriptSQLExecListener.iqlSession.streamJobWithMailReceiver.put(name,option("mail.receiver"))
-        }
-        if(option.contains("sendDingDingOnTerminated") && option("sendDingDingOnTerminated").toBoolean){
-          scriptSQLExecListener.iqlSession.streamJobWithDingDingReceiver += name
-        }
       case None =>
     }
-    val query = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS)).start()
-    scriptSQLExecListener.iqlSession.streamJob.put(scriptSQLExecListener.iqlSession.engineInfo + "_" + query.name + "_" + query.id, query)
+    val queryDF = writer.trigger(Trigger.ProcessingTime(option("duration").toInt, TimeUnit.SECONDS))
+    val query = queryDF.start()
+
+    if(option.contains("mail.receiver")){
+      scriptSQLExecListener.iqlSession.streamJobWithMailReceiver.put(query.name,option("mail.receiver"))
+    }
+    if(option.contains("sendDingDingOnTerminated") && option("sendDingDingOnTerminated").toBoolean){
+      scriptSQLExecListener.iqlSession.streamJobWithDingDingReceiver += query.name
+    }
+    if(!scriptSQLExecListener.iqlSession.streamJobMaxAttempts.containsKey(query.name)){
+      scriptSQLExecListener.iqlSession.streamJobMaxAttempts.put(query.name,
+        scriptSQLExecListener.sparkSession.sparkContext.getConf.getInt(STREAMJOB_MAXATTRPTS.key, STREAMJOB_MAXATTRPTS.defaultValue.get))
+      scriptSQLExecListener.iqlSession.streamJobWithDataFrame.put(query.name,queryDF)
+      scriptSQLExecListener.iqlSession.streamJob.put(scriptSQLExecListener.iqlSession.engineInfo + "_" + query.name + "_" + query.id, query)
+    }
   }
 }

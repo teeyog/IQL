@@ -27,6 +27,7 @@ import iql.spark.listener.IQLStreamingQueryListener
 import org.I0Itec.zkclient.ZkClient
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
+import org.apache.spark.sql.execution.streaming.StreamingQueryWrapper
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.streaming.StreamingQueryListener
 
@@ -42,13 +43,14 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     val autoComplete = conf.getBoolean(HIVE_CATALOG_AUTO_COMPLETE.key, HIVE_CATALOG_AUTO_COMPLETE.defaultValue.get)
     val authEnable = conf.getBoolean(IQL_AUTH_ENABLE.key, IQL_AUTH_ENABLE.defaultValue.get)
     val mailEnable = conf.getBoolean(MAIL_ENABLE.key, MAIL_ENABLE.defaultValue.get)
+    val streamJobMaxAttempts = conf.getInt(STREAMJOB_MAXATTRPTS.key, STREAMJOB_MAXATTRPTS.defaultValue.get)
 
     override def preStart(): Unit = {
         warn("Actor Start ...")
         zkClient = ZkUtils.getZkClient(PropsUtils.get("zkServers"))
         interpreter = _interpreter
         sparkSession = IqlMain.createSpark(conf).newSession()
-        if (mailEnable)  addListener
+        if (mailEnable) addListener
         registerUDF("iql.engine.utils.SparkUDF") //注册常用UDF
         ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
     }
@@ -140,6 +142,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         case StopSreamJob(name) =>
             iqlSession.streamJob(name).stop()
             sender() ! !iqlSession.streamJob(name).isActive
+            iqlSession.streamJob.remove(name)
+            iqlSession.streamJobMaxAttempts.remove(name)
 
         case CancelJob(groupId) =>
             sparkSession.sparkContext.cancelJobGroup("iqlid:" + groupId)
@@ -154,35 +158,47 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         val props = ObjGenerator.newProperties(Seq(("mail.smtp.auth", PropsUtils.get("mail.smtp.auth")), ("mail.smtp.host", PropsUtils.get("mail.smtp.host")),
             ("mail.smtp.port", PropsUtils.get("mail.smtp.port")), ("mail.user", PropsUtils.get("mail.user")), ("mail.password", PropsUtils.get("mail.password"))): _*)
         val handleFunc = (start: StreamingQueryListener.QueryStartedEvent, end: StreamingQueryListener.QueryTerminatedEvent) => {
-            val receiver = iqlSession.streamJobWithMailReceiver.get(start.name)
+            val streamName = start.name
+            val otherMsg = if (iqlSession.streamJobMaxAttempts.containsKey(streamName) && iqlSession.streamJobMaxAttempts.get(streamName) > 0) {
+                val restTimes = streamJobMaxAttempts - iqlSession.streamJobMaxAttempts.get(streamName) + 1
+                if (restTimes <= streamJobMaxAttempts) Some(s"""正在尝试第${restTimes}次重启""")
+                else None
+            } else None
+            val receiver = iqlSession.streamJobWithMailReceiver.get(streamName)
             try {
-                if(null != receiver){
-                    MailUtils.sendMail(props, Array(receiver, "IQL任务告警", s"实时任务：${start.name}(${start.id}) 执行失败...\n ${end.exception.getOrElse("")}"))
+                if (null != receiver) {
+                    MailUtils.sendMail(props, Array(receiver, "IQL任务告警", s"实时任务：$streamName(${start.id}) 执行失败...\n${otherMsg.getOrElse("")}\n ${end.exception.getOrElse("")}"))
                 }
             } catch {
                 case e: Exception => error("发送邮件失败...\n" + e)
-            }finally {
-                iqlSession.streamJobWithMailReceiver.remove(start.name)
             }
-           if(iqlSession.streamJobWithDingDingReceiver.contains(start.name)){
-               try {
-                   Request.Post(s"https://oapi.dingtalk.com/robot/send?access_token=${PropsUtils.get("access_token")}")
-                       .bodyString(
-                           s"""
-                              |{
-                              |     "msgtype": "markdown",
-                              |     "markdown": {"title":"IQL任务告警",
-                              |     "text":"### IQL任务告警  \n > 实时任务：${start.name}（${start.id}）执行失败...\n ${end.exception.getOrElse("")}"
-                              |     }
-                              | }
+            if (iqlSession.streamJobWithDingDingReceiver.contains(streamName)) {
+                try {
+                    Request.Post(s"https://oapi.dingtalk.com/robot/send?access_token=${PropsUtils.get("access_token")}")
+                        .bodyString(
+                            s"""
+                               |{
+                               |     "msgtype": "markdown",
+                               |     "markdown": {"title":"IQL任务告警",
+                               |     "text":"### IQL任务告警  \n > 实时任务：$streamName（${start.id}）执行失败...\n${otherMsg.getOrElse("")}\n ${end.exception.getOrElse("")}"
+                               |     }
+                               | }
                         """.stripMargin, ContentType.APPLICATION_JSON)
-                       .execute().returnContent().asString()
-               } catch {
-                   case e:Exception => error("发送钉钉失败...\n" + e)
-               }finally {
-                   iqlSession.streamJobWithDingDingReceiver -= start.name
-               }
-           }
+                        .execute().returnContent().asString()
+                } catch {
+                    case e: Exception => error("发送钉钉失败...\n" + e)
+                }
+            }
+            if (iqlSession.streamJobMaxAttempts.containsKey(streamName) && iqlSession.streamJobMaxAttempts.get(streamName) > 0) {
+                val newQuery = iqlSession.streamJobWithDataFrame.get(streamName).start()
+                iqlSession.streamJob.put(iqlSession.engineInfo + "_" + newQuery.name + "_" + newQuery.id, newQuery)
+                iqlSession.streamJobMaxAttempts.put(streamName, iqlSession.streamJobMaxAttempts.get(streamName) - 1)
+            } else {
+                iqlSession.streamJobWithDataFrame.remove(streamName)
+                iqlSession.streamJobMaxAttempts.remove(streamName)
+                iqlSession.streamJobWithMailReceiver.remove(streamName)
+                iqlSession.streamJobWithDingDingReceiver -= streamName
+            }
         }
         sparkSession.streams.addListener(new IQLStreamingQueryListener(handleFunc))
     }

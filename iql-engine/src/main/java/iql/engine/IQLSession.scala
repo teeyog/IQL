@@ -4,7 +4,8 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 import iql.common.domain.Bean.IQLExcution
-import org.apache.spark.sql.streaming.StreamingQuery
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.streaming.{DataStreamWriter, StreamingQuery}
 
 import scala.collection.JavaConverters._
 
@@ -21,6 +22,8 @@ class IQLSession(_engineInfo:String) {
   // 实时任务对应的邮件receiver
   val streamJobWithMailReceiver = new ConcurrentHashMap[String, String]()
   var streamJobWithDingDingReceiver:Set[String] = Set()
+  val streamJobMaxAttempts = new ConcurrentHashMap[String, Int]()
+  val streamJobWithDataFrame = new ConcurrentHashMap[String, DataStreamWriter[Row]]()
 
   private val lock = new ReentrantLock()
   private val condition = lock.newCondition()
