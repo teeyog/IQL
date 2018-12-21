@@ -145,6 +145,8 @@ where outputMode="Append"
 | mail.receiver | 任务失败邮件通知（多个邮箱逗号分隔）| 无 |
 | sendDingDingOnTerminated | 钉钉Robot通知 | false |
 
+> 实时任务失败会自动重启，可以通过streamJobMaxAttempts配置（默认3次）。
+
 ### 动态注册UDF函数
 ```
 register udf.`myupper`
