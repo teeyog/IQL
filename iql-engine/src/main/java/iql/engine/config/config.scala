@@ -27,5 +27,9 @@ package object config {
 		.booleanConf
 		.createWithDefault(true)
 
+	val STREAMJOB_MAXATTRPTS = ConfigBuilder("streamJobMaxAttempts")
+		.doc("实时任务失败重启次数")
+		.intConf
+		.createWithDefault(3)
 
 }
