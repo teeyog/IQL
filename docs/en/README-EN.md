@@ -23,7 +23,7 @@ Added support for Hbase, MySQL, and ES in addition to the Sink supported by Stru
 
 
 
-## [Quickstart](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
+## [Quickstart](https://github.com/teeyog/IQL/blob/master/docs/en/quick-start.md)
  
 ### HBase
  
