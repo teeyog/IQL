@@ -25,6 +25,9 @@ cd iql-engine\target # 获取iql-engine.jar
 web 模块启动示例
 java -jar iql-web.jar
 
+web地址 localhost:88888
+user:admin password:123456
+
 engine 模块启动示例
 sudo -u hdfs spark2-submit \
 	--name IQL \

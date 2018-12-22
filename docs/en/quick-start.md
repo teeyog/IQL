@@ -22,10 +22,13 @@ cd iql-engine\target # 获取iql-engine.jar
 
 ### 5. Run
 ```
-web module startup example
+web module startup example: 
 java -jar iql-web.jar
 
-engine module startup example
+web address localhost:8888
+user:admin password: 123456
+
+engine module startup example:
 sudo -u hdfs spark2-submit \
 	--name IQL \
 	--master yarn \

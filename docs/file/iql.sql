@@ -159,7 +159,7 @@ CREATE TABLE `t_user` (
 
 /*Data for the table `t_user` */
 
-insert  into `t_user`(`id`,`username`,`password`,`real_name`,`phone`,`create_time`,`status`,`type`,`isfirstlogin`,`token`) values (1,'superadmin','e10adc3949ba59abbe56e057f20f883e','开发者账号','111111111111','2016-10-18 11:44:32',0,0,0001,'fa39e32c09332d47f6f38d9c946cfa25'),(33,'ty','83f588446c477faffce1b28a1a3fd1f4','UFO','0','2018-12-06 03:06:28',0,0,0001,NULL);
+insert  into `t_user`(`id`,`username`,`password`,`real_name`,`phone`,`create_time`,`status`,`type`,`isfirstlogin`,`token`) values (1,'admin','e10adc3949ba59abbe56e057f20f883e','开发者账号','111111111111','2016-10-18 11:44:32',0,0,0001,'fa39e32c09332d47f6f38d9c946cfa25'),(33,'ty','83f588446c477faffce1b28a1a3fd1f4','UFO','0','2018-12-06 03:06:28',0,0,0001,NULL);
 
 /*Table structure for table `t_user_role` */
 
