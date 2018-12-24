@@ -13,13 +13,13 @@
 - 基于spark的动态资源分配，在无任务的情况下不会占用executor资源
 - 支持Cluster和Client模式启动
 - 基于Structured Streaming实现SQL动态添加流
-- 基于REPL的写代码功能，动态注册UDF函数
+- 类似SparkShell交互式数据分析功能
 - 高效的script管理，配合import/include语法完成各script的关联
 - 对数据源操作的权限验证
 
 支持的数据源：hdfs、hive、hbase、kafka、mysql、es、mongo
 
-支持的文件格式：parquet、csv、orc、json、text
+支持的文件格式：parquet、csv、orc、json、text、xml
 
 在Structured Streaming支持的Sink之外还增加了对Hbase、MySQL、es的支持
 
@@ -30,8 +30,6 @@
 ### HBase
  
 #### 加载数据
-
-使用方式：
 
 ```
 load hbase.t_mbl_user_version_info 
@@ -52,8 +50,6 @@ as tb;
 
 #### 保存数据
 
-使用方式：
-
 ```
 save tb1 as hbase.tableName 
 where `hbase.zookeeper.quorum`="localhost:2181"
@@ -67,26 +63,28 @@ where `hbase.zookeeper.quorum`="localhost:2181"
 |bulkload.enable| 是否启动bulkload| false|
 |hbase.table.name | Hbase表名  |  无 |
 |hbase.table.family | 列族名  |  info |
-|hbase.table.region.splits | 预分区分区段，以数组字符串方式指定，如 ['1','2','3']  |  无 |
-|hbase.table.rowkey.prefix | 当rowkey是数字，预分区需要指明前缀的formate形式，如 00，在startKey和endKey都未设置的情况下会生成00-99等100个分区  |  无 |
-|hbase.table.startKey | 预分区开始key，当hbase表不存在时，会自动创建Hbase表，不带一下三个参数则只有一个分区 |  无 |
+|hbase.table.region.splits | 预分区方式1:直接指定预分区分区段，以数组字符串方式指定，如 ['1','2','3']  |  无 |
+|hbase.table.rowkey.prefix | 预分区方式2:当rowkey是数字，预分区只需指定前缀的formate形式，如 00 即可生成00-99等100个分区  |  无 |
+|hbase.table.startKey | 预分区开始key |  无 |
 |hbase.table.endKey | 预分区结束key  |  无 |
 |hbase.table.numReg | 分区个数 |  无 |
 |hbase.check_table | 写入hbase表时，是否需要检查表是否存在  |  false |
 |hbase.cf.ttl | ttl | 无 |
 
 ### MySQL
+
 - 加载数据
 ```
 load jdbc.ai_log_count 
-where driver="com.mysql.jdbc.Driver" // 默认
+where driver="com.mysql.jdbc.Driver" 
       and url="jdbc:mysql://localhost/db?characterEncoding=utf8" 
-      and user="root" // 默认
-      and password="***" //默认
+      and user="root" 
+      and password="***" 
 as tb; 
 ```
 
 - 保存数据
+
 ```
 save append tb as jdbc.aatest_delete;
 ```
