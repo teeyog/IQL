@@ -26,16 +26,16 @@ object ScalaSourceUDF {
   }
 
   private def getFunctionReturnType(src: String, className: String, methodName: Option[String]): (Int, DataType) = {
-    val clazz = SourceCodeCompiler.execute(ScriptCacheKey(src, className)).asInstanceOf[Class[_]]
-    val method = SourceCodeCompiler.getMethod(clazz, methodName.getOrElse("apply"))
-    val dataType: (DataType, Boolean) = JavaTypeInference.inferDataType(method.getReturnType)
-    (method.getParameterCount, dataType._1)
+      val clazz = SourceCodeCompiler.compileScala(SourceCodeCompiler.prepareScala(src, className))
+      val method = SourceCodeCompiler.getMethod(clazz, methodName.getOrElse("apply"))
+      val dataType: (DataType, Boolean) = JavaTypeInference.inferDataType(method.getReturnType)
+      (method.getParameterCount, dataType._1)
   }
 
   def generateFunction(src: String, className: String, methodName: Option[String], argumentNum: Int): AnyRef = {
-    lazy val clazz = SourceCodeCompiler.execute(ScriptCacheKey(src, className)).asInstanceOf[Class[_]]
-    lazy val instance = SourceCodeCompiler.newInstance(clazz)
-    lazy val method = SourceCodeCompiler.getMethod(clazz, methodName.getOrElse("apply"))
+      lazy val clazz = SourceCodeCompiler.compileScala(SourceCodeCompiler.prepareScala(src, className))
+      lazy val instance = SourceCodeCompiler.newInstance(clazz)
+      lazy val method = SourceCodeCompiler.getMethod(clazz, methodName.getOrElse("apply"))
     argumentNum match {
       case 0 => new Function0[Any] with Serializable {
         override def apply(): Any = {

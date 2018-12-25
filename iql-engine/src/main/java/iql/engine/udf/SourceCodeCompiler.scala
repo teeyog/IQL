@@ -7,22 +7,6 @@ import com.google.common.cache.{CacheBuilder, CacheLoader}
 import org.apache.spark.internal.Logging
 
 object SourceCodeCompiler extends Logging {
-  private val scriptCache = CacheBuilder.newBuilder()
-    .maximumSize(10000)
-    .build(
-      new CacheLoader[ScriptCacheKey, AnyRef]() {
-        override def load(scriptCacheKey: ScriptCacheKey): AnyRef = {
-          val startTime = System.nanoTime()
-          val res = compileScala(prepareScala(scriptCacheKey.code, scriptCacheKey.className))
-          def timeMs: Double = (System.nanoTime() - startTime).toDouble / 1000000
-          logInfo(s"generate udf time:${timeMs}")
-          res
-        }
-      })
-
-  def execute(scriptCacheKey: ScriptCacheKey): AnyRef = {
-    scriptCache.get(scriptCacheKey)
-  }
 
   def newInstance(clazz: Class[_]): Any = {
     val constructor = clazz.getDeclaredConstructors.head
@@ -71,8 +55,4 @@ object SourceCodeCompiler extends Logging {
     clazz
   }
 }
-
-class SourceCodeCompiler
-
-case class ScriptCacheKey(code: String, className: String)
 
