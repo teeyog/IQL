@@ -2,7 +2,8 @@ package iql.engine.adaptor
 
 import iql.engine.IQLSQLExecListener
 import iql.engine.antlr.IQLParser._
-import iql.engine.udf.ScalaScriptUDF
+import iql.engine.udf.UdfUtils
+import org.apache.spark.sql.bridge.SparkBridge
 
 class RegisterAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor with DslTool {
 
@@ -31,8 +32,8 @@ class RegisterAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdap
     format.toLowerCase match {
       case "udf" =>
         require(option.contains("func"),"Registration UDF must specify the UDF function: func")
-        val func = ScalaScriptUDF.load(sparkSession,option("func"),option)
-        ScalaScriptUDF.predict(sparkSession,func,path,option)
+        SparkBridge.register(sparkSession,path,UdfUtils.scalaSourceFunctionBuilder(path,option("func"),option.get("methodName")))
+
       case "watermark" =>
         require(option.contains("eventTimeCol"),"Registration watermark must specify the eventTimeCol")
         require(option.contains("delayThreshold"),"Registration watermark must specify the delayThreshold")
