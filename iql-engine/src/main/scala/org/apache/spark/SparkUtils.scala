@@ -38,4 +38,6 @@ object SparkUtils {
     Utils.getLocalUserJarsForShell(conf)
   }
 
+  def getContextOrSparkClassLoader = Utils.getContextOrSparkClassLoader
+
 }

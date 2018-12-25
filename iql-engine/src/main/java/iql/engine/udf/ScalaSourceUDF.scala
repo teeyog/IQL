@@ -7,8 +7,8 @@ import org.apache.spark.sql.types.DataType
 
 object ScalaSourceUDF {
 
-  private def wrapClass(function: String) = {
-    val className = s"StreamingProUDF_${UUID.randomUUID().toString.replaceAll("-", "")}"
+   def wrapClass(function: String) = {
+    val className = s"IQLUDF_${UUID.randomUUID().toString.replaceAll("-", "")}"
     val newfun =
       s"""
          |class  ${className}{
@@ -18,12 +18,6 @@ object ScalaSourceUDF {
          |}
             """.stripMargin
     (className, newfun)
-
-  }
-
-  def apply(src: String, methodName: Option[String]): (AnyRef, DataType) = {
-    val (className, newfun) = wrapClass(src)
-    apply(newfun, className, methodName)
   }
 
   def apply(src: String, className: String, methodName: Option[String]): (AnyRef, DataType) = {
