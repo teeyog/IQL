@@ -1,8 +1,8 @@
 ## IQL
  
 ![](https://upload-images.jianshu.io/upload_images/3597066-e19cdef507fd77a7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-[README-EN](https://github.com/teeyog/IQL/blob/master/docs/en/README-EN.md)
+ 
+[English](https://github.com/teeyog/IQL/blob/master/docs/en/README-EN.md) | 简体中文
 
 基于SparkSQL实现了一套即席查询服务，具有如下特性：
 - 优雅的交互方式，支持多种datasource/sink，多数据源混算
