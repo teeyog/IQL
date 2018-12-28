@@ -35,7 +35,6 @@ public class JavaByteObject extends SimpleJavaFileObject {
         outputStream = new ByteArrayOutputStream();
     }
 
-    //overriding this to provide our OutputStream to which the bytecode can be written.
     @Override
     public OutputStream openOutputStream() throws IOException {
         return outputStream;
