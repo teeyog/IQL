@@ -46,15 +46,15 @@
         </div>
     </div>
     <div id="body_right">
-        <div class="body_lr_top">
+      <!--  <div class="body_lr_top">
             <div class="form-group">
                 <a class="btn" style="margin-left: 10px;margin-top: 10px;font-size:20px" data-toggle="modal"
                    data-target="#myModal" title="add query"><i class="fa fa-plus" aria-hidden="true"></i></a>
             </div>
-        </div>
+        </div>-->
         <div id="body_lr_bot">
-            <div style="height: 50px;width: 100%;background-color: #f0f0f0">
-                <form role="form" class="form-inline" id="execForm" style="padding-top: 5px;margin-left: 30px">
+            <div style="height: 60px;width: 100%;background-color: #f0f0f0;position: relative">
+                <form role="form" class="form-inline" id="execForm" style="position: absolute;left: 30px; bottom: 10px;right: 0;">
                     <div class="form-group" style="margin-right: 15px;">
                         <a class="btn" onclick="execIQL()" title="execute"><i class="fa fa-play"></i></a>
                     </div>
@@ -77,9 +77,9 @@
                         </div>
                     </div>
                 </form>
-                <div class="loading" style="display: none;padding-top: 5px;margin-left: 30px">
+                <div class="loading" style="display: none;position: absolute;left: 40px; bottom: 5px;right: 0;">
                     <div class="form-group">
-                        <a class="btn" onclick="stopQuery()" title="stop query ..." style="color: red"><i
+                        <a class="btn" onclick="stopQuery()" title="stop query ..." style="color: red;padding: 0px 0px;"><i
                                 class="fa fa-stop"></i></a>
                         <input id="iqlId" type="hidden" name="field＿name" value=""/>
                     </div>

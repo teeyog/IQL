@@ -19,7 +19,7 @@
     min-height: 1250px;
     height: auto !important;
     float: left;
-    border-left: 1px solid lightslategrey;
+    border-left: 1px solid #cccccc;
 }
 
 .body_lr_top {
