@@ -45,13 +45,10 @@
 
         </div>
     </div>
+    <div class="snippet-code-resizer-X ui-draggable-x" data-bind="aceResizer : { ace: ace, target: '.ace-container-resizable', onStart: hideFixedHeaders, onStop: redrawFixedHeaders }">
+    </div>
     <div id="body_right">
-      <!--  <div class="body_lr_top">
-            <div class="form-group">
-                <a class="btn" style="margin-left: 10px;margin-top: 10px;font-size:20px" data-toggle="modal"
-                   data-target="#myModal" title="add query"><i class="fa fa-plus" aria-hidden="true"></i></a>
-            </div>
-        </div>-->
+
         <div id="body_lr_bot">
             <div style="height: 60px;width: 100%;background-color: #f0f0f0;position: relative">
                 <form role="form" class="form-inline" id="execForm" style="position: absolute;left: 30px; bottom: 10px;right: 0;">
@@ -483,7 +480,6 @@
 
 </SCRIPT>
 
-
 <script> // 鼠标拉伸代码框高度
     $(function(){
         var src_posi_Y = 0, dest_posi_Y = 0, move_Y = 0, is_mouse_down = false, destHeight = 30;
@@ -507,6 +503,31 @@
                 }
             });
     });
+
+$(function(){
+    var src_posi_X = 0, dest_posi_X = 0, move_X = 0, is_mouse_down = false, destWidth = 30;
+    $(".ui-draggable-x")
+        .mousedown(function(e){
+            src_posi_X = e.pageX;//鼠标指针的位置
+            is_mouse_down = true;
+        });
+    $(document).bind("click mouseup",function(e){
+        if(is_mouse_down){
+            is_mouse_down = false;
+        }
+    }).mousemove(function(e){
+        dest_posi_X = e.pageX;
+        move_X = src_posi_X - dest_posi_X;
+        src_posi_X = dest_posi_X;
+        console.log(dest_posi_X + ' -- ' + $(window).width());
+        destWidth = dest_posi_X > 200 ? dest_posi_X : 200;
+        destWidth = destWidth < 400 ? destWidth : 400;
+        if(is_mouse_down){
+            $("#body_left").width(destWidth);
+            $("#body_right").width($(window).width() - destWidth - 10)
+        }
+    });
+});
 </script>
 
 <script type="text/javascript">

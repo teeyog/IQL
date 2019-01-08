@@ -157,11 +157,20 @@ div#rMenu ul li{
 }
 
 .snippet-code-resizer {
-    cursor: n-resize;
+    cursor: row-resize;
     text-align: center;
     font-size: 12px;
     height: 8px;
     margin-bottom: 5px;
+}
+
+.snippet-code-resizer-X {
+    float:left;
+    cursor: col-resize;
+    text-align: center;
+    font-size: 12px;
+    width: 2px;
+    height:500px;
 }
 
 .ibox-content {
