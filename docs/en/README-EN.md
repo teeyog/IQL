@@ -15,7 +15,7 @@ An ad hoc query service based on SparkSQL has the following characteristics：
 - Efficient script management, complete the association of each script with import/include syntax
 - Permission verification for data source operations
 
-Supported data sources：hdfs、hive、hbase、kafka、mysql、es、mongo
+Supported data sources：hdfs、hive、hbase、kafka、mysql、es、solr、mongo
 
 Supported file formats：parquet、csv、orc、json、text、xml
 

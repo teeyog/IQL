@@ -17,7 +17,7 @@
 - 高效的script管理，配合import/include语法完成各script的关联
 - 对数据源操作的权限验证
 
-支持的数据源：hdfs、hive、hbase、kafka、mysql、es、mongo
+支持的数据源：hdfs、hive、hbase、kafka、mysql、es、solr、mongo
 
 支持的文件格式：parquet、csv、orc、json、text、xml
 
