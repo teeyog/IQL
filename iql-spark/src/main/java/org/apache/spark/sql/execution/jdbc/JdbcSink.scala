@@ -24,7 +24,7 @@ class JdbcSink(
       }
       sqlContext.createDataFrame(rdd,schema)
         .write
-        .format("jdbc")
+        .format("org.apache.spark.sql.execution.datasources.jdbc2")
         .mode(SaveMode.Append)
         .options(parameters)
         .save()

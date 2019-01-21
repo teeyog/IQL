@@ -22,7 +22,7 @@ import org.apache.spark.sql.execution.datasources.jdbc2.JdbcUtils._
 import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, DataSourceRegister, RelationProvider}
 import org.apache.spark.sql.{AnalysisException, DataFrame, SQLContext, SaveMode}
 
-class JdbcRelationProvider extends CreatableRelationProvider
+class DefaultSource extends CreatableRelationProvider
   with RelationProvider with DataSourceRegister {
 
   override def shortName(): String = "jdbc2"
