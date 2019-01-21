@@ -25,7 +25,7 @@ import org.apache.spark.sql.{AnalysisException, DataFrame, SQLContext, SaveMode}
 class JdbcRelationProvider extends CreatableRelationProvider
   with RelationProvider with DataSourceRegister {
 
-  override def shortName(): String = "jdbc"
+  override def shortName(): String = "jdbc2"
 
   override def createRelation(
       sqlContext: SQLContext,
