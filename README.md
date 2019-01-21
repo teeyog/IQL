@@ -89,6 +89,8 @@ as tb;
 save append tb as jdbc.aatest_delete;
 ```
 
+> 注意：离线和实时任务都是可以用update模式的
+
 ### 文件操作 (其中formate可为：json、orc、csv、parquet、text)
 - 加载数据
  ```
