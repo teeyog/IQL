@@ -105,6 +105,7 @@ class BatchSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
         writer.option("outputTableName", final_path).format("org.apache.spark.sql.execution.datasources.redis").save()
       case "jdbc" =>
         writer
+          .format("org.apache.spark.sql.execution.datasources.jdbc2")
           .option("driver", option.getOrElse("driver", PropsUtils.get("jdbc.driver")))
           .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
           .option("dbtable", final_path)
