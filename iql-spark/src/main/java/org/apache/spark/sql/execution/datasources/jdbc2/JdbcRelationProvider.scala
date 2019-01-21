@@ -60,40 +60,56 @@ class JdbcRelationProvider extends CreatableRelationProvider
     val options = new JDBCOptions(parameters)
     val isCaseSensitive = sqlContext.conf.caseSensitiveAnalysis
 
+
+    var saveMode = mode match {
+      case SaveMode.Overwrite => IQLSaveMode.Overwrite
+      case SaveMode.Append => IQLSaveMode.Append
+      case SaveMode.ErrorIfExists => IQLSaveMode.ErrorIfExists
+      case SaveMode.Ignore => IQLSaveMode.Ignore
+    }
+    val parameterLower = parameters.map(kv => (kv._1.toLowerCase,kv._2))
+    if(parameterLower.keySet.contains("savemode")){
+      saveMode = if(parameterLower("savemode").equals("update")) IQLSaveMode.Update else saveMode
+    }
+
     val conn = JdbcUtils.createConnectionFactory(options)()
     try {
       val tableExists = JdbcUtils.tableExists(conn, options)
       if (tableExists) {
-        mode match {
-          case SaveMode.Overwrite =>
+        saveMode match {
+          case IQLSaveMode.Overwrite =>
             if (options.isTruncate && isCascadingTruncateTable(options.url) == Some(false)) {
               // In this case, we should truncate table and then load.
               truncateTable(conn, options)
               val tableSchema = JdbcUtils.getSchemaOption(conn, options)
-              saveTable(df, tableSchema, isCaseSensitive, options)
+              saveTable(df, tableSchema, isCaseSensitive, options, saveMode)
             } else {
               // Otherwise, do not truncate the table, instead drop and recreate it
               dropTable(conn, options.table)
               createTable(conn, df, options)
-              saveTable(df, Some(df.schema), isCaseSensitive, options)
+              saveTable(df, Some(df.schema), isCaseSensitive, options, saveMode)
             }
 
-          case SaveMode.Append =>
+          case IQLSaveMode.Update =>
             val tableSchema = JdbcUtils.getSchemaOption(conn, options)
-            saveTable(df, tableSchema, isCaseSensitive, options)
+            saveTable(df, tableSchema, isCaseSensitive, options, saveMode)
 
-          case SaveMode.ErrorIfExists =>
+          case IQLSaveMode.Append =>
+            val tableSchema = JdbcUtils.getSchemaOption(conn, options)
+            saveTable(df, tableSchema, isCaseSensitive, options, saveMode)
+
+          case IQLSaveMode.ErrorIfExists =>
             throw new AnalysisException(
               s"Table or view '${options.table}' already exists. SaveMode: ErrorIfExists.")
 
-          case SaveMode.Ignore =>
+          case IQLSaveMode.Ignore =>
             // With `SaveMode.Ignore` mode, if table already exists, the save operation is expected
             // to not save the contents of the DataFrame and to not change the existing data.
             // Therefore, it is okay to do nothing here and then just return the relation below.
         }
       } else {
         createTable(conn, df, options)
-        saveTable(df, Some(df.schema), isCaseSensitive, options)
+        saveTable(df, Some(df.schema), isCaseSensitive, options, saveMode)
       }
     } finally {
       conn.close()

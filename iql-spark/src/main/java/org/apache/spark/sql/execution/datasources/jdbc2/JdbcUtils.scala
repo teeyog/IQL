@@ -120,7 +120,8 @@ object JdbcUtils extends Logging {
       rddSchema: StructType,
       tableSchema: Option[StructType],
       isCaseSensitive: Boolean,
-      dialect: JdbcDialect): String = {
+      dialect: JdbcDialect,
+      mode: IQLSaveMode): String = {
     val columns = if (tableSchema.isEmpty) {
       rddSchema.fields.map(x => dialect.quoteIdentifier(x.name)).mkString(",")
     } else {
@@ -142,7 +143,14 @@ object JdbcUtils extends Logging {
       }.mkString(",")
     }
     val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
-    s"INSERT INTO $table ($columns) VALUES ($placeholders)"
+
+    mode match {
+      case IQLSaveMode.Update ⇒
+        val duplicateSetting = rddSchema.fields.map(x => dialect.quoteIdentifier(x.name)).map(name ⇒ s"$name=?").mkString(",")
+        s"INSERT INTO $table ($columns) VALUES ($placeholders) ON DUPLICATE KEY UPDATE $duplicateSetting"
+      case _ ⇒ s"INSERT INTO $table ($columns) VALUES ($placeholders)"
+    }
+//    s"INSERT INTO $table ($columns) VALUES ($placeholders)"
   }
 
   /**
@@ -504,74 +512,84 @@ object JdbcUtils extends Logging {
   // A `JDBCValueSetter` is responsible for setting a value from `Row` into a field for
   // `PreparedStatement`. The last argument `Int` means the index for the value to be set
   // in the SQL statement and also used for the value in `Row`.
-  private type JDBCValueSetter = (PreparedStatement, Row, Int) => Unit
+  private type JDBCValueSetter = (PreparedStatement, Row, Int, Int) ⇒ Unit
 
   private def makeSetter(
-      conn: Connection,
-      dialect: JdbcDialect,
-      dataType: DataType): JDBCValueSetter = dataType match {
-    case IntegerType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setInt(pos + 1, row.getInt(pos))
+                          conn: Connection,
+                          dialect: JdbcDialect,
+                          dataType: DataType): JDBCValueSetter = dataType match {
 
-    case LongType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setLong(pos + 1, row.getLong(pos))
+    case IntegerType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setInt(pos + 1, row.getInt(pos - offset))
 
-    case DoubleType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setDouble(pos + 1, row.getDouble(pos))
+    case LongType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setLong(pos + 1, row.getLong(pos - offset))
 
-    case FloatType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setFloat(pos + 1, row.getFloat(pos))
+    case DoubleType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setDouble(pos + 1, row.getDouble(pos - offset))
 
-    case ShortType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setInt(pos + 1, row.getShort(pos))
+    case FloatType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setFloat(pos + 1, row.getFloat(pos - offset))
 
-    case ByteType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setInt(pos + 1, row.getByte(pos))
+    case ShortType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setInt(pos + 1, row.getShort(pos - offset))
 
-    case BooleanType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setBoolean(pos + 1, row.getBoolean(pos))
+    case ByteType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setInt(pos + 1, row.getByte(pos - offset))
 
-    case StringType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setString(pos + 1, row.getString(pos))
+    case BooleanType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setBoolean(pos + 1, row.getBoolean(pos - offset))
 
-    case BinaryType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setBytes(pos + 1, row.getAs[Array[Byte]](pos))
+    case StringType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setString(pos + 1, row.getString(pos - offset))
 
-    case TimestampType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setTimestamp(pos + 1, row.getAs[java.sql.Timestamp](pos))
+    case BinaryType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setBytes(pos + 1, row.getAs[Array[Byte]](pos - offset))
 
-    case DateType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setDate(pos + 1, row.getAs[java.sql.Date](pos))
+    case TimestampType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setTimestamp(pos + 1, row.getAs[java.sql.Timestamp](pos - offset))
 
-    case t: DecimalType =>
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
-        stmt.setBigDecimal(pos + 1, row.getDecimal(pos))
+    case DateType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setDate(pos + 1, row.getAs[java.sql.Date](pos - offset))
 
-    case ArrayType(et, _) =>
+    case t: DecimalType ⇒
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
+        stmt.setBigDecimal(pos + 1, row.getDecimal(pos - offset))
+
+    case ArrayType(et, _) ⇒
       // remove type length parameters from end of type name
       val typeName = getJdbcType(et, dialect).databaseTypeDefinition
-        .toLowerCase(Locale.ROOT).split("\\(")(0)
-      (stmt: PreparedStatement, row: Row, pos: Int) =>
+        .toLowerCase.split("\\(")(0)
+      (stmt: PreparedStatement, row: Row, pos: Int, offset: Int) ⇒
         val array = conn.createArrayOf(
           typeName,
-          row.getSeq[AnyRef](pos).toArray)
+          row.getSeq[AnyRef](pos - offset).toArray)
         stmt.setArray(pos + 1, array)
 
-    case _ =>
-      (_: PreparedStatement, _: Row, pos: Int) =>
+    case _ ⇒
+      (_: PreparedStatement, _: Row, pos: Int, offset: Int) ⇒
         throw new IllegalArgumentException(
           s"Can't translate non-null value for field $pos")
+  }
+
+  private def getSetter(fields: Array[StructField], connection: Connection, dialect: JdbcDialect, isUpdateMode: Boolean): Array[JDBCValueSetter] = {
+    val setter = fields.map(_.dataType).map(makeSetter(connection, dialect, _))
+    if (isUpdateMode) {
+      Array.fill(2)(setter).flatten
+    } else {
+      setter
+    }
   }
 
   /**
@@ -596,7 +614,8 @@ object JdbcUtils extends Logging {
       insertStmt: String,
       batchSize: Int,
       dialect: JdbcDialect,
-      isolationLevel: Int): Iterator[Byte] = {
+      isolationLevel: Int,
+      mode: IQLSaveMode): Iterator[Byte] = {
     val conn = getConnection()
     var committed = false
 
@@ -614,7 +633,7 @@ object JdbcUtils extends Logging {
             finalIsolationLevel = isolationLevel
           } else {
             logWarning(s"Requested isolation level $isolationLevel is not supported; " +
-                s"falling back to default isolation level $defaultIsolation")
+              s"falling back to default isolation level $defaultIsolation")
           }
         } else {
           logWarning(s"Requested isolation level $isolationLevel, but transactions are unsupported")
@@ -630,21 +649,40 @@ object JdbcUtils extends Logging {
         conn.setAutoCommit(false) // Everything in the same db transaction.
         conn.setTransactionIsolation(finalIsolationLevel)
       }
+      val isUpdateMode = mode == IQLSaveMode.Update
       val stmt = conn.prepareStatement(insertStmt)
-      val setters = rddSchema.fields.map(f => makeSetter(conn, dialect, f.dataType))
+      val setters: Array[JDBCValueSetter] = getSetter(rddSchema.fields, conn, dialect, isUpdateMode)
       val nullTypes = rddSchema.fields.map(f => getJdbcType(f.dataType, dialect).jdbcNullType)
-      val numFields = rddSchema.fields.length
-
+      val length = rddSchema.fields.length
+      val numFields = if (isUpdateMode) length * 2 else length
+      val midField = numFields / 2
       try {
         var rowCount = 0
         while (iterator.hasNext) {
           val row = iterator.next()
           var i = 0
           while (i < numFields) {
-            if (row.isNullAt(i)) {
-              stmt.setNull(i + 1, nullTypes(i))
+            if (isUpdateMode) {
+              i < midField match {
+                case true ⇒
+                  if (row.isNullAt(i)) {
+                    stmt.setNull(i + 1, nullTypes(i))
+                  } else {
+                    setters(i).apply(stmt, row, i, 0)
+                  }
+                case false ⇒
+                  if (row.isNullAt(i - midField)) {
+                    stmt.setNull(i + 1, nullTypes(i - midField))
+                  } else {
+                    setters(i).apply(stmt, row, i, midField)
+                  }
+              }
             } else {
-              setters(i).apply(stmt, row, i)
+              if (row.isNullAt(i)) {
+                stmt.setNull(i + 1, nullTypes(i))
+              } else {
+                setters(i).apply(stmt, row, i, 0)
+              }
             }
             i = i + 1
           }
@@ -801,7 +839,8 @@ object JdbcUtils extends Logging {
       df: DataFrame,
       tableSchema: Option[StructType],
       isCaseSensitive: Boolean,
-      options: JDBCOptions): Unit = {
+      options: JDBCOptions,
+      mode: IQLSaveMode): Unit = {
     val url = options.url
     val table = options.table
     val dialect = JdbcDialects.get(url)
@@ -810,7 +849,7 @@ object JdbcUtils extends Logging {
     val batchSize = options.batchSize
     val isolationLevel = options.isolationLevel
 
-    val insertStmt = getInsertStatement(table, rddSchema, tableSchema, isCaseSensitive, dialect)
+    val insertStmt = getInsertStatement(table, rddSchema, tableSchema, isCaseSensitive, dialect, mode)
     val repartitionedDF = options.numPartitions match {
       case Some(n) if n <= 0 => throw new IllegalArgumentException(
         s"Invalid value `$n` for parameter `${JDBCOptions.JDBC_NUM_PARTITIONS}` in table writing " +
@@ -819,7 +858,7 @@ object JdbcUtils extends Logging {
       case _ => df
     }
     repartitionedDF.rdd.foreachPartition(iterator => savePartition(
-      getConnection, table, iterator, rddSchema, insertStmt, batchSize, dialect, isolationLevel)
+      getConnection, table, iterator, rddSchema, insertStmt, batchSize, dialect, isolationLevel, mode)
     )
   }
 
