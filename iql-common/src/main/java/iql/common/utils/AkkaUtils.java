@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.typesafe.config.ConfigValue;
 import iql.common.domain.Bean;
 import org.I0Itec.zkclient.ZkClient;
 import scala.collection.Iterator;
@@ -17,18 +18,6 @@ import com.typesafe.config.ConfigFactory;
 public class AkkaUtils {
 
     public static Config getConfig(ZkClient zkClient) {
-        Map<String, Object> map = new HashMap<String, Object>();
-//        map.put("akka.loglevel", "ERROR");
-//        map.put("akka.stdout-loglevel", "ERROR");
-
-//        map.put("akka.actor.deployment.remote","akka.tcp://sampleActorSystem@127.0.0.1:2553");
-
-        //开启akka远程调用
-        map.put("akka.actor.provider", "akka.remote.RemoteActorRefProvider");
-
-        List<String> remoteTransports = new ArrayList<String>();
-        remoteTransports.add("akka.remote.netty.tcp");
-        map.put("akka.remote.enabled-transports", remoteTransports);
         String ip = "127.0.0.1";
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
@@ -61,19 +50,13 @@ public class AkkaUtils {
 
         ZkUtils.registerEngineInZk(zkClient,id,ip,port,6000,-1);
 
-        map.put("akka.remote.netty.tcp.hostname", ip);
-        map.put("akka.remote.netty.tcp.port", port);
+        Config config = ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port)
+                .withFallback(ConfigFactory.parseString("akka.actor.provider=akka.remote.RemoteActorRefProvider"))
+                .withFallback(ConfigFactory.parseString("akka.remote.netty.tcp.hostname=" + ip))
+                .withFallback(
+                        ConfigFactory.load());
 
-//        map.put("akka.remote.netty.tcp.maximum-frame-size", 100 * 1024 * 1024);
-
-        //forkjoinpool默认线程数 max(min(cpu线程数 * parallelism-factor, parallelism-max), 8)
-        map.put("akka.actor.default-dispatcher.fork-join-executor.parallelism-factor", "50");
-        map.put("akka.actor.default-dispatcher.fork-join-executor.parallelism-max", "50");
-
-//        logger.info("akka.remote.netty.tcp.hostname="+map.get("akka.remote.netty.tcp.hostname"));
-//        logger.info("akka.remote.netty.tcp.port="+map.get("akka.remote.netty.tcp.port"));
-        Config config = ConfigFactory.load();
-        return ConfigFactory.parseMap(map);
+        return config;
     }
 
 }
