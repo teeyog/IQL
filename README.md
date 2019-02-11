@@ -169,7 +169,6 @@ load jsonStr.'
 
 select myupper(name) as newName from tb1;
 ```
-
 - 方式二
 
 ```
