@@ -1,5 +1,7 @@
 package iql.engine.adaptor
 
+import java.util.UUID
+
 import iql.engine.IQLSQLExecListener
 import iql.engine.antlr.IQLLexer
 import iql.engine.antlr.IQLParser.SqlContext
@@ -14,10 +16,8 @@ class ShowAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor 
     val interval = new Interval(start, stop)
     val sql = input.getText(interval)
 
-    val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
-    val df_result = scriptSQLExecListener.sparkSession.sql(sql)
-    scriptSQLExecListener.addResult("schema", df_result.schema.fields.map(_.name).mkString(","))
-    df_result.write.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").json(hdfsPath)
-    scriptSQLExecListener.addResult("hdfsPath", hdfsPath)
+    val uuidTable = UUID.randomUUID().toString.replace("-","")
+    scriptSQLExecListener.addResult("uuidTable", uuidTable)
+    scriptSQLExecListener.sparkSession.sql(sql).createOrReplaceTempView(uuidTable)
   }
 }
