@@ -151,6 +151,8 @@ where outputMode="Append"
 > 实时任务失败会自动重启，可以通过streamJobMaxAttempts配置（默认3次）。
 
 ### 动态注册UDF函数
+- 方式一
+
 ```
 register udf.`myupper`
 where func="
@@ -166,6 +168,12 @@ load jsonStr.'
 ' as tb1;
 
 select myupper(name) as newName from tb1;
+```
+
+- 方式二
+
+```
+create temporary function myupper as 'cn.mc.udf.MyUPpperUDF' using jar 'hdfs://dsj01:8020/tmp/udf-test-1.0-SNAPSHOT.jar';
 ```
 
 ### include(import等效)语法，通过路径引入脚本片段
