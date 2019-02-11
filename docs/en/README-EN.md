@@ -24,6 +24,40 @@ Added support for Hbase, MySQL, and ES in addition to the Sink supported by Stru
 
 
 ## [Quickstart](https://github.com/teeyog/IQL/blob/master/docs/en/quick-start.md)
+
+## Basic grammar 
+ ```
+ load syntax and save syntax
+ load and save syntax to load and save data, just write the configuration information 
+ after the where condition, such as loading mysql data into a temporary table:
+ load jdbc.'tableName'
+ where driver="***"
+     and url="***"
+ as tb_mysql;
+ Here tb_mysql can be used at any where, such as:select * from tb_mysql; save tb_mysql as json.'path'。
+ 
+ Save the data to HBase:
+ save tb_mysql as hbase.'tbname'
+ where `hbase.zookeeper.quorum`="localhost:2181"
+ 
+ select syntax
+ The select syntax is no different from normal sql, you can directly as a temporary table. 
+ such as：select * from tb_mysql limit 10 as tb_temp; 
+ Here tb_temp can be used at any time, and if there is no as ** at the end, the result will be 
+ displayed directly on the web.
+     
+ explain syntax
+ You can directly explain a select query, or you can directly explain an intermediate temporary table 
+ such as tb_temp above;
+ 
+ import syntax
+ Can import the entire sql script
+ 
+ register syntax
+ Can register udf, register watermark, etc.
+ 
+ Other grammar support：create、drop、insert、refresh、set、show
+ ``` 
  
 ### HBase
  
