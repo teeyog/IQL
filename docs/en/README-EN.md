@@ -149,6 +149,8 @@ where outputMode="Append"
 > Stream job failure will automatically restart, can be configured by streamJobMaxAttempts (default 3 times)
 
 ### Register UDF function
+- method one:
+
 ```
 register udf.`myupper`
 where func="
@@ -164,6 +166,11 @@ load jsonStr.'
 ' as tb1;
 
 select myupper(name) as newName from tb1;
+```
+
+- method two:
+```
+create temporary function myupper as 'cn.mc.udf.MyUPpperUDF' using jar 'hdfs://dsj01:8020/tmp/udf-test-1.0-SNAPSHOT.jar';
 ```
 
 ### include (import equivalent) syntax, introducing script fragments through paths
