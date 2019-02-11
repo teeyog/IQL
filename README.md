@@ -27,6 +27,38 @@
 
 ## [Quickstart](https://github.com/teeyog/IQL/blob/master/docs/quick-start.md)
  
+## 基本语法 
+```
+load语法和save语法
+load和save语法对数据进行加载和保存操作，只需将配置信息写在where条件后，
+如加载mysql数据为一个临时表：
+load jdbc.'tableName'
+where driver="***"
+    and url="***"
+as tb_mysql;
+这里的tb_mysql可以在后续随意使用，如:select * from tb_mysql; save tb_mysql as json.'path'。
+
+如将数据保存到HBase:
+save tb_mysql as hbase.'tbname'
+where `hbase.zookeeper.quorum`="localhost:2181"
+
+select语法
+select语法和正常的sql没有区别，可以直接as 为一个临时表如：select * from tb_mysql limit 10 as tb_temp; 
+这里的tb_temp可以在后续随意使用，select最后没有as **的情况下，会把结果直接显示在web端。
+    
+explain语法
+可以直接explain一个select查询，也可以直接explain一个中间临时表如上面的tb_temp;
+
+import语法
+可以导入整个sql脚本
+
+register语法
+可以注册udf，注册watermark等
+
+其他语法支持：create、drop、insert、refresh、set、show
+``` 
+ 
+ 
 ### HBase
  
 #### 加载数据
