@@ -141,7 +141,7 @@ class StreamSaveAdaptor(val scriptSQLExecListener: IQLSQLExecListener,
           .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
           .option("dbtable", final_path)
       case "es" =>
-        option += ("implClass" -> "org.apache.spark.sql.es.EsSourceProvider")
+        option += ("implClass" -> "org.apache.spark.sql.execution.es.EsSourceProvider")
         writer
           .option("es.nodes", option.getOrElse("es.nodes", PropsUtils.get("es.nodes")))
           .option("es.port", option.getOrElse("es.port", PropsUtils.get("es.port")))
