@@ -9,7 +9,6 @@ import iql.engine.utils.PropsUtils
 import org.apache.spark.sql._
 import org.apache.spark.sql.streaming.{DataStreamWriter, Trigger}
 
-//save new_tr as json.`/tmp/todd
 class SaveAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor with DslTool{
   override def parse(ctx: SqlContext): Unit = {
     var oldDF: DataFrame = null
