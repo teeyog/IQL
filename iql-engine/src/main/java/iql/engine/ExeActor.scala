@@ -127,6 +127,12 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 sender() ! IQLExcution()
             }
 
+        case GetJobIdsForGroup(engineInfoAndGroupId) =>
+            val applicationId = sparkSession.sparkContext.applicationId
+            val jobIds = sparkSession.sparkContext.statusTracker
+              .getJobIdsForGroup(engineInfoAndGroupId.split("_")(1)).mkString(",")
+            sender() ! ObjGenerator.newJSON(Seq(("applicationId",applicationId),("jobIds",jobIds)):_*)
+
         case GetActiveStream() =>
             sender() ! iqlSession.streamJob.filter(_._2.isActive).keys.foldLeft(new JSONArray()) {
                 case (array, stream) =>
