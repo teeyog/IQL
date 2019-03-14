@@ -34,6 +34,8 @@ object Bean {
 
     case class GetBatchResult(engineInfoAndGroupId: String)
 
+    case class GetJobIdsForGroup(engineInfoAndGroupId: String)
+
     case class GetStreamStatus(streamName: String)
 
     case class GetActiveStream()
