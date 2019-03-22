@@ -25,13 +25,13 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_2.11</artifactId>
             <version>${spark.version}</version>
-            <scope>${i4scope}</scope>
+            <scope>${iqlscope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming-kafka-0-8_2.11</artifactId>
             <version>${spark.version}</version>
-            <scope>${i4scope}</scope>
+            <scope>${iqlscope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -47,19 +47,19 @@
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
             <version>1.8.2</version>
-            <scope>${i4scope}</scope>
+            <scope>${iqlscope}</scope>
         </dependency>
         <dependency>
             <groupId>com.twitter</groupId>
             <artifactId>bijection-avro_2.10</artifactId>
             <version>0.9.2</version>
-            <scope>${i4scope}</scope>
+            <scope>${iqlscope}</scope>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch-spark-20_2.11</artifactId>
             <version>5.6.1</version>
-            <scope>${i4scope}</scope>
+            <scope>${iqlscope}</scope>
         </dependency>
     </dependencies>
 
