@@ -14,6 +14,23 @@ object IqlMain extends Logging {
 
     var schedulerMode: Boolean = true
 
+    def parseArgs(args: Array[String]) = {
+        var argsMap:Map[String,String] = Map()
+        var argv = args.toList
+        while (!argv.isEmpty) {
+            argv match {
+                case ("-iql.zkServers") :: value :: tail =>
+                    argsMap += ("zkServers" -> value)
+                    argv = tail
+                case Nil =>
+                case tail =>
+                    // scalastyle:off println
+                    System.err.println(s"Unrecognized options: ${tail.mkString(" ")}")
+            }
+        }
+        argsMap
+    }
+
     def createSpark(sparkConf: SparkConf) = {
         val spark = SparkSession
             .builder
@@ -50,20 +67,4 @@ object IqlMain extends Logging {
         iqlSession.awaitTermination()
     }
 
-    def parseArgs(args: Array[String]) = {
-        var argsMap:Map[String,String] = Map()
-        var argv = args.toList
-        while (!argv.isEmpty) {
-            argv match {
-                case ("-iql.zkServers") :: value :: tail =>
-                    argsMap += ("zkServers" -> value)
-                    argv = tail
-                case Nil =>
-                case tail =>
-                    // scalastyle:off println
-                    System.err.println(s"Unrecognized options: ${tail.mkString(" ")}")
-            }
-        }
-        argsMap
-    }
 }
