@@ -9,9 +9,11 @@ import org.apache.spark.sql.streaming.{DataStreamWriter, StreamingQuery}
 
 import scala.collection.JavaConverters._
 
-class IQLSession(_engineInfo:String) {
+class IQLSession(_engineInfo:String,_tag: Option[String]) {
 
   def engineInfo = _engineInfo
+
+  def tag = _tag
 
   // 保存batch任务engineInfo_iqlId和result的映射（获取某个SQL的结果或者kill，与对应engine通讯即可）
   val batchJob = new ConcurrentHashMap[String, IQLExcution]()

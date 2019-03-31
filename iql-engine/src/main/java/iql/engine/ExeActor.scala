@@ -52,7 +52,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         sparkSession = IqlMain.createSpark(conf).newSession()
         if (mailEnable) addListener
         registerUDF("iql.engine.utils.SparkUDF") //注册常用UDF
-        ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
+        ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, iqlSession.tag.getOrElse("default"), 6000, -1)
     }
 
     override def postStop(): Unit = {
