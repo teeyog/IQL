@@ -62,7 +62,6 @@ object IqlMain extends Logging {
                 case tail =>
                     // scalastyle:off println
                     System.err.println(s"Unrecognized options: ${tail.mkString(" ")}")
-                    // scalastyle:on println
             }
         }
         argsMap
