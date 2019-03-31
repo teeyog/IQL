@@ -17,9 +17,9 @@ object IqlMain extends Logging {
     def parseArgs(args: Array[String]) = {
         var argsMap:Map[String,String] = Map()
         var argv = args.toList
-        while (!argv.isEmpty) {
+        while (argv.nonEmpty) {
             argv match {
-                case ("-iql.zkServers") :: value :: tail =>
+                case "-iql.zkServers" :: value :: tail =>
                     argsMap += ("zkServers" -> value)
                     argv = tail
                 case Nil =>
