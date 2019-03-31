@@ -39,13 +39,32 @@ object IqlMain extends Logging {
     }
 
     def main(args: Array[String]): Unit = {
+        val argsMap = parseArgs(args)
         val interpreter = new SparkInterpreter()
         val sparkConf = interpreter.start()
-        val actorConf = AkkaUtils.getConfig(ZkUtils.getZkClient(PropsUtils.get("zkServers")))
+        val actorConf = AkkaUtils.getConfig(ZkUtils.getZkClient(argsMap.getOrElse("zkServers",PropsUtils.get("zkServers"))))
         val iqlSession = new IQLSession(actorConf.getString("akka.remote.netty.tcp.hostname") + ":" + actorConf.getString("akka.remote.netty.tcp.port"))
         val actorSystem = ActorSystem("iqlSystem", actorConf)
         (1 to sparkConf.getInt(IQL_PARALLELISM.key, IQL_PARALLELISM.defaultValue.get))
             .foreach(id => actorSystem.actorOf(ExeActor.props(interpreter, iqlSession, sparkConf), name = s"actor$id"))
         iqlSession.awaitTermination()
+    }
+
+    def parseArgs(args: Array[String]) = {
+        var argsMap:Map[String,String] = Map()
+        var argv = args.toList
+        while (!argv.isEmpty) {
+            argv match {
+                case ("-iql.zkServers") :: value :: tail =>
+                    argsMap += ("zkServers" -> value)
+                    argv = tail
+                case Nil =>
+                case tail =>
+                    // scalastyle:off println
+                    System.err.println(s"Unrecognized options: ${tail.mkString(" ")}")
+                    // scalastyle:on println
+            }
+        }
+        argsMap
     }
 }
