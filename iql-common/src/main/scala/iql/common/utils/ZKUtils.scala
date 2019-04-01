@@ -14,13 +14,13 @@ object ZkUtils {
 
   val log: Logger = Logger.getLogger(ZkUtils.getClass)
 
-  var zkClient:ZkClient = null
+  var zkClient: ZkClient = null
 
   val enginePath = "/iql/engine"
   val validEnginePath = "/iql/valid_engine"
 
-  def getZkClient(zkServers: String):ZkClient = {
-    if(zkClient == null) {
+  def getZkClient(zkServers: String): ZkClient = {
+    if (zkClient == null) {
       zkClient = new ZkClient(zkServers, 60000, 60000, new ZkSerializer {
         override def serialize(data: Object): Array[Byte] = {
           try {
@@ -29,6 +29,7 @@ object ZkUtils {
             case e: ZkMarshallingError => return null
           }
         }
+
         override def deserialize(bytes: Array[Byte]): Object = {
           try {
             return new String(bytes, "UTF-8")
@@ -48,7 +49,7 @@ object ZkUtils {
 
   def getAllEngineInClusterASJava(zkClient: ZkClient): java.util.List[IQLEngine] = {
     import scala.collection.JavaConversions._
-    val engines: java.util.List[IQLEngine] = getAllEngineInCluster(zkClient)      // 其中visitors类型为Seq[Long]类型
+    val engines: java.util.List[IQLEngine] = getAllEngineInCluster(zkClient) // 其中visitors类型为Seq[Long]类型
     engines
   }
 
@@ -57,9 +58,9 @@ object ZkUtils {
     engineIds.map(_.toInt).map(getEngineInfo(zkClient, _)).filter(_.isDefined).map(_.get)
   }
 
-  def registerActorInEngine(zkClient: ZkClient,path:String,data:String, timeout: Int, jmxPort: Int) {
+  def registerActorInEngine(zkClient: ZkClient, path: String, data: String, timeout: Int, jmxPort: Int) {
     try {
-      makeSurePersistentPathExists(zkClient,validEnginePath)
+      makeSurePersistentPathExists(zkClient, validEnginePath)
       createEphemeralPathExpectConflictHandleZKBug(zkClient, path, data, data,
         (data: String, expectedData: Any) => expectedData.toString.equals(data),
         timeout)
@@ -77,7 +78,7 @@ object ZkUtils {
     val brokerInfo = host + ":" + port
     val expectedBroker = IQLEngine(id, host + ":" + port)
     try {
-      makeSurePersistentPathExists(zkClient,enginePath)
+      makeSurePersistentPathExists(zkClient, enginePath)
       createEphemeralPathExpectConflictHandleZKBug(zkClient, brokerIdPath, brokerInfo, expectedBroker,
         (engineString: String, engine: Any) => engine.asInstanceOf[IQLEngine].engineInfo.equals(engineString),
         timeout)
@@ -92,7 +93,7 @@ object ZkUtils {
   }
 
   /**
-    *  make sure a persistent path exists in ZK. Create the path if not exist.
+    * make sure a persistent path exists in ZK. Create the path if not exist.
     */
   def makeSurePersistentPathExists(client: ZkClient, path: String) {
     if (!client.exists(path))
@@ -100,7 +101,7 @@ object ZkUtils {
   }
 
   /**
-    *  create the parent path
+    * create the parent path
     */
   private def createParentPath(client: ZkClient, path: String): Unit = {
     val parentDir = path.substring(0, path.lastIndexOf('/'))
@@ -140,7 +141,7 @@ object ZkUtils {
           case e2: Throwable => throw e2
         }
         if (storedData == null || storedData != data) {
-         log.info("conflict in " + path + " data: " + data + " stored data: " + storedData)
+          log.info("conflict in " + path + " data: " + data + " stored data: " + storedData)
           throw e
         } else {
           // otherwise, the creation succeeded, return normally
@@ -275,7 +276,7 @@ object ZkUtils {
 
   def maybeDeletePath(zkUrl: String, dir: String) {
     try {
-      val zk = new ZkClient(zkUrl, 30*1000, 30*1000, ZKStringSerializer)
+      val zk = new ZkClient(zkUrl, 30 * 1000, 30 * 1000, ZKStringSerializer)
       zk.deleteRecursive(dir)
       zk.close()
     } catch {
@@ -307,18 +308,26 @@ object ZkUtils {
     client.getChildren(path)
   }
 
-  def getValidChildren(client: ZkClient, path: String): Seq[String] = {
-    val seqEngine = getChildren(client,path)
-      .map(r => (r.split("_")(0),r))
+  def getValidChildren(client: ZkClient, path: String, tag: String): Seq[String] = {
+    val seqEngine = getChildren(client, path)
+      .map(r => (r.split("_")(0), r))
       .groupBy(_._1)
-      .filter(_._2.size>1)
+      .filter(_._2.size > 1)
       .flatMap(r => r._2)
-      .map(_._2).toSeq
-    Random.shuffle(seqEngine) // Shuffle engine around to avoid always use the same engine.
+      .values.toSeq
+    val shuffledEngine = Random.shuffle(seqEngine) // Shuffle engine around to avoid always use the same engine.
+    if (!tag.equals("")) {
+      shuffledEngine.filter(e => {
+        val data = readDataMaybeNull(client, path + "/" + e)
+        data._1.nonEmpty && data._1.get.equals(tag)
+      })
+    }else{
+      shuffledEngine
+    }
   }
 
-  def getChildrenFilter(client: ZkClient, path: String, engineInfo:String): Seq[String] = {
-    getChildren(client,path).filter(_.startsWith(engineInfo))
+  def getChildrenFilter(client: ZkClient, path: String, engineInfo: String): Seq[String] = {
+    getChildren(client, path).filter(_.startsWith(engineInfo))
   }
 
   def getChildrenParentMayNotExist(client: ZkClient, path: String): Seq[String] = {
@@ -343,6 +352,7 @@ object ZkUtils {
   /**
     * This API takes in a broker id, queries zookeeper for the broker metadata and returns the metadata for that broker
     * or throws an exception if the broker dies before the query to zookeeper finishes
+    *
     * @param brokerId The broker id
     * @param zkClient The zookeeper client connection
     * @return An optional Broker object encapsulating the broker metadata
@@ -359,10 +369,10 @@ object ZkUtils {
 object ZKStringSerializer extends ZkSerializer {
 
   @throws(classOf[ZkMarshallingError])
-  def serialize(data : Object) : Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
+  def serialize(data: Object): Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
 
   @throws(classOf[ZkMarshallingError])
-  def deserialize(bytes : Array[Byte]) : Object = {
+  def deserialize(bytes: Array[Byte]): Object = {
     if (bytes == null)
       null
     else
