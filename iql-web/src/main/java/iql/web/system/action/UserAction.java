@@ -46,8 +46,10 @@ public class UserAction {
 	}
 
 	@RequestMapping(value="/system/add", method=RequestMethod.POST)
-	public Integer addUser(User user,String roles){
-		return userService.addUser(user,roles);
+	public Integer addUser(User u,String roles){
+		String token = MD5Util.getMD5String(u.getUsername() + u.getPassword() + System.currentTimeMillis());
+		u.setToken(token);
+		return userService.addUser(u,roles);
 	}
 
 	@RequestMapping(value="/system/update", method=RequestMethod.POST)
