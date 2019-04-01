@@ -25,13 +25,11 @@ import org.apache.http.client.fluent.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
-import scala.collection.Iterator;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-import scala.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,14 +57,14 @@ public class QueryAction {
      * 执行一个IQL
      */
     @PostMapping(value = "/query")
-    public JSONObject execution(String iql, String mode, String variables) {
+    public JSONObject execution(String iql, String mode, String variables, @RequestParam(defaultValue = "") String tag) {
         JSONObject resultObj = new JSONObject();
         resultObj.put("isSuccess", false);
         if (iql.trim().equals("")) {
             resultObj.put("data", "iql can't be empty...");
             return resultObj;
         }
-        Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath());
+        Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath(), tag);
         if (validEngines.size() == 0) {
             resultObj.put("data", "There is no available execution engine....");
             return resultObj;
@@ -132,13 +130,14 @@ public class QueryAction {
     }
 
     @PostMapping(value = "/queryApi")
-    public JSONObject execution(HttpServletRequest request, String iql) throws Exception {
+    public JSONObject execution(HttpServletRequest request, String iql, @RequestParam(required = false) String tag) throws Exception {
         String postResult = Request.Post("http://localhost:8888/query").bodyForm(
                 Form.form()
                         .add("iql", iql)
                         .add("variables", "[]")
                         .add("mode", "iql")
                         .add("token", request.getParameter("token"))
+                        .add("tag",tag)
                         .build())
                 .execute().returnContent().asString();
 

@@ -43,21 +43,21 @@ public class AuthAction {
         User user = (User) request.getSession().getAttribute("user");
         List<DataSource> roleDataSourceByUserId = dataSourceRepository.findRoleDataSourceByUserId(user.getId());
         HashSet<String> availableDataSources = new HashSet<>();
-        roleDataSourceByUserId.forEach( ds -> availableDataSources.add(ds.getPath().replaceAll("datasource.","").toLowerCase()));
+        roleDataSourceByUserId.forEach(ds -> availableDataSources.add(ds.getPath().replaceAll("datasource.", "").toLowerCase()));
         JSONArray returnArray = new JSONArray();
         Iterator<Object> iterator = JSON.parseArray(data).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             JSONObject obj = JSON.parseObject(iterator.next().toString());
             String chechTable;
-            if(obj.getString("db").equals("")){
+            if (obj.getString("db").equals("")) {
                 chechTable = obj.getString("type") + "." + obj.getString("table");
-            }else{
+            } else {
                 chechTable = obj.getString("type") + "." + obj.getString("db") + "." + obj.getString("table");
             }
-            if(!availableDataSources.contains(chechTable.toLowerCase())){
+            if (!availableDataSources.contains(chechTable.toLowerCase())) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("granted",false);
-                jsonObject.put("msg","You do not have permission to operate the table: " + chechTable);
+                jsonObject.put("granted", false);
+                jsonObject.put("msg", "You do not have permission to operate the table: " + chechTable);
                 returnArray.add(jsonObject);
             }
         }
@@ -79,7 +79,7 @@ public class AuthAction {
     public JSONObject pullData(Object message) {
         JSONObject resultObj = new JSONObject();
         resultObj.put("isSuccess", false);
-        Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath());
+        Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath(), "");
         if (validEngines.size() == 0) {
             resultObj.put("errorMessage", "There is no available execution engine....");
             return resultObj;
