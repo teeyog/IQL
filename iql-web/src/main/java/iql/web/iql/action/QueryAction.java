@@ -57,13 +57,19 @@ public class QueryAction {
      * 执行一个IQL
      */
     @PostMapping(value = "/query")
-    public JSONObject execution(String iql, String mode, String variables, @RequestParam(defaultValue = "") String tag) {
+    public JSONObject execution(HttpServletRequest request, String iql, String mode, String variables, @RequestParam(defaultValue = "") String tag) {
         JSONObject resultObj = new JSONObject();
         resultObj.put("isSuccess", false);
         if (iql.trim().equals("")) {
             resultObj.put("data", "iql can't be empty...");
             return resultObj;
         }
+
+        User user = (User) request.getSession().getAttribute("user");
+        if (null == user) {
+            user = userService.findUserByToken(request.getSession().getAttribute("token").toString());
+        }
+
         Seq<String> validEngines = ZkUtils.getValidChildren(zkClient, ZkUtils.validEnginePath(), tag);
         if (validEngines.size() == 0) {
             resultObj.put("data", "There is no available execution engine....");
@@ -73,7 +79,7 @@ public class QueryAction {
             ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
             try {
                 Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(mode, iql, variables), timeout);
+                Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(mode, iql, variables, user.getToken()), timeout);
                 Bean.IQLExcution result1 = (Bean.IQLExcution) Await.result(future1, timeout.duration());
                 resultObj = result1.toJSONObjet();
                 resultObj.put("isSuccess", true);
