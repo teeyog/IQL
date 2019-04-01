@@ -17,11 +17,11 @@
         </h3>
         <div class="user-api-token">
             <span class="token" style="display: inline"><code id="token"></code></span>
-            <span style="display: inline;cursor:pointer" onclick="deleteToken()"><u> Delete</u></span>
+            <span style="display: inline;cursor:pointer" onclick="GenerateToken()"><u> Update</u></span>
         </div>
-        <div id="Generate" onclick="GenerateToken()" style="cursor:pointer">
-            <u>Generate New Token</u>
-        </div>
+        <!--<div id="Generate" onclick="GenerateToken()" style="cursor:pointer">-->
+            <!--<u>Generate New Token</u>-->
+        <!--</div>-->
 
         <div style="margin-top: 50px">
             说明：此Token可在发送Rest请求时使用，只需在请求中带上token参数即可。
@@ -41,14 +41,14 @@
             url: '/mcdata/user/system/token',
             type: 'GET',
             success: function( data ) {
-                if(data.token){
+                // if(data.token){
                     $("#token").html(data.token);
-                    $(".user-api-token").show();
-                    $("#Generate").hide();
-                }else{
-                    $("#Generate").show();
-                    $(".user-api-token").hide();
-                }
+                //     $(".user-api-token").show();
+                //     $("#Generate").hide();
+                // }else{
+                //     $("#Generate").show();
+                //     $(".user-api-token").hide();
+                // }
 
             },
             error: function( error ) {
