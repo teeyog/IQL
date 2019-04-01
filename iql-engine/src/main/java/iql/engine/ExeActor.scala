@@ -263,7 +263,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
                 iqlExcution.dataType = ResultDataType.ERROR_DATA
                 sender() ! iqlExcution
         }
-        ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, "", 6000, -1)
+        ZkUtils.registerActorInEngine(zkClient, zkValidActorPath, iqlSession.tag.getOrElse("default"), 6000, -1)
     }
 
     // 获取hive元数据信息
