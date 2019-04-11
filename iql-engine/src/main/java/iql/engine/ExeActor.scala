@@ -27,7 +27,6 @@ import iql.spark.listener.IQLStreamingQueryListener
 import org.I0Itec.zkclient.ZkClient
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
-import org.apache.spark.sql.execution.streaming.StreamingQueryWrapper
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.streaming.StreamingQueryListener
 
@@ -222,7 +221,6 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
   def parseSQL(input: String, listener: IQLSQLExecListener): Unit = {
     try {
       parse(input, listener, token)
-      iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
       val hdfsPath = "/tmp/iql/result/iql_query_result_" + System.currentTimeMillis()
       iqlExcution.hdfsPath = hdfsPath
       if (listener.result().containsKey("uuidTable")) {
@@ -230,12 +228,14 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         iqlExcution.data = showTable.limit(500).toJSON.collect().mkString("[", ",", "]")
         iqlExcution.schema = showTable.schema.fields.map(_.name).mkString(",")
         iqlExcution.status = JobStatus.FINISH
+        iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
         iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
         showTable.select(showTable.columns.map(col(_).cast("String")): _*).write.json(hdfsPath)
       } else if (listener.result().containsKey("explainStr")) {
         iqlExcution.data = listener.getResult("explainStr")
         iqlExcution.dataType = ResultDataType.PRE_DATA
         iqlExcution.status = JobStatus.FINISH
+        iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
         iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
       }
     } catch {
