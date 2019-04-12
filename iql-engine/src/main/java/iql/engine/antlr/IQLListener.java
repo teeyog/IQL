@@ -1,4 +1,4 @@
-// Generated from D:/DevInstall/git/Git/cloud/github/IQL/iql-engine/src/main/resources\IQL.g4 by ANTLR 4.7
+// Generated from IQL.g4 by ANTLR 4.7.1
 
 package iql.engine.antlr;
 

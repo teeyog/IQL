@@ -3,32 +3,50 @@ import java.util.concurrent.TimeUnit
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.streaming.Trigger
 
+
+class A {
+
+}
+
+class B extends  A {
+
+}
+
+
+
 object HackTest {
 
     def main(args: Array[String]): Unit = {
-        val spark = SparkSession.builder()
-            .appName("测试")
-            .master("local[4]")
-            .enableHiveSupport()
-            .getOrCreate()
 
-        val df = spark
-            .readStream
-            .option("kafka.bootstrap.servers", "192.168.1.61:9092")
-            .option("subscribe", "mc-alermclock")
-            .option("startingoffsets", "latest")
-            .option("failOnDataLoss", "false")
-            .format("kafka")
-            .load()
 
-        val query = df.writeStream
-            .outputMode("append")
-            .option("checkpointLocation", "/tmp/cp/cp2")
-            .trigger(Trigger.ProcessingTime(10, TimeUnit.SECONDS))
-            .format("console")
-            .start()
+//        val spark = SparkSession.builder()
+//            .appName("测试")
+//            .master("local[4]")
+//            .enableHiveSupport()
+//            .getOrCreate()
+//
+//        spark.sql(
+//          """
+//            |show databases;
+//          """.stripMargin)
 
-        query.awaitTermination()
+//        val df = spark
+//            .readStream
+//            .option("kafka.bootstrap.servers", "192.168.1.61:9092")
+//            .option("subscribe", "mc-alermclock")
+//            .option("startingoffsets", "latest")
+//            .option("failOnDataLoss", "false")
+//            .format("kafka")
+//            .load()
+//
+//        val query = df.writeStream
+//            .outputMode("append")
+//            .option("checkpointLocation", "/tmp/cp/cp2")
+//            .trigger(Trigger.ProcessingTime(10, TimeUnit.SECONDS))
+//            .format("console")
+//            .start()
+//
+//        query.awaitTermination()
 
 //
 //        val JSON_REGEX = "abc(.*)".r

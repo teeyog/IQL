@@ -3,6 +3,7 @@ package iql.engine.udf
 import java.util.UUID
 
 import org.apache.spark.SparkUtils
+import org.apache.spark.sql.bridge.IQLScalaUDF
 import org.apache.spark.sql.catalyst.analysis.FunctionRegistry.FunctionBuilder
 import org.apache.spark.sql.catalyst.expressions.{Expression, ScalaUDF}
 import org.apache.spark.sql.execution.aggregate.ScalaUDAF
@@ -31,7 +32,7 @@ object UdfUtils {
             (e: Seq[Expression]) => ScalaUDAF(e, JavaSourceUDAF(src, className))
         } else { // java udf
             val (func, returnType) = JavaSourceUDF(src, className, methodName)
-            (e: Seq[Expression]) => ScalaUDF(func, returnType, e, udfName = Some(udfName))
+            (e: Seq[Expression]) => new IQLScalaUDF(func, returnType, e, udfName = Some(udfName))
         }
     }
 
@@ -43,7 +44,7 @@ object UdfUtils {
             (e: Seq[Expression]) => ScalaUDAF(e, ScalaSourceUDAF(src, className))
         } else { // scala udf
             val (func, returnType) = ScalaSourceUDF(src, className, methodName)
-            (e: Seq[Expression]) => ScalaUDF(func, returnType, e, udfName = Some(udfName))
+            (e: Seq[Expression]) => new IQLScalaUDF(func, returnType, e, udfName = Some(udfName))
         }
     }
 
@@ -54,7 +55,7 @@ object UdfUtils {
             (e: Seq[Expression]) => ScalaUDAF(e, NonSourceUDAF(className))
         } else { // udf
             val (func, returnType) = NonSourceUDF(className, methodName)
-            (e: Seq[Expression]) => ScalaUDF(func, returnType, e, udfName = Some(udfName))
+            (e: Seq[Expression]) =>  new IQLScalaUDF(func, returnType, e, udfName = Some(udfName))
         }
     }
 }

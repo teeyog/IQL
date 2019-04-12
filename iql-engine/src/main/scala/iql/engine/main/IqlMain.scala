@@ -51,7 +51,7 @@ object IqlMain extends Logging {
       //调度模式
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.executor.memoryOverhead", "512")
-      //          .master("local[*]")
+//      .master("local[*]")
       .enableHiveSupport()
       .getOrCreate()
     spark.sparkContext.setLogLevel("WARN")

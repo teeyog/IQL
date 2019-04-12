@@ -20,12 +20,6 @@
         </dependency>
 
         <dependency>
-            <groupId>cn.i4</groupId>
-            <artifactId>iql-spark</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
             <version>4.7.1</version>
@@ -71,6 +65,46 @@
             <artifactId>spark-xml_2.11</artifactId>
         </dependency>
     </dependencies>
+
+    <profiles>
+
+        <profile>
+            <id>iql-spark-2.2-adaptor</id>
+            <dependencies>
+                <dependency>
+                    <groupId>cn.i4</groupId>
+                    <artifactId>iql-spark-2.2-adaptor</artifactId>
+                    <version>${project.parent.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>iql-spark-2.3-adaptor</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>cn.i4</groupId>
+                    <artifactId>iql-spark-2.3-adaptor</artifactId>
+                    <version>${project.parent.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>iql-spark-2.4-adaptor</id>
+            <dependencies>
+                <dependency>
+                    <groupId>cn.i4</groupId>
+                    <artifactId>iql-spark-2.4-adaptor</artifactId>
+                    <version>${project.parent.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+    </profiles>
 
 
     <build>

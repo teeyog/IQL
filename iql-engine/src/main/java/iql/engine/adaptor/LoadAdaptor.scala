@@ -92,9 +92,9 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         }
 
       case "json" | "csv" | "orc" | "parquet" | "text" =>
-        if (option.contains("schema")) {
-          reader.schema(option("schema"))
-        }
+//        if (option.contains("schema")) {
+//          reader.schema(option("schema"))
+//        }
         table = reader.option("header", "true").format(format).load(path)
 
       case "xml" =>
