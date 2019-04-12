@@ -15,9 +15,9 @@ modify the engine module configuration file iql-engine\src\main\resources\iql.pr
 ### 4. Compile and package
 ```
 cd IQL/
-mvn clean package -Dmaven.test.skip
-cd iql-web\target # 获取iql-web.jar
-cd iql-engine\target # 获取iql-engine.jar
+mvn clean package -Dmaven.test.skip # The default package is spark 2.3, which can be switched by parameters such as -Piql-spark-2.2-adaptor
+cd iql-web\target # get iql-web.jar
+cd iql-engine\target # get iql-engine.jar
 ```
 
 ### 5. Run

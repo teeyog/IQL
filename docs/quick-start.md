@@ -15,7 +15,7 @@ git clone https://github.com/teeyog/IQL.git
 ### 4. 编译打包
 ```
 cd IQL/
-mvn clean package -Dmaven.test.skip
+mvn clean package -Dmaven.test.skip # 默认打包的是spark2.3,可通过参数如： -Piql-spark-2.2-adaptor 来切换spark版本
 cd iql-web\target # 获取iql-web.jar
 cd iql-engine\target # 获取iql-engine.jar
 ```
