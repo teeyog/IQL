@@ -272,15 +272,16 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
   def getHiveCatalog: String = {
     val hiveArray = new JSONArray()
     var num: Int = 0
-    SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
+    val client = SparkBridge.getHiveCatalg(sparkSession).client
+    client.listDatabases("*").foreach(db => {
       num += 1
       val dbId = num
       hiveArray.add(ObjGenerator.newJSON(Seq(("id", dbId), ("name", db), ("pId", 0)): _*))
-      SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
+      client.listTables(db).foreach(tb => {
         num += 1
         val tbId = num
         hiveArray.add(ObjGenerator.newJSON(Seq(("id", tbId), ("pId", dbId), ("name", tb)): _*))
-        SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => {
+        client.getTable(db, tb).schema.fields.foreach(f => {
           num += 1
           val fieldId = num
           hiveArray.add(ObjGenerator.newJSON(Seq(("id", fieldId), ("pId", tbId), ("name", f.name + "(" + f.dataType.typeName + ")")): _*))
@@ -293,12 +294,13 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
 
   def getHiveCatalogWithAutoComplete: String = {
     val hiveObj = new JSONObject()
-    SparkBridge.getHiveCatalg(sparkSession).client.listDatabases("*").foreach(db => {
+    val client = SparkBridge.getHiveCatalg(sparkSession).client
+    client.listDatabases("*").foreach(db => {
       val tbArray = new JSONArray()
-      SparkBridge.getHiveCatalg(sparkSession).client.listTables(db).foreach(tb => {
+      client.listTables(db).foreach(tb => {
         tbArray.add(tb)
         val cloArray = new JSONArray()
-        SparkBridge.getHiveCatalg(sparkSession).client.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
+        client.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
         hiveObj.put(tb, cloArray)
       })
       hiveObj.put(db, tbArray)
