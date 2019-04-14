@@ -904,7 +904,7 @@ $(function(){
                 {
                     field: 'startTime',
                     title: '开始时间',
-                    width: 80,
+                    width: 40,
                     formatter: function (value, row, index) {
                         return '<span title="' + timestampToTime(value) + '">' + timeago(value) + '</span>'
                     }
@@ -912,7 +912,7 @@ $(function(){
                 {
                     field: 'isSuccess',
                     title: '执行结果',
-                    width: 80,
+                    width: 40,
                     formatter: function (value, row, index) {
                         if (value)
                             return '<span class="text-success" title="successful"><i class="glyphicon glyphicon-ok"></i></span>';
@@ -923,7 +923,7 @@ $(function(){
                 {
                     field: 'takeTime',
                     title: '耗时',
-                    width: 80,
+                    width: 40,
                     formatter: function (value, row, index) {
                         return '<span>' + (value/1000).toFixed(1) + ' s' + '</span>'
                     }
@@ -931,7 +931,7 @@ $(function(){
                 {
                     field: 'iql',
                     title: '执行操作',
-                    width: 600
+                    width: 300
                 },
                 {
                     field: 'hdfsPath',
@@ -957,7 +957,7 @@ $(function(){
                     field: 'id',
                     title: '操作',
                     align: 'center',
-                    width: 100,
+                    width: 120,
                     events: operateEvents_loadresult,
                     formatter: operateFormatter_loadresult
                 }
