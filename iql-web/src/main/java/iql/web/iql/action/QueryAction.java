@@ -1,9 +1,5 @@
 package iql.web.iql.action;
 
-import akka.actor.ActorSelection;
-import akka.actor.ActorSystem;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
 import iql.common.domain.Bean;
 import iql.common.utils.ShellUtils;
 import iql.common.utils.ZkUtils;
@@ -12,6 +8,7 @@ import iql.web.bean.IqlExcution;
 import iql.web.handler.HDFSHandler;
 import iql.web.system.domain.User;
 import iql.web.system.service.UserService;
+import iql.web.util.ActorUtils;
 import iql.web.util.DataUtil;
 import iql.web.util.HdfsUtils;
 import iql.web.iql.service.IqlExcutionRepository;
@@ -43,11 +40,11 @@ import java.util.Map;
 public class QueryAction {
 
     @Autowired
-    private ActorSystem actorSystem;
-    @Autowired
     private ZkClient zkClient;
     @Autowired
     private IqlExcutionRepository iqlExcutionRepository;
+    @Autowired
+    private ActorUtils actorUtils;
     @Autowired
     private Environment env;
     @Autowired
@@ -76,16 +73,8 @@ public class QueryAction {
             return resultObj;
         } else {
             String[] engineInfoAndActorname = validEngines.head().split("_");
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
-            try {
-                Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future1 = Patterns.ask(selection, new Bean.Iql(mode, iql, variables, user.getToken()), timeout);
-                Bean.IQLExcution result1 = (Bean.IQLExcution) Await.result(future1, timeout.duration());
-                resultObj = result1.toJSONObjet();
-                resultObj.put("isSuccess", true);
-            } catch (Exception e) {
-                resultObj.put("data", e.getMessage());
-            }
+            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
+                    new Bean.Iql(mode, iql, variables, user.getToken()));
             return resultObj;
         }
     }
@@ -103,15 +92,9 @@ public class QueryAction {
             return resultObj;
         } else {
             String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
-            try {
-                Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future1 = Patterns.ask(selection, new Bean.GetBatchResult(engineInfoAndGroupId), timeout);
-                Bean.IQLExcution result1 = (Bean.IQLExcution) Await.result(future1, timeout.duration());
-                resultObj = result1.toJSONObjet();
-            } catch (Exception e) {
-                resultObj.put("data", e.getMessage());
-            }
+
+            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
+                    new Bean.GetBatchResult(engineInfoAndGroupId));
             if (!resultObj.getString("status").equals("RUNNING")) {
                 User user = (User) request.getSession().getAttribute("user");
                 String userName;
@@ -143,7 +126,7 @@ public class QueryAction {
                         .add("variables", "[]")
                         .add("mode", "iql")
                         .add("token", request.getParameter("token"))
-                        .add("tag",tag)
+                        .add("tag", tag)
                         .build())
                 .execute().returnContent().asString();
 
@@ -176,13 +159,9 @@ public class QueryAction {
             HashMap<String, String> validEnginesMap = new HashMap<>();
             validEngines.forEach(e -> validEnginesMap.put(e.split("_")[0], e.split("_")[1]));
             validEnginesMap.forEach((k, v) -> {
-                ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + k + "/user/" + v);
-                try {
-                    Timeout timeout = new Timeout(Duration.create(2, "s"));
-                    Future<Object> future = Patterns.ask(selection, new Bean.GetActiveStream(), timeout);
-                    validStreams.addAll(JSON.parseArray(Await.result(future, timeout.duration()).toString()));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                JSONObject resultObj = actorUtils.queryActor(k, v, new Bean.GetActiveStream());
+                if ((Boolean) resultObj.get("isSuccess")) {
+                    validStreams.addAll(JSON.parseArray((String) resultObj.get("data")));
                 }
             });
         }
@@ -206,16 +185,8 @@ public class QueryAction {
             return resultObj;
         } else {
             String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
-            try {
-                Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future = Patterns.ask(selection, new Bean.StreamJobStatus(engineInfo + "_" + name + "_" + uid), timeout);
-                String resultStr = Await.result(future, timeout.duration()).toString();
-                resultObj.put("data", resultStr);
-            } catch (Exception e) {
-                resultObj.put("data", e.getMessage());
-                resultObj.put("isSuccess", false);
-            }
+            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
+                    new Bean.StreamJobStatus(engineInfo + "_" + name + "_" + uid));
             return resultObj;
         }
     }
@@ -235,14 +206,10 @@ public class QueryAction {
         } else {
             System.out.println("StopStreamJob:" + validEngineByEngineInfo);
             String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
-            try {
-                Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future = Patterns.ask(selection, new Bean.StopSreamJob(engineInfo + "_" + name + "_" + uid), timeout);
-                resultObj.put("isSuccess", Boolean.valueOf(Await.result(future, timeout.duration()).toString()));
-            } catch (Exception e) {
-                resultObj.put("data", e.getMessage());
-                resultObj.put("isSuccess", false);
+            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
+                    new Bean.StopSreamJob(engineInfo + "_" + name + "_" + uid));
+            if (resultObj.getBoolean("isSuccess")) {
+                resultObj.put("isSuccess", resultObj.getBoolean("data"));
             }
             return resultObj;
         }
@@ -255,15 +222,14 @@ public class QueryAction {
     public JSONObject loadResult(String hdfsPath, String schema, String dataType, Long id) {
         JSONObject resultObj = new JSONObject();
         try {
-            if (dataType.equals("structuredData")){
+            if (dataType.equals("structuredData")) {
                 resultObj.put("data", HdfsUtils.readFileToString(hdfsPath, env.getProperty("hdfs.uri")));
                 resultObj.put("schema", schema);
                 resultObj.put("isSuccess", true);
-            } else if(dataType.equals("errorData")){
+            } else if (dataType.equals("errorData")) {
                 resultObj.put("data", iqlExcutionRepository.findOne(id).getData());
                 resultObj.put("isSuccess", false);
-            }
-            else {
+            } else {
                 resultObj.put("data", iqlExcutionRepository.findOne(id).getData());
                 resultObj.put("isSuccess", true);
             }
@@ -292,14 +258,11 @@ public class QueryAction {
         } else {
             System.out.println("StopQuery:" + validEngineByEngineInfo);
             String[] engineInfoAndActorname = validEngineByEngineInfo.split("_");
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
-            try {
-                Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future = Patterns.ask(selection, new Bean.CancelJob(Integer.valueOf(engineInfoAndGroupId.split("_")[1])), timeout);
-                resultObj.put("isSuccess", Boolean.valueOf(Await.result(future, timeout.duration()).toString()));
-            } catch (Exception e) {
-                resultObj.put("data", e.getMessage());
-                resultObj.put("isSuccess", false);
+
+            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
+                    new Bean.CancelJob(Integer.valueOf(engineInfoAndGroupId.split("_")[1])));
+            if (resultObj.getBoolean("isSuccess")) {
+                resultObj.put("isSuccess", resultObj.getBoolean("data"));
             }
             return resultObj;
         }
@@ -322,20 +285,16 @@ public class QueryAction {
     @RequestMapping(value = "/hiveMetadata", method = RequestMethod.GET)
     @ResponseBody
     public JSONArray hiveMetadata() {
-        JSONArray resultArray;
+        JSONArray resultArray = new JSONArray();
         Seq<String> validEngines = ZkUtils.getChildren(zkClient, ZkUtils.validEnginePath());
         if (validEngines.size() == 0) {
-            return null;
+            return resultArray;
         } else {
             String[] engineInfoAndActorname = validEngines.head().split("_");
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
-            try {
-                Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future1 = Patterns.ask(selection, new Bean.HiveCatalog(), timeout);
-                String result1 = Await.result(future1, timeout.duration()).toString();
-                resultArray = JSON.parseArray(result1);
-            } catch (Exception e) {
-                return null;
+            JSONObject resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
+                    new Bean.HiveCatalog());
+            if(resultObj.getBoolean("isSuccess")){
+                resultArray = JSON.parseArray(resultObj.getString("data"));
             }
             return resultArray;
         }
@@ -347,22 +306,18 @@ public class QueryAction {
     @RequestMapping(value = "/autoCompletehiveMetadata", method = RequestMethod.GET)
     @ResponseBody
     public JSONObject autoCompleteHiveMetadata() {
-        JSONObject resultArray = null;
+        JSONObject resultObj = null;
         Seq<String> validEngines = ZkUtils.getChildren(zkClient, ZkUtils.validEnginePath());
         if (validEngines.size() == 0) {
             return null;
         } else {
             String[] engineInfoAndActorname = validEngines.head().split("_");
-            ActorSelection selection = actorSystem.actorSelection("akka.tcp://iqlSystem@" + engineInfoAndActorname[0] + "/user/" + engineInfoAndActorname[1]);
-            try {
-                Timeout timeout = new Timeout(Duration.create(2, "s"));
-                Future<Object> future = Patterns.ask(selection, new Bean.HiveCatalogWithAutoComplete(), timeout);
-                String result = Await.result(future, timeout.duration()).toString();
-                resultArray = JSON.parseObject(result);
-            } catch (Exception e) {
-                return null;
+
+            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1], new Bean.HiveCatalogWithAutoComplete());
+            if(resultObj.getBoolean("isSuccess")){
+                resultObj = JSON.parseObject(resultObj.getString("data"));
             }
-            return resultArray;
+            return resultObj;
         }
     }
 
