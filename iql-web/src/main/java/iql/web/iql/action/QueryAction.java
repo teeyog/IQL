@@ -16,6 +16,7 @@ import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import iql.web.util.MD5Util;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
@@ -28,6 +29,8 @@ import scala.collection.Seq;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -353,6 +356,84 @@ public class QueryAction {
     @ResponseBody
     public void deleteHistoryIql(String id) {
         iqlExcutionRepository.delete(Long.valueOf(id));
+    }
+
+    /**
+     * 获取分享连接
+     *
+     * @return
+     */
+    @RequestMapping(value = "/shareResult", method = RequestMethod.POST)
+    @ResponseBody
+    public JSONObject shareResult(String id) {
+        String sign = getRealSign(id);;
+        String getUrl = getUrl(id,sign);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("urlSign",getUrl);
+        return jsonObject;
+    }
+
+    /**
+     * 通过分享获取结果
+     *
+     * @return
+     */
+    @PostMapping(value = "/getdata")
+    public JSONObject getData(String urlsign) {
+        String searchURL = urlsign.substring(1);
+        String id = searchURL.split("&")[0].split("=")[1];
+        String sign = searchURL.split("&")[1].split("=")[1];
+        String realSign = getRealSign(id);
+
+        JSONObject resultObj = new JSONObject();
+        if(realSign.equals(sign)){
+            IqlExcution iqlExcution = iqlExcutionRepository.findOne(Long.valueOf(id));
+            String dataType = iqlExcution.getDataType();
+            try {
+                if (dataType.equals("structuredData")) {
+                    resultObj.put("data", HdfsUtils.readFileToString(iqlExcution.getHdfsPath(), env.getProperty("hdfs.uri")));
+                    resultObj.put("schema", iqlExcution.getSchema());
+                    resultObj.put("isSuccess", true);
+                } else if (dataType.equals("errorData")) {
+                    resultObj.put("data", iqlExcution.getData());
+                    resultObj.put("isSuccess", false);
+                } else {
+                    resultObj.put("data", iqlExcution.getData());
+                    resultObj.put("isSuccess", true);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                resultObj.put("isSuccess", false);
+                resultObj.put("data", e.getMessage());
+            }
+        }
+        return resultObj;
+    }
+
+    private String getRealSign(String jobid){
+        IqlExcution iqlExcution = iqlExcutionRepository.findOne(Long.valueOf(jobid));
+        String userName = iqlExcution.getUser();
+        User user = new User();
+        user.setUsername(userName);
+        return MD5Util.getMD5String(userService.findByUsername(user).getToken());
+    }
+
+
+
+    /**
+     * 功能：拼接URL
+     */
+    private String getUrl(String id,String sign){
+        InetAddress addr = null;
+        try {
+            addr = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        addr.getHostAddress();
+        String urlSign = addr.getHostAddress()+":" + env.getProperty("server.port") + "/share?id="+id + "&sign=" + sign;
+        return urlSign;
     }
 
     /**

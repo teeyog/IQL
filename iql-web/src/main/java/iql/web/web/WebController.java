@@ -135,4 +135,10 @@ public class WebController {
 	public void menuClick(HttpServletRequest request,String menu) {
 		request.getSession().setAttribute("menu",menu);
 	}
+
+	@RequestMapping("/share")
+	public ModelAndView share(HttpServletRequest request){
+		ModelAndView mv = new ModelAndView();
+		return mv;
+	}
 }

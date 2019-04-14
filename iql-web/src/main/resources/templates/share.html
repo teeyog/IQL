@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:replace="head::headerFragment('IQL分享')">
+    <meta charset="UTF-8"/>
+    <title>IQL</title>
+</head>
+<body>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <div class="alert alert-success">IQL查询结果分享页面
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <table id="history-list-table"
+                           data-classes="table table-hover table-condensed"
+                           data-mobile-responsive="true">
+                    </table>
+                </div>
+
+                <table id="results-list-table" data-classes="table table-hover table-condensed"
+                       data-mobile-responsive="true">
+                    <div id="result-content"
+                         style="width: 100%;background-color: #f7f7f7;display: none">
+                        <pre></pre>
+                    </div>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<SCRIPT LANGUAGE="JavaScript">
+    $().ready(function() {
+        var data = {
+        urlsign:window.location.search
+        };
+        $.ajax({
+                type: 'POST',
+                url: '/getdata',
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                   if (data.isSuccess) {
+                    loadResultsTable(data.schema,JSON.parse(data.data))
+                   } else {
+                       alert(data.data)
+                   }
+                },
+                error: function (err) {
+                    alert("连接失败，请联系管理员！")
+                }
+        })
+    });
+
+    //加载结果数据
+    function loadResultsTable(schema, data) {
+        var columns = [];
+        var headTitles = schema.split(",");
+        $.each(headTitles, function (i, name) {
+            columns.push({
+                title: name,
+                field: name,
+                width: 200,
+                align: 'center'
+            })
+        });
+        $("#results-list-table").bootstrapTable({
+            method: 'get',
+            cache: false,
+            striped: true, //是否显示行间隔色
+            pageList: [10, 20, 50, 100],
+            search:true,
+            showColumns:true,
+            showRefresh:true,
+            pageSize: 10,
+            pagination: true,
+            sidePagination: 'client',
+            dataType: 'json',
+            columns: columns
+        });
+        $("#results-list-table")
+            .bootstrapTable("load", data);
+    }
+
+</SCRIPT>
+
+</body>
+</html>
