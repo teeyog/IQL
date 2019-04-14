@@ -24,9 +24,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
-import scala.concurrent.Await;
-import scala.concurrent.Future;
-import scala.concurrent.duration.Duration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -293,7 +290,7 @@ public class QueryAction {
             String[] engineInfoAndActorname = validEngines.head().split("_");
             JSONObject resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
                     new Bean.HiveCatalog());
-            if(resultObj.getBoolean("isSuccess")){
+            if (resultObj.getBoolean("isSuccess")) {
                 resultArray = JSON.parseArray(resultObj.getString("data"));
             }
             return resultArray;
@@ -313,8 +310,9 @@ public class QueryAction {
         } else {
             String[] engineInfoAndActorname = validEngines.head().split("_");
 
-            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1], new Bean.HiveCatalogWithAutoComplete());
-            if(resultObj.getBoolean("isSuccess")){
+            resultObj = actorUtils.queryActor(engineInfoAndActorname[0], engineInfoAndActorname[1],
+                    new Bean.HiveCatalogWithAutoComplete());
+            if (resultObj.getBoolean("isSuccess")) {
                 resultObj = JSON.parseObject(resultObj.getString("data"));
             }
             return resultObj;
@@ -328,8 +326,13 @@ public class QueryAction {
      */
     @RequestMapping(value = "/history", method = RequestMethod.GET)
     @ResponseBody
-    public JSONObject getHistoryExcution(BaseBean vo) {
-        List<IqlExcution> iqlExcutions = iqlExcutionRepository.findByIqlLike(vo.getSearch());
+    public JSONObject getHistoryExcution(HttpServletRequest request, BaseBean vo) {
+        User user = (User) request.getSession().getAttribute("user");
+        if (null == user) {
+            user = userService.findUserByToken(request.getSession().getAttribute("token").toString());
+        }
+        List<IqlExcution> iqlExcutions = iqlExcutionRepository
+                .findByUserAndIqlLike(user.getUsername(), vo.getSearch());
         JSONArray rows = new JSONArray();
         JSONObject res = new JSONObject();
         for (IqlExcution e : iqlExcutions) {

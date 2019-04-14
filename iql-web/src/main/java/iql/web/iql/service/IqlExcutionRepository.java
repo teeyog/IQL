@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface IqlExcutionRepository  extends JpaRepository<IqlExcution, Long> {
 
-    @Query(value="select * from iql_excution a where a.iql like CONCAT('%',:search,'%')",nativeQuery=true)
-    List<IqlExcution> findByIqlLike(@Param("search") String search);
+    @Query(value="select * from iql_excution a where user=:user and a.iql like CONCAT('%',:search,'%')",nativeQuery=true)
+    List<IqlExcution> findByUserAndIqlLike(@Param("user") String user, @Param("search") String search);
 
 }
