@@ -36,6 +36,8 @@ public class MCWebMvcConfigurer extends WebMvcConfigurerAdapter {
                 .excludePathPatterns("/page/404")
                 .excludePathPatterns("/page/500")
                 .excludePathPatterns("/page/firstlogin")
+                .excludePathPatterns("/getdata")
+                .excludePathPatterns("/share")
                 ;
 
         super.addInterceptors(registry);
