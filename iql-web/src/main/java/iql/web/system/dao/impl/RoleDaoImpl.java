@@ -19,7 +19,7 @@ public class RoleDaoImpl implements RoleDao {
 
 	@PersistenceContext
 	private EntityManager em;
-	
+
 	@Override
 	public List<Map> findRoleMenuByIds(List<Integer> ids) {
 		String sql = "select b.id, b.menuname name, b.pid, b.url, b.icon from t_role_menu a"
@@ -99,12 +99,18 @@ public class RoleDaoImpl implements RoleDao {
 				sqls2+="("+role.getId()+","+ds+")"+",";
 			}
 		}
+
 		sqls2 = StringUtils.strip(sqls2,",");
-		em.createNativeQuery("delete from t_role_datasource where roleid=" + role.getId()).executeUpdate();
-		String sql2 = "insert into t_role_datasource (roleid,datasourceid) values "+sqls2;
-		Query query2 = em.createNativeQuery(sql2);
-		Integer result2 = query2.executeUpdate();
-		return result2;
+
+        if(!"".equals(sqls2)){
+            em.createNativeQuery("delete from t_role_datasource where roleid=" + role.getId()).executeUpdate();
+            String sql2 = "insert into t_role_datasource (roleid,datasourceid) values "+sqls2;
+            Query query2 = em.createNativeQuery(sql2);
+            Integer result2 = query2.executeUpdate();
+            return result2;
+        }else {
+            return 0;
+        }
 	}
 
 	@Override
