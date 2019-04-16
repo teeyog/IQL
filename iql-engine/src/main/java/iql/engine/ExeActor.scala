@@ -107,7 +107,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     case HiveCatalog() =>
       val catalog = initHiveCatalog match {
         case true => getHiveCatalog
-        case false => "{}"
+        case false => "[]"
       }
       sender() ! catalog
 
