@@ -1,10 +1,14 @@
 package org.apache.spark.sql.bridge
 
+import java.io.CharArrayWriter
+
 import org.apache.spark.sql.catalyst.analysis.FunctionRegistry.FunctionBuilder
+import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.catalyst.expressions.{Expression, ScalaUDF}
+import org.apache.spark.sql.catalyst.json.{JSONOptions, JacksonGenerator}
 import org.apache.spark.sql.hive.HiveExternalCatalog
 import org.apache.spark.sql.types.DataType
-import org.apache.spark.sql.{Dataset, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
 /**
   * Created by UFO on 2019-04-02
@@ -25,6 +29,27 @@ object SparkBridge {
 
   def register(sparkSession: SparkSession, name: String, udf: FunctionBuilder) = {
     sparkSession.sessionState.functionRegistry.registerFunction(name, udf)
+  }
+
+  def toJson(dataSet: DataFrame) = {
+    val rowSchema = dataSet.schema
+    val sessionLocalTimeZone = dataSet.sparkSession.sessionState.conf.sessionLocalTimeZone
+
+    val writer = new CharArrayWriter()
+    // create the Generator without separator inserted between 2 records
+    val gen = new JacksonGenerator(rowSchema, writer,
+      new JSONOptions(Map.empty[String, String], sessionLocalTimeZone))
+
+    val enconder = RowEncoder.apply(rowSchema).resolveAndBind()
+    val res = dataSet.collect.map { row =>
+      gen.write(enconder.toRow(row))
+      gen.flush()
+      val json = writer.toString
+      writer.reset()
+      json
+    }
+    gen.close()
+    res
   }
 
 }
