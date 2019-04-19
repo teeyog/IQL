@@ -217,6 +217,8 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     sparkSession.streams.addListener(new IQLStreamingQueryListener(handleFunc))
   }
 
+
+
   // antlr4解析SQL语句
   def parseSQL(input: String, listener: IQLSQLExecListener): Unit = {
     try {
@@ -225,7 +227,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
       iqlExcution.hdfsPath = hdfsPath
       if (listener.result().containsKey("uuidTable")) {
         val showTable = sparkSession.table(listener.getResult("uuidTable"))
-        iqlExcution.data = showTable.limit(500).toJSON.collect().mkString("[", ",", "]")
+        iqlExcution.data = SparkBridge.toJson(showTable.limit(1000)).mkString("[", ",", "]")
         iqlExcution.schema = showTable.schema.fields.map(_.name).mkString(",")
         iqlExcution.status = JobStatus.FINISH
         iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
