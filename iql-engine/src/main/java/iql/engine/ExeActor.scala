@@ -98,7 +98,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
             iqlExcution.mode = SQLMode.CODE
             rIql = rIql.replaceAll("'", "\"").replaceAll("\n", " ")
             val response = interpreter.execute(rIql)
-            getExecuteState(response)
+            while (!executeIsFinish(response)){}
           case _ =>
         }
       }
@@ -310,9 +310,9 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     hiveObj.toJSONString
   }
 
-  def getExecuteState(response: ExecuteResponse): Unit = {
+  def executeIsFinish(response: ExecuteResponse): Boolean = {
     response match {
-      case _: ExecuteIncomplete => getExecuteState(response)
+      case _: ExecuteIncomplete => false
       case e: ExecuteSuccess =>
         val take = (System.currentTimeMillis() - iqlExcution.startTime.getTime) / 1000
         iqlExcution.takeTime = take
@@ -320,19 +320,22 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
         iqlExcution.dataType = ResultDataType.PRE_DATA
         iqlExcution.status = JobStatus.FINISH
         iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
+        true
       case e: ExecuteError =>
         iqlExcution.status = JobStatus.FINISH
         iqlExcution.data = e.evalue
         iqlExcution.success = false
         iqlExcution.dataType = ResultDataType.ERROR_DATA
         iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
+        true
       case e: ExecuteAborted =>
         iqlExcution.status = JobStatus.FINISH
         iqlExcution.data = e.message
         iqlExcution.success = false
         iqlExcution.dataType = ResultDataType.ERROR_DATA
         iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
-      case _ =>
+        true
+      case _ => true
     }
   }
 
