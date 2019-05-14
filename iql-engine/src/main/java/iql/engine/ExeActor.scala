@@ -98,7 +98,7 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
             iqlExcution.mode = SQLMode.CODE
             rIql = rIql.replaceAll("'", "\"").replaceAll("\n", " ")
             val response = interpreter.execute(rIql)
-            while (!executeIsFinish(response)){}
+            while (!executeIsFinish(response)) {}
           case _ =>
         }
       }
@@ -216,7 +216,6 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
     }
     sparkSession.streams.addListener(new IQLStreamingQueryListener(handleFunc))
   }
-
 
 
   // antlr4解析SQL语句
