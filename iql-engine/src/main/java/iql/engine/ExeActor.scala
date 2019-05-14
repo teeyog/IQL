@@ -227,12 +227,11 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
       iqlExcution.hdfsPath = hdfsPath
       if (listener.result().containsKey("uuidTable")) {
         val showTable = sparkSession.table(listener.getResult("uuidTable"))
-        iqlExcution.data = SparkBridge.toJson(showTable.limit(1000)).mkString("[", ",", "]")
         iqlExcution.schema = showTable.schema.fields.map(_.name).mkString(",")
         iqlExcution.status = JobStatus.FINISH
         iqlExcution.takeTime = System.currentTimeMillis() - iqlExcution.startTime.getTime
-        iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
         showTable.select(showTable.columns.map(col(_).cast("String")): _*).write.json(hdfsPath)
+        iqlSession.batchJob.put(iqlExcution.engineInfoAndGroupId, iqlExcution)
       } else if (listener.result().containsKey("explainStr")) {
         iqlExcution.data = listener.getResult("explainStr")
         iqlExcution.dataType = ResultDataType.PRE_DATA

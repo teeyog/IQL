@@ -106,6 +106,9 @@ public class QueryAction {
                 resultObj.put("user", userName);
                 resultObj.put("success", resultObj.getBooleanValue("isSuccess"));
                 iqlExcutionRepository.save(JSONObject.toJavaObject(resultObj, IqlExcution.class));
+                if (resultObj.getString("dataType").equals("structuredData")) {
+                    resultObj.put("data", HdfsUtils.readFileToString(resultObj.getString("hdfsPath"), env.getProperty("hdfs.uri")));
+                }
                 return resultObj;
             } else {
                 try {
