@@ -20,12 +20,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-            <version>4.7.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.11</artifactId>
         </dependency>
@@ -67,6 +61,31 @@
     </dependencies>
 
     <profiles>
+
+        <profile>
+            <id>iql-antlr4.5</id>
+            <dependencies>
+                <dependency>
+                    <groupId>cn.i4</groupId>
+                    <artifactId>iql-antlr4.5</artifactId>
+                    <version>${project.parent.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>iql-antlr4.7</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>cn.i4</groupId>
+                    <artifactId>iql-antlr4.7</artifactId>
+                    <version>${project.parent.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
 
         <profile>
             <id>iql-spark-2.2-adaptor</id>
@@ -122,6 +141,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
             </plugin>
+            <!--<plugin>-->
+            <!--<groupId>org.antlr</groupId>-->
+            <!--<artifactId>antlr4-maven-plugin</artifactId>-->
+            <!--</plugin>-->
         </plugins>
         <resources>
             <resource>
