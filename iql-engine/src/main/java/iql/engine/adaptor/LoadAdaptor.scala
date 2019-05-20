@@ -6,7 +6,7 @@ import iql.engine.antlr.IQLParser._
 import iql.engine.utils.PropsUtils
 import org.apache.spark.sql._
 
-class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor with DslTool{
+class LoadAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdaptor with DslTool {
   override def parse(ctx: SqlContext): Unit = {
     var format = ""
     var option = Map[String, String]()
@@ -41,7 +41,7 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
                        var path: String,
                        tableName: String,
                        format: String
-                      )  extends DslTool {
+                      ) extends DslTool {
   def parse = {
     var table: DataFrame = null
     val sparkSession = scriptSQLExecListener.sparkSession
@@ -55,18 +55,18 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
           .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
         table = reader.format("org.apache.spark.sql.execution.datasources.jdbc2").load()
 
-//      case "jdbc2" =>
-//        reader
-//            .option("dbtable", path)
-//            .option("driver", option.getOrElse("driver", PropsUtils.get("jdbc.driver")))
-//            .option("url", option.getOrElse("url", PropsUtils.get("jdbc.url")))
-//        table = reader.format("org.apache.spark.sql.execution.datasources.jdbc2").load()
-
       case "mongo" =>
         table = reader.format("com.mongodb.spark.sql").load()
 
       case "es" | "org.elasticsearch.spark.sql" =>
         table = reader.format("org.elasticsearch.spark.sql").load(path)
+
+      case "kudu" | "org.apache.kudu.spark.kudu" =>
+//        if (option.contains("schema")) {
+//          reader.schema(option("schema"))
+//        }
+        reader.format("org.apache.kudu.spark.kudu")
+          .option("kudu.table", path).load()
 
       case "hbase" | "org.apache.spark.sql.execution.datasources.hbase" =>
         reader
@@ -79,15 +79,9 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         reader.option("zookeeper.connect", option.getOrElse("zookeeper.connect", PropsUtils.get("kafka.zookeeper.connect")))
         reader.option("topics", path)
         table = reader.format("org.apache.spark.sql.execution.datasources.kafka").load()
-        if (option.getOrElse("data.type", "json").toLowerCase.equals("json")){
-//          val JSON_REGEX = option.getOrElse("json_regex","(.*)").r
+        if (option.getOrElse("data.type", "json").toLowerCase.equals("json")) {
           table = sparkSession.read.json(
             table.select("msg").rdd.map(_.getString(0))
-//            table.select("msg").rdd.map(r => {
-//              r.getString(0) match {
-//                case JSON_REGEX(jsonStr) => jsonStr
-//              }
-//            })
           )
         }
 
@@ -116,8 +110,9 @@ class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
                         path: String,
                         tableName: String,
                         format: String
-                       ) extends Logging{
+                       ) extends Logging {
   private val spark: SparkSession = scriptSQLExecListener.sparkSession
+
   def parse = {
     var table: DataFrame = null
     val reader = spark.readStream
@@ -126,7 +121,7 @@ class StreamLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         reader.option("kafka.bootstrap.servers", option.getOrElse("kafka.bootstrap.servers", PropsUtils.get("kafka.metadata.broker.list")))
         reader.option("subscribe", path)
         table = reader.options(option).format(format).load()
-            .selectExpr("CAST(key AS STRING)","CAST(value AS STRING)","topic","partition","offset","timestamp","timestampType")
+          .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)", "topic", "partition", "offset", "timestamp", "timestampType")
       case _ =>
     }
     table.createOrReplaceTempView(tableName)

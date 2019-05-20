@@ -58,8 +58,10 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch-spark-20_2.11</artifactId>
-            <version>5.6.1</version>
-            <scope>${iqlscope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kudu</groupId>
+            <artifactId>kudu-spark2_2.11</artifactId>
         </dependency>
     </dependencies>
 

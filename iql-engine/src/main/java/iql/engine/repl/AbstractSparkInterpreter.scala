@@ -55,7 +55,7 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
 
     private def convertTableType(value: JValue): String = {
         value match {
-            case (JNothing | JNull) => "NULL_TYPE"
+            case JNothing | JNull => "NULL_TYPE"
             case JBool(_) => "BOOLEAN_TYPE"
             case JString(_) => "STRING_TYPE"
             case JInt(_) => "BIGINT_TYPE"
@@ -73,6 +73,7 @@ abstract class AbstractSparkInterpreter extends Interpreter with Logging {
                 } else {
                     throw new TypesDoNotMatch
                 }
+            case _ => throw new TypesDoNotMatch
         }
     }
 
