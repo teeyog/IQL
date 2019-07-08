@@ -4,10 +4,10 @@ import java.io.CharArrayWriter
 
 import org.apache.spark.sql.catalyst.FunctionIdentifier
 import org.apache.spark.sql.catalyst.analysis.FunctionRegistry.FunctionBuilder
+import org.apache.spark.sql.catalyst.catalog.ExternalCatalog
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.catalyst.expressions.{Expression, ScalaUDF}
 import org.apache.spark.sql.catalyst.json.{JSONOptions, JacksonGenerator}
-import org.apache.spark.sql.hive.HiveExternalCatalog
 import org.apache.spark.sql.types.DataType
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
@@ -24,8 +24,8 @@ object SparkBridge {
     }
   }
 
-  def getHiveCatalg(sparkSession:SparkSession): HiveExternalCatalog = {
-    sparkSession.sharedState.externalCatalog.asInstanceOf[HiveExternalCatalog]
+  def getHiveCatalg(sparkSession:SparkSession): ExternalCatalog = {
+    sparkSession.sharedState.externalCatalog.asInstanceOf[ExternalCatalog]
   }
 
   def register(sparkSession: SparkSession, name: String, udf: FunctionBuilder) = {

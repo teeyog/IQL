@@ -272,16 +272,17 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
   def getHiveCatalog: String = {
     val hiveArray = new JSONArray()
     var num: Int = 0
-    val client = SparkBridge.getHiveCatalg(sparkSession).client
-    client.listDatabases("*").foreach(db => {
+
+    val externalCatalog = SparkBridge.getHiveCatalg(sparkSession)
+    externalCatalog.listDatabases("*").foreach(db => {
       num += 1
       val dbId = num
       hiveArray.add(ObjGenerator.newJSON(Seq(("id", dbId), ("name", db), ("pId", 0)): _*))
-      client.listTables(db).foreach(tb => {
+      externalCatalog.listTables(db).foreach(tb => {
         num += 1
         val tbId = num
         hiveArray.add(ObjGenerator.newJSON(Seq(("id", tbId), ("pId", dbId), ("name", tb)): _*))
-        client.getTable(db, tb).schema.fields.foreach(f => {
+        externalCatalog.getTable(db, tb).schema.fields.foreach(f => {
           num += 1
           val fieldId = num
           hiveArray.add(ObjGenerator.newJSON(Seq(("id", fieldId), ("pId", tbId), ("name", f.name + "(" + f.dataType.typeName + ")")): _*))
@@ -294,13 +295,13 @@ class ExeActor(_interpreter: SparkInterpreter, iqlSession: IQLSession, conf: Spa
 
   def getHiveCatalogWithAutoComplete: String = {
     val hiveObj = new JSONObject()
-    val client = SparkBridge.getHiveCatalg(sparkSession).client
-    client.listDatabases("*").foreach(db => {
+    val externalCatalog = SparkBridge.getHiveCatalg(sparkSession)
+    externalCatalog.listDatabases("*").foreach(db => {
       val tbArray = new JSONArray()
-      client.listTables(db).foreach(tb => {
+      externalCatalog.listTables(db).foreach(tb => {
         tbArray.add(tb)
         val cloArray = new JSONArray()
-        client.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
+        externalCatalog.getTable(db, tb).schema.fields.foreach(f => cloArray.add(f.name))
         hiveObj.put(tb, cloArray)
       })
       hiveObj.put(db, tbArray)
@@ -387,8 +388,9 @@ object ExeActor {
     */
   def hiveTables(spark: SparkSession) = {
     val tableArray = new JSONArray()
-    SparkBridge.getHiveCatalg(spark).client.listDatabases("*").foreach(db => {
-      SparkBridge.getHiveCatalg(spark).client.listTables(db).foreach(tb => {
+    val externalCatalog = SparkBridge.getHiveCatalg(spark)
+    externalCatalog.listDatabases("*").foreach(db => {
+      externalCatalog.listTables(db).foreach(tb => {
         tableArray.add(ObjGenerator.newJSON(Seq(("type", "hive"), ("db", db), ("table", tb)): _*))
       })
     })

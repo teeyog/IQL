@@ -18,15 +18,19 @@ class ImportAdaptor(scriptSQLExecListener: IQLSQLExecListener) extends DslAdapto
     val stop = ctx.stop.getStopIndex
     val interval = new Interval(start, stop)
     val originalText = input.getText(interval)
-    val path = originalText.replace("import", "").replace("IMPORT", "").replace("include", "").replace("INCLUDE", "").trim
+    val path = originalText
+      .replace("import", "")
+      .replace("IMPORT", "")
+      .replace("include", "")
+      .replace("INCLUDE", "").trim
     val script = getScriptByPath(path)
     ExeActor.parse(script, scriptSQLExecListener, null, true)
   }
 
   def getScriptByPath(originalText: String): String = {
     val url = PropsUtils.get("iql.server.address") + "/jobScript/getScriptByPath"
-    Request.Post(url).bodyForm(Form.form().add("packageName", originalText).
-      add("token", scriptSQLExecListener.token)
+    Request.Post(url).bodyForm(Form.form().add("packageName", originalText)
+      .add("token", scriptSQLExecListener.token)
       .build())
       .execute().returnContent().asString()
   }
