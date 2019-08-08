@@ -25,7 +25,7 @@ object SparkBridge {
   }
 
   def getHiveCatalg(sparkSession: SparkSession): ExternalCatalog = {
-    sparkSession.sharedState.externalCatalog.asInstanceOf[ExternalCatalog]
+    sparkSession.sharedState.externalCatalog
   }
 
   def register(sparkSession: SparkSession, name: String, udf: FunctionBuilder) = {
