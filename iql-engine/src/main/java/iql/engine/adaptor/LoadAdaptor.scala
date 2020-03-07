@@ -86,6 +86,7 @@ class BatchLoadAdaptor(scriptSQLExecListener: IQLSQLExecListener,
         }
 
       case "json" | "csv" | "orc" | "parquet" | "text" =>
+//        todo 适配不到2.2
 //        if (option.contains("schema")) {
 //          reader.schema(option("schema"))
 //        }
