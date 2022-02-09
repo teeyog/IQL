@@ -20,7 +20,7 @@
     <properties>
         <main.basedir>${project.basedir}</main.basedir>
         <hbase.version>1.2.0</hbase.version><!--1.2.0-cdh5.13.1-->
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.10.1</hadoop.version>
         <elasticsearch.version>5.6.1</elasticsearch.version>
         <kudu.version>1.5.0</kudu.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
