@@ -39,7 +39,7 @@
         <repository>
             <id>aliyun</id>
             <name>Nexus Release Repository</name>
-            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <url>https://maven.aliyun.com/nexus/content/groups/public</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -50,12 +50,12 @@
         <repository>
             <id>scala-tools.org1</id>
             <name>Scala-Tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
+            <url>https://scala-tools.org/repo-releases</url>
         </repository>
         <repository>
             <id>scala-tools.org2</id>
             <name>Scala-Tools Maven2 Repository</name>
-            <url>http://maven.restlet.org/</url>
+            <url>https://maven.restlet.org/</url>
         </repository>
         <repository>
             <id>scala-tools.org3</id>
